@@ -46,6 +46,7 @@ import { useSectionsContext } from "../../../../hooks/useSectionContext";
 import { useLevelsContext } from "../../../../hooks/useLevelsContext";
 import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
+import { useTasksContext } from "../../../../hooks/useTasksContext";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -87,9 +88,10 @@ const TaskForms = () => {
   const [isloading, setIsLoading] = useState(false);
 
   const [getStudentData, setStudentData] = useState([]);
+  const [taskName, setTaskName] = useState("");
   const [getLevel, setLevel] = useState([]);
+
   const [getStudSubjectID, setStudSubjectID] = useState("");
-  const [getTaskName, setTaskName] = useState("");
   const [getTaskScore, setTaskScore] = useState("");
   var studName = useRef();
   var studLevel = useRef();
@@ -102,7 +104,7 @@ const TaskForms = () => {
   const { departments, depDispatch } = useDepartmentsContext();
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
-
+  const { tasks, taskDispatch } = useTasksContext();
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "",
@@ -159,6 +161,13 @@ const TaskForms = () => {
         //   setIsLoading(false);
         //   setStudentData(json);
         // }
+        const apiTasks = await axiosPrivate.get("/api/tasks");
+
+        if (apiTasks?.status === 200) {
+          const json = await apiTasks.data;
+          setIsLoading(false);
+          taskDispatch({ type: "SET_TASKS", payload: json });
+        }
         const apiStud = await axiosPrivate.get(`/api/enrolled/search/${id}`);
         if (apiStud?.status === 200) {
           const json = await apiStud.data;
@@ -224,11 +233,8 @@ const TaskForms = () => {
         console.log(error);
         if (!error?.response) {
           console.log("No server response!");
-          alert("No server response!");
         } else if (error.response.status === 204) {
-          alert(error.response.data.message);
         } else {
-          // alert(error);
           // navigate("/login", { state: { from: location }, replace: true });
         }
       }
@@ -244,150 +250,11 @@ const TaskForms = () => {
     activeDispatch,
   ]);
 
+  const handleSubmitAssignment = async (e) => {
+    e.preventDefault();
+  };
+
   console.log("stud Data:", getStudentData);
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow
-      // sx={{ backgroundColor: `${colors.primary[100]}` }}
-      >
-        <TableCell>Date</TableCell>
-        <TableCell>Title</TableCell>
-        <TableCell align="left">Points</TableCell>
-        <TableCell align="left">Actions</TableCell>
-      </StyledTableHeadRow>
-    );
-  };
-  const tableDetails = ({ val }) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.schoolYearID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* <TableCell align="left">-</TableCell> */}
-        <TableCell align="left">{val?.schoolYearID}</TableCell>
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val?.schoolYear}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {/* <Button
-            type="button"
-            onClick={() =>
-              setConfirmDialog({
-                isOpen: true,
-                title: "are you sure to delete this record",
-                subTitle: "You cant undo this operation!",
-              })
-            }
-          >
-            asdasd
-          </Button> */}
-          {val?.status === false ? (
-            <ButtonBase disabled>
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <Bookmark />
-                <Typography ml="5px">ARCHIVED</Typography>
-              </Paper>
-            </ButtonBase>
-          ) : (
-            <ButtonBase
-              type="button"
-              onClick={() =>
-                setValidateDialog({
-                  isOpen: true,
-                  onConfirm: () => {
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: `Are you sure to archived Year ${val.schoolYear}`,
-                      message: "You cant undo this operation!",
-                      onConfirm: () => {
-                        // toggleStatus({ val });
-                      },
-                    });
-                  },
-                })
-              }
-            >
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            </ButtonBase>
-          )}
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to delete year ${val.schoolYearID}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      // handleDelete({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
 
   return (
     <Box className="contents-container">
@@ -469,45 +336,55 @@ const TaskForms = () => {
               </Typography>
             </Box>
           </Box>
-          <Box
-            sx={{
-              display: "flex",
-              p: 2,
-              alignItems: "center",
-              justifyContent: { xs: "center", sm: "start" },
-            }}
-          >
-            <FormControl sx={{ width: "250px" }}>
-              <Typography>Subject Name</Typography>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={getStudSubjectID}
-                // error={}
-                // label="Subject Code"
-                onChange={(e) => {
-                  setStudSubjectID(e.target.value);
-                }}
-              >
-                <MenuItem aria-label="None" value="" />
-                {subjects &&
-                  subjects
-                    .filter((subj) => {
-                      return subj.levelID === getStudentData.levelID;
-                    })
-                    .map((val) => {
-                      return (
-                        <MenuItem
-                          value={val?.subjectID}
-                          sx={{ textTransform: "capitalize" }}
-                        >
-                          {val?.subjectName}
-                        </MenuItem>
-                      );
-                    })}
-              </Select>
-            </FormControl>
-          </Box>
+        </Box>
+      </Paper>
+      <Paper
+        elevation={2}
+        sx={{
+          width: "100%",
+          padding: { xs: "10px", sm: "0 10px" },
+          mt: 2,
+        }}
+      >
+        {" "}
+        <Box
+          sx={{
+            display: "flex",
+            p: 2,
+            alignItems: "center",
+            justifyContent: { xs: "center", sm: "start" },
+          }}
+        >
+          <FormControl sx={{ width: "50%" }}>
+            <Typography>Subject Name</Typography>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={getStudSubjectID}
+              // error={}
+              // label="Subject Code"
+              onChange={(e) => {
+                setStudSubjectID(e.target.value);
+              }}
+            >
+              <MenuItem aria-label="None" value="" />
+              {subjects &&
+                subjects
+                  .filter((subj) => {
+                    return subj.levelID === getStudentData.levelID;
+                  })
+                  .map((val) => {
+                    return (
+                      <MenuItem
+                        value={val?.subjectID}
+                        sx={{ textTransform: "capitalize" }}
+                      >
+                        {val?.subjectName}
+                      </MenuItem>
+                    );
+                  })}
+            </Select>
+          </FormControl>
         </Box>
       </Paper>
       <Box
@@ -558,7 +435,7 @@ const TaskForms = () => {
       <TabPanel sx={{ width: "100%" }} value={value} index={0}>
         <Paper elevation={2} sx={{ p: 2 }}>
           <Box width="100%">
-            <form style={{ width: "100%" }}>
+            <form onSubmit={handleSubmitAssignment} style={{ width: "100%" }}>
               <Box
                 sx={{
                   display: "grid",
@@ -566,9 +443,32 @@ const TaskForms = () => {
                 }}
                 gap={2}
               >
-                <FormControl>
-                  <Typography>Task Name</Typography>
-                  <TextField variant="outlined" />
+                <FormControl required fullWidth>
+                  <Typography id="demo-simple-select-label">
+                    Assignment Title
+                  </Typography>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={taskName}
+                    // error={}
+                    onChange={(e) => {
+                      setTaskName(e.target.value);
+                    }}
+                  >
+                    {tasks &&
+                      tasks
+                        .filter((fill) => {
+                          return fill.taskType === "assignment";
+                        })
+                        .map((val) => {
+                          return (
+                            <MenuItem value={val.taskID}>
+                              {val.taskName}
+                            </MenuItem>
+                          );
+                        })}
+                  </Select>
                 </FormControl>
                 <br />
                 <FormControl>
@@ -604,11 +504,289 @@ const TaskForms = () => {
         </Paper>
       </TabPanel>
       <TabPanel value={value} index={1}>
-        Item Two
+        <Paper elevation={2} sx={{ p: 2 }}>
+          <Box width="100%">
+            <form style={{ width: "100%" }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                }}
+                gap={2}
+              >
+                <FormControl required fullWidth>
+                  <Typography id="demo-simple-select-label">
+                    Activity Title
+                  </Typography>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={taskName}
+                    // error={}
+                    onChange={(e) => {
+                      setTaskName(e.target.value);
+                    }}
+                  >
+                    {tasks &&
+                      tasks
+                        .filter((fill) => {
+                          return fill.taskType === "activity";
+                        })
+                        .map((val) => {
+                          return (
+                            <MenuItem value={val.taskID}>
+                              {val.taskName}
+                            </MenuItem>
+                          );
+                        })}
+                  </Select>
+                </FormControl>
+                <br />
+                <FormControl>
+                  <Typography>Task Score</Typography>
+                  <TextField variant="outlined" />
+                </FormControl>
+                <br />
+                <Box display="flex" justifyContent="end" height="50px" gap={2}>
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    color="secondary"
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      Confirm
+                    </Typography>
+                  </Button>
+                  <Button
+                    fullWidth
+                    type="button"
+                    variant="contained"
+                    onClick={() => {}}
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      CANCEL
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
+            </form>
+          </Box>
+        </Paper>
       </TabPanel>
       <TabPanel value={value} index={2}>
-        Item Three
-      </TabPanel>
+        <Paper elevation={2} sx={{ p: 2 }}>
+          <Box width="100%">
+            <form style={{ width: "100%" }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                }}
+                gap={2}
+              >
+                <FormControl required fullWidth>
+                  <Typography id="demo-simple-select-label">
+                    Project Title
+                  </Typography>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={taskName}
+                    // error={}
+                    onChange={(e) => {
+                      setTaskName(e.target.value);
+                    }}
+                  >
+                    {tasks &&
+                      tasks
+                        .filter((fill) => {
+                          return fill.taskType === "project";
+                        })
+                        .map((val) => {
+                          return (
+                            <MenuItem value={val.taskID}>
+                              {val.taskName}
+                            </MenuItem>
+                          );
+                        })}
+                  </Select>
+                </FormControl>
+                <br />
+                <FormControl>
+                  <Typography>Task Score</Typography>
+                  <TextField variant="outlined" />
+                </FormControl>
+                <br />
+                <Box display="flex" justifyContent="end" height="50px" gap={2}>
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    color="secondary"
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      Confirm
+                    </Typography>
+                  </Button>
+                  <Button
+                    fullWidth
+                    type="button"
+                    variant="contained"
+                    onClick={() => {}}
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      CANCEL
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
+            </form>
+          </Box>
+        </Paper>
+      </TabPanel>{" "}
+      <TabPanel value={value} index={3}>
+        <Paper elevation={2} sx={{ p: 2 }}>
+          <Box width="100%">
+            <form style={{ width: "100%" }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                }}
+                gap={2}
+              >
+                <FormControl required fullWidth>
+                  <Typography id="demo-simple-select-label">
+                    Quiz Title
+                  </Typography>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={taskName}
+                    // error={}
+                    onChange={(e) => {
+                      setTaskName(e.target.value);
+                    }}
+                  >
+                    {tasks &&
+                      tasks
+                        .filter((fill) => {
+                          return fill.taskType === "quiz";
+                        })
+                        .map((val) => {
+                          return (
+                            <MenuItem value={val.taskID}>
+                              {val.taskName}
+                            </MenuItem>
+                          );
+                        })}
+                  </Select>
+                </FormControl>
+                <br />
+                <FormControl>
+                  <Typography>Task Score</Typography>
+                  <TextField variant="outlined" />
+                </FormControl>
+                <br />
+                <Box display="flex" justifyContent="end" height="50px" gap={2}>
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    color="secondary"
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      Confirm
+                    </Typography>
+                  </Button>
+                  <Button
+                    fullWidth
+                    type="button"
+                    variant="contained"
+                    onClick={() => {}}
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      CANCEL
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
+            </form>
+          </Box>
+        </Paper>
+      </TabPanel>{" "}
+      <TabPanel value={value} index={4}>
+        <Paper elevation={2} sx={{ p: 2 }}>
+          <Box width="100%">
+            <form style={{ width: "100%" }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                }}
+                gap={2}
+              >
+                <FormControl required fullWidth>
+                  <Typography id="demo-simple-select-label">
+                    Exam Title
+                  </Typography>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={taskName}
+                    // error={}
+                    onChange={(e) => {
+                      setTaskName(e.target.value);
+                    }}
+                  >
+                    {tasks &&
+                      tasks
+                        .filter((fill) => {
+                          return fill.taskType === "exam";
+                        })
+                        .map((val) => {
+                          return (
+                            <MenuItem value={val.taskID}>
+                              {val.taskName}
+                            </MenuItem>
+                          );
+                        })}
+                  </Select>
+                </FormControl>
+                <br />
+                <FormControl>
+                  <Typography>Task Score</Typography>
+                  <TextField variant="outlined" />
+                </FormControl>
+                <br />
+                <Box display="flex" justifyContent="end" height="50px" gap={2}>
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    color="secondary"
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      Confirm
+                    </Typography>
+                  </Button>
+                  <Button
+                    fullWidth
+                    type="button"
+                    variant="contained"
+                    onClick={() => {}}
+                  >
+                    <Typography variant="h6" fontWeight="500">
+                      CANCEL
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
+            </form>
+          </Box>
+        </Paper>
+      </TabPanel>{" "}
     </Box>
   );
 };

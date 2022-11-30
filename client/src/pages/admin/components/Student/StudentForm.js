@@ -22,6 +22,7 @@ import SuccessDialogue from "../../../../global/SuccessDialogue";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 
+import { useNavigate, useLocation } from "react-router-dom";
 const StudentForm = () => {
   const CHARACTER_LIMIT = 10;
   const STUDID_LIMIT = 10;
@@ -30,6 +31,8 @@ const StudentForm = () => {
   const axiosPrivate = useAxiosPrivate();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { subjects, studDispatch } = useStudentsContext();
   const [isFormOpen, setIsFormOpen] = useState(true);
@@ -118,6 +121,7 @@ const StudentForm = () => {
         } else if (error.response.status === 400) {
           console.log(error.response.data.message);
         } else if (error.response.status === 403) {
+          navigate("/login", { state: { from: location }, replace: true });
           console.log(error.response.data.message);
         } else if (error.response.status === 409) {
           setStudIDError(true);

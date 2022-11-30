@@ -372,7 +372,7 @@ const Sidebar = () => {
               <SidebarHeader />
             )}
             <Item
-              title="Adviser"
+              title="Advisers"
               to="adviser"
               icon={<PermContactCalendarOutlined />}
               selected={selected}

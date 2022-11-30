@@ -23,8 +23,8 @@ import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Grades from "./pages/admin/Grades";
 import GradesForm from "./pages/admin/components/Grade/GradesForm";
-import TaskForms from "./pages/admin/components/Grade/TaskForms";
-import TaskTable from "./pages/admin/components/Grade/TaskTable";
+import GradeTaskForms from "./pages/admin/components/Grade/TaskForms";
+import GradeTaskTable from "./pages/admin/components/Grade/TaskTable";
 import Employees from "./pages/admin/Employees";
 import FacultyProfile from "./pages/admin/components/Employee/FacultyProfile";
 import FacultyProfileEdit from "./pages/admin/components/Employee/FacultyProfileEdit";
@@ -40,6 +40,7 @@ import Section from "./pages/admin/Section";
 import Department from "./pages/admin/Department";
 import SchoolYear from "./pages/admin/SchoolYear";
 import Task from "./pages/admin/Task";
+import Taskform from "./pages/admin/components/Task/Taskform";
 import Adviser from "./pages/admin/Adviser";
 import ActiveStudents from "./pages/admin/ActiveStudents";
 
@@ -121,10 +122,13 @@ function App() {
                     path="record/grade/:id/:year"
                     element={<GradesForm />}
                   />
-                  <Route path="record/task/:id/:year" element={<TaskTable />} />
+                  <Route
+                    path="record/task/:id/:year"
+                    element={<GradeTaskTable />}
+                  />
                   <Route
                     path="record/task/add/:id/:year"
-                    element={<TaskForms />}
+                    element={<GradeTaskForms />}
                   />
                   <Route path="user" element={<Users />} />
                   <Route path="student" element={<Students />} />
@@ -139,9 +143,10 @@ function App() {
                   />
                   <Route
                     path="student/record/tasks/:id/:year"
-                    element={<TaskTable />}
+                    element={<GradeTaskTable />}
                   />
                   <Route path="task" element={<Task />} />
+                  <Route path="task/add" element={<Taskform />} />
                   <Route path="subject" element={<Subjects />} />
                   <Route path="faculty" element={<Employees />} />
                   <Route path="faculty/:id" element={<FacultyProfile />} />

@@ -330,7 +330,6 @@ const SchoolYearTable = () => {
           isOpen: true,
           message: `${error.response.data.message}`,
         });
-        alert(error.response.data.message);
         navigate("/login", { state: { from: location }, replace: true });
         setIsLoading(false);
       } else {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Lock,
   Person,
@@ -22,6 +22,8 @@ import { tokens } from "../theme";
 import axios from "../api/axios";
 import ErrorDialogue from "../global/ErrorDialogue";
 import SuccessDialogue from "../global/SuccessDialogue";
+import LoadingDialogue from "../global/LoadingDialogue";
+
 import Topbar from "../global/Home/Topbar";
 
 const Register = () => {
@@ -30,6 +32,8 @@ const Register = () => {
   );
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -63,9 +67,14 @@ const Register = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoadingDialog({ isOpen: true });
     if (password !== confPassword) {
       return (
         setError(true),
@@ -91,12 +100,21 @@ const Register = () => {
         if (response.status === 201) {
           const json = await response.data;
           console.log("response;", json);
+          setUsername("");
+          setEmail("");
+          setPassword("");
+          setConfPassword("");
+          setLoadingDialog({ isOpen: false });
           setSuccessDialog({
             isOpen: true,
-            message: "Registration Success!",
+            message: `Registration of ${json.userType} - ${json.username} Success!`,
+            onConfirm: () => {
+              navigate("/login", { replace: true });
+            },
           });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error.response) {
           console.log("no server response");
         } else if (error.response.status === 400) {
@@ -134,6 +152,11 @@ const Register = () => {
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
       />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
+
       {/* <img className="login-background" src={background} alt="" /> */}
       <Box className="mainpage-container">
         {/* <pre>{JSON.stringify(formValues, undefined, 2)}</pre> */}
@@ -165,6 +188,7 @@ const Register = () => {
                     error={usernameError}
                     onChange={(e) => {
                       setUserNameError(false);
+                      setPasswordError(false);
                       setUsername(e.target.value);
                     }}
                   />

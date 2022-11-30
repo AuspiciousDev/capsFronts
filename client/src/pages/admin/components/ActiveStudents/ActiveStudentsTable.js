@@ -568,7 +568,6 @@ const ActiveStudentsTable = () => {
         console.log(error.response.data.message);
         setIsLoading(false);
       } else if (error.response.status === 404) {
-        alert(error.response.data.message);
         console.log(error.response.data.message);
         setIsLoading(false);
       } else {

@@ -27,6 +27,8 @@ import axios from "./../api/axios";
 import Topbar from "../global/Home/Topbar";
 
 import ErrorDialogue from "../global/ErrorDialogue";
+import LoadingDialogue from "../global/LoadingDialogue";
+
 const LOGIN_URL = "/auth";
 const Login = () => {
   const theme = useTheme();
@@ -49,6 +51,11 @@ const Login = () => {
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
   const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
     isOpen: false,
     title: "",
     message: "",
@@ -80,6 +87,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoadingDialog({ isOpen: true });
     if (!usernameError && !passwordError) {
       try {
         const response = await axios.post(
@@ -107,6 +115,7 @@ const Login = () => {
           return (
             setUsernameError(true),
             setPasswordError(true),
+            setLoadingDialog({ isOpen: false }),
             setErrorDialog({
               isOpen: true,
               message: `Unauthorized access!`,
@@ -120,6 +129,7 @@ const Login = () => {
           console.log(response);
           console.log(roles);
           console.log("from:", from);
+          setLoadingDialog({ isOpen: false });
           from === "/" && roles.includes(2001)
             ? navigate("/admin", { replace: true })
             : from === "/" && roles.includes(2002)
@@ -127,8 +137,13 @@ const Login = () => {
             : navigate(from, { replace: true });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
+          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error?.response}!`,
+          });
         } else if (error.response.status === 400) {
           setUsernameError(true);
           setPasswordError(true);
@@ -144,7 +159,10 @@ const Login = () => {
             message: `${error.response.data.message}`,
           });
         } else {
-          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
         }
       }
     }
@@ -161,6 +179,10 @@ const Login = () => {
       <ErrorDialogue
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Box className="mainpage-content" sx={{ padding: "50px" }}>
         <Paper
@@ -194,6 +216,7 @@ const Login = () => {
                   value={username}
                   onChange={(e) => {
                     setUsernameError(false);
+                    setPasswordError(false);
                     setUsername(e.target.value);
                   }}
                   InputProps={{
@@ -216,6 +239,7 @@ const Login = () => {
                   autoComplete="off"
                   value={password}
                   onChange={(e) => {
+                    setUsernameError(false);
                     setPasswordError(false);
                     setPassword(e.target.value);
                   }}

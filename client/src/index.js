@@ -14,6 +14,9 @@ import { DepartmentsContextProvider } from "./context/DepartmentContext";
 import { SectionsContextProvider } from "./context/SectionsContext";
 import { ActiveStudentsContextProvider } from "./context/ActiveStudentContext";
 import { GradesContextProvider } from "./context/GradesContext";
+import { TasksContextProvider } from "./context/TaskContext";
+import { TasksScoreContextProvider } from "./context/TaskScoreContext";
+import { AdvisersContextProvider } from "./context/AdviserContext";
 import { AuthProvider } from "./context/AuthProvider";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -29,7 +32,13 @@ root.render(
                     <SubjectsContextProvider>
                       <ActiveStudentsContextProvider>
                         <GradesContextProvider>
-                          <App />
+                          <TasksContextProvider>
+                            <TasksScoreContextProvider>
+                              <AdvisersContextProvider>
+                                <App />
+                              </AdvisersContextProvider>
+                            </TasksScoreContextProvider>
+                          </TasksContextProvider>
                         </GradesContextProvider>
                       </ActiveStudentsContextProvider>
                     </SubjectsContextProvider>

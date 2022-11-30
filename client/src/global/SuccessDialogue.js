@@ -35,7 +35,9 @@ export const SuccessAlert = (props) => {
           <CheckCircleOutlinedIcon
             sx={{ fontSize: "100px", color: colors.primary[500] }}
           />
-          <Typography variant="h3">{successDialog?.message || "Changes has been made!"}</Typography>
+          <Typography variant="h3">
+            {successDialog?.message || "Changes has been made!"}
+          </Typography>
         </Box>
       </DialogTitle>
       <DialogActions
@@ -49,9 +51,10 @@ export const SuccessAlert = (props) => {
         <Button
           fullWidth
           variant="contained"
-          onClick={() => setSuccessDialog({ ...successDialog, isOpen: false })}
+          // onClick={() => setSuccessDialog({ ...successDialog, isOpen: false })}
+          onClick={successDialog.onConfirm}
         >
-          Exit
+          OK
         </Button>
       </DialogActions>
     </Dialog>

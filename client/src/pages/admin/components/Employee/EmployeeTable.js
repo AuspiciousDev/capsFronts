@@ -54,6 +54,7 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -83,6 +84,12 @@ const EmployeeTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
   const [validateDialog, setValidateDialog] = useState({
     isOpen: false,
     title: "",
@@ -152,85 +159,7 @@ const EmployeeTable = () => {
     };
     getUsersDetails();
   }, [empDispatch]);
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.secondary[500] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h4" fontWeight="600">
-              Delete Record
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h6">Are you sure to delete </Typography>
-            <Box margin="20px 0">
-              <Typography variant="h4" fontWeight="700">
-                {delVal.empID}
-              </Typography>
-              <Typography variant="h5" sx={{ textTransform: "capitalize" }}>
-                {delVal.middleName
-                  ? delVal.firstName +
-                    " " +
-                    delVal.middleName +
-                    " " +
-                    delVal.lastName
-                  : delVal.firstName + " " + delVal.lastName}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
+
 
   const toggleStatus = async ({ val }) => {
     setConfirmDialog({
@@ -290,7 +219,9 @@ const EmployeeTable = () => {
       ...confirmDialog,
       isOpen: false,
     });
+    
     try {
+      setLoadingDialog({ isOpen: true });
       setIsLoading(true);
       const response = await axiosPrivate.delete("/api/employees/delete", {
         headers: { "Content-Type": "application/json" },
@@ -301,9 +232,18 @@ const EmployeeTable = () => {
       if (response.status === 200) {
         console.log(response.data.message);
         empDispatch({ type: "DELETE_EMPLOYEE", payload: json });
+        setSuccessDialog({
+          isOpen: true,
+          message: "Employee has been deleted!",
+          onConfirm: () => {
+            setSuccessDialog({ isOpen: false });
+          },
+        });
+        setLoadingDialog({ isOpen: false });
       }
       setIsLoading(false);
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
       if (!error?.response) {
         console.log("no server response");
         setIsLoading(false);
@@ -611,6 +551,11 @@ const EmployeeTable = () => {
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
       />
+        <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
+
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}

@@ -173,11 +173,8 @@ const GradesTable = () => {
       } catch (error) {
         if (!error?.response) {
           console.log("No server response!");
-          alert("No server response!");
         } else if (error.response.status === 204) {
-          alert(error.response.data.message);
         } else {
-          // alert(error);
           // navigate("/login", { state: { from: location }, replace: true });
         }
       }

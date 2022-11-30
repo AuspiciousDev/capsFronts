@@ -27,6 +27,8 @@ import { useEmployeesContext } from "../../../../hooks/useEmployeesContext";
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
 import { useTheme } from "@mui/material";
@@ -83,6 +85,11 @@ const EmployeeForm = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const handleFieldChange = (event) => {
     console.log(event);
@@ -126,6 +133,7 @@ const EmployeeForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoadingDialog({ isOpen: true });
 
     const employee = {
       empID,
@@ -140,106 +148,61 @@ const EmployeeForm = () => {
     };
     console.log(employee);
 
-    if (!firstName) {
-      setFirstNameError(true);
-    } else {
-      setFirstNameError(false);
-    }
-    if (!lastName) {
-      setLastNameError(true);
-    } else {
-      setLastNameError(false);
-    }
-    if (!dateOfBirth) {
-      setDateOfBirthError(true);
-    } else {
-      setDateOfBirthError(false);
-    }
-    if (!gender) {
-      setGenderError(true);
-    } else {
-      setGenderError(false);
-    }
-    if (!email) {
-      setEmailError(true);
-    } else {
-      setEmailError(false);
-    }
-
-    if (!empID) {
-      setEmpIDError(true);
-    } else {
-      setEmpIDError(false);
-    }
-    if (!empType) {
-      setEmpTypeError(true);
-    } else {
-      setEmpTypeError(false);
-    }
-
-    if (
-      !empIDError &&
-      !firstNameError &&
-      !lastNameError &&
-      !dateOfBirthError &&
-      !genderError &&
-      !emailError &&
-      !empTypeError
-    ) {
-      try {
-        const response = await axiosPrivate.post(
-          "/api/employees/register",
-          JSON.stringify(employee)
-        );
-        if (response.status === 201) {
-          const json = await response.data;
-          console.log("response;", json);
-          empDispatch({ type: "CREATE_EMPLOYEE", payload: json });
-          setSuccessDialog({
-            isOpen: true,
-            message: "Employee has been added!",
-          });
-          clearFields();
-        }
-      } catch (error) {
-        if (!error?.response) {
-          console.log("no server response");
-          setEmpIDError(true);
-          setErrorDialog({
-            isOpen: true,
-            message: `${"No server response!"}`,
-          });
-        } else if (error.response.status === 400) {
-          setEmpIDError(true);
-          console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-        } else if (error.response.status === 409) {
-          console.log(error.response.data.message);
-          if (error.response.data.message.includes("Employee")) {
-            setEmpIDError(true);
-          }
-          if (error.response.data.message.includes("Email")) {
-            setEmailError(true);
-          }
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-        } else {
-          console.log(error);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error}`,
-          });
-        }
+    try {
+      const response = await axiosPrivate.post(
+        "/api/employees/register",
+        JSON.stringify(employee)
+      );
+      if (response.status === 201) {
+        const json = await response.data;
+        console.log("response;", json);
+        empDispatch({ type: "CREATE_EMPLOYEE", payload: json });
+        setLoadingDialog({ isOpen: false });
+        setSuccessDialog({
+          isOpen: true,
+          message: "Employee has been added!",
+          onConfirm: () => {
+            setSuccessDialog({ isOpen: false });
+          },
+        });
+        clearFields();
       }
-    } else {
-      console.log("MADAME ERROR");
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      if (!error?.response) {
+        console.log("no server response");
+        setEmpIDError(true);
+        setErrorDialog({
+          isOpen: true,
+          message: `${"No server response!"}`,
+        });
+      } else if (error.response.status === 400) {
+        setEmpIDError(true);
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 409) {
+        console.log(error.response.data.message);
+        if (error.response.data.message.includes("Employee")) {
+          setEmpIDError(true);
+        }
+        if (error.response.data.message.includes("Email")) {
+          setEmailError(true);
+        }
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else {
+        console.log(error);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+      }
     }
-    // console.log(empType);
   };
   const clearForm = () => {
     setIsFormOpen(false);
@@ -258,6 +221,11 @@ const EmployeeForm = () => {
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
       />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
+
       {!isFormOpen ? (
         <EmployeeTable />
       ) : (
@@ -416,10 +384,10 @@ const EmployeeForm = () => {
                     error={firstNameError}
                     value={firstName}
                     onChange={(e) => {
-                      if (isLetters(e.target.value)) {
-                        setFirstNameError(false);
-                        setFirstName(e.target.value);
-                      }
+                      // if (isLetters(e.target.value)) {
+                      setFirstNameError(false);
+                      setFirstName(e.target.value);
+                      // }
                     }}
                     inputProps={{ style: { textTransform: "capitalize" } }}
                   />

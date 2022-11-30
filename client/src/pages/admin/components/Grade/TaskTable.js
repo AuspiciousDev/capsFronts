@@ -46,6 +46,8 @@ import { useSectionsContext } from "../../../../hooks/useSectionContext";
 import { useLevelsContext } from "../../../../hooks/useLevelsContext";
 import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
+import { useTasksContext } from "../../../../hooks/useTasksContext";
+import { useTasksScoresContext } from "../../../../hooks/useTasksScoreContext";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -100,7 +102,8 @@ const TaskTable = () => {
   const { departments, depDispatch } = useDepartmentsContext();
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
-
+  const { tasks, taskDispatch } = useTasksContext();
+  const { taskScore, taskScoreDispatch } = useTasksScoresContext();
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "",
@@ -218,15 +221,24 @@ const TaskTable = () => {
           // console.log(json);
           setIsLoading(false);
         }
+        const apiTasks = await axiosPrivate.get("/api/tasks");
+        if (apiTasks?.status === 200) {
+          const json = await apiTasks.data;
+          setIsLoading(false);
+          taskDispatch({ type: "SET_TASKS", payload: json });
+        }
+        const apiTaskScore = await axiosPrivate.get("/api/taskScore");
+        if (apiTaskScore?.status === 200) {
+          const json = await apiTaskScore.data;
+          setIsLoading(false);
+          taskScoreDispatch({ type: "SET_TASKSCORES", payload: json });
+        }
       } catch (error) {
         console.log(error);
         if (!error?.response) {
           console.log("No server response!");
-          alert("No server response!");
         } else if (error.response.status === 204) {
-          alert(error.response.data.message);
         } else {
-          // alert(error);
           // navigate("/login", { state: { from: location }, replace: true });
         }
       }
@@ -240,6 +252,7 @@ const TaskTable = () => {
     depDispatch,
     secDispatch,
     activeDispatch,
+    taskDispatch,
   ]);
 
   console.log("stud Data:", getStudentData);
@@ -255,11 +268,11 @@ const TaskTable = () => {
       </StyledTableHeadRow>
     );
   };
-  const tableDetails = ({ val }) => {
+  const tableDetails = (val) => {
     return (
       <StyledTableRow
         key={val._id}
-        data-rowid={val.schoolYearID}
+        data-rowid={val?.schoolYearID}
         sx={
           {
             // "&:last-child td, &:last-child th": { border: 2 },
@@ -268,13 +281,13 @@ const TaskTable = () => {
         }
       >
         {/* <TableCell align="left">-</TableCell> */}
-        <TableCell align="left">{val?.schoolYearID}</TableCell>
+        <TableCell align="left">{val?.createdAt}</TableCell>
         <TableCell
           component="th"
           scope="row"
           sx={{ textTransform: "capitalize" }}
         >
-          {val?.schoolYear}
+          {val?.taskName}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
           {/* <Button
@@ -537,6 +550,7 @@ const TaskTable = () => {
               {...a11yProps(3)}
               sx={{ fontWeight: "bold" }}
             />
+
             <Tab label="Exams" {...a11yProps(4)} sx={{ fontWeight: "bold" }} />
           </Tabs>
         </AppBar>
@@ -548,7 +562,16 @@ const TaskTable = () => {
               <TableHead>
                 <TableTitles />
               </TableHead>
-              <TableBody></TableBody>
+              <TableBody>
+                {taskScore &&
+                  taskScore
+                    .filter((fill) => {
+                      return fill.taskType === "assignment";
+                    })
+                    .map((val) => {
+                      return tableDetails(val);
+                    })}
+              </TableBody>
             </Table>
           </TableContainer>
           <Divider />
