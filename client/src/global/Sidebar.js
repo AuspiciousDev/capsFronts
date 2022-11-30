@@ -9,7 +9,6 @@ import deped from "../images/Logo-DepEd-1.png";
 import profilePic from "../images/profile2.png";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { useNavigate } from "react-router-dom";
-import { Logout } from "@mui/icons-material";
 
 import { useState, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
@@ -26,7 +25,6 @@ import {
 import { Avatar, Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link, Navigate } from "react-router-dom";
 import { tokens } from "../theme";
-
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import GradeOutlinedIcon from "@mui/icons-material/GradeOutlined";
@@ -43,7 +41,12 @@ import CorporateFareOutlinedIcon from "@mui/icons-material/CorporateFareOutlined
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CoPresentIconOutlinedIcon from "@mui/icons-material/CoPresentOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
-import { TopicOutlined, TaskOutlined } from "@mui/icons-material";
+import {
+  TopicOutlined,
+  TaskOutlined,
+  PermContactCalendarOutlined,
+  Logout,
+} from "@mui/icons-material";
 import "react-pro-sidebar/dist/css/styles.css";
 import { useEmployeesContext } from "../hooks/useEmployeesContext";
 import { useSchoolYearsContext } from "../hooks/useSchoolYearsContext";
@@ -368,6 +371,13 @@ const Sidebar = () => {
             ) : (
               <SidebarHeader />
             )}
+            <Item
+              title="Adviser"
+              to="adviser"
+              icon={<PermContactCalendarOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />{" "}
             <Item
               title="Sections"
               to="section"

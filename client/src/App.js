@@ -40,6 +40,7 @@ import Section from "./pages/admin/Section";
 import Department from "./pages/admin/Department";
 import SchoolYear from "./pages/admin/SchoolYear";
 import Task from "./pages/admin/Task";
+import Adviser from "./pages/admin/Adviser";
 import ActiveStudents from "./pages/admin/ActiveStudents";
 
 import GenerateActiveYearGrades from "./pages/admin/components/GeneratePDF/GenerateActiveYearGrades";
@@ -148,6 +149,7 @@ function App() {
                     path="faculty/edit/:id"
                     element={<FacultyProfileEdit />}
                   />
+                  <Route path="adviser" element={<Adviser />} />
                   <Route path="level" element={<Level />} />
                   <Route path="section" element={<Section />} />
                   <Route path="department" element={<Department />} />

@@ -3,7 +3,6 @@ import "./Home.css";
 import { Box, colors, Paper, Typography, useTheme } from "@mui/material";
 import Topbar from "../global/Home/Topbar";
 import deped from "../images/bsu1.jpg";
-import depe1d from "../images/happy-women-learning-language-online-isolated-flat-vector-illustration-cartoon-female-characters-taking-individual-lessons-through-messenger-education-digital-technology-concept_74855-10088.webp";
 import { ColorModeContext, tokens } from "../theme";
 import { Link } from "react-router-dom";
 import { KeyboardArrowRightOutlined } from "@mui/icons-material";
