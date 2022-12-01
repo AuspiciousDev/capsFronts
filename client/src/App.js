@@ -22,6 +22,7 @@ import MainPage from "./pages/main/Mainpage";
 import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Grades from "./pages/admin/Grades";
+import GradesCurrent from "./pages/admin/components/Grade/GradesCurrent";
 import GradesForm from "./pages/admin/components/Grade/GradesForm";
 import GradeTaskForms from "./pages/admin/components/Grade/TaskForms";
 import GradeTaskTable from "./pages/admin/components/Grade/TaskTable";
@@ -119,6 +120,8 @@ function App() {
                 <Route path="/admin" element={<MainPage />}>
                   <Route index element={<Dashboard />} />
                   <Route path="grade" element={<Grades />} />
+                  <Route path="grade/:level/:year/:id" element={<GradesCurrent />} />
+
                   <Route
                     path="record/grade/:id/:year"
                     element={<GradesForm />}

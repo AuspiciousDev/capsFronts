@@ -8,34 +8,19 @@ import {
   Paper,
   InputBase,
   Divider,
-  Button,
   Typography,
   IconButton,
   ButtonBase,
   TableContainer,
   Table,
   TableRow,
-  FormControl,
-  TextField,
   TableHead,
   TableCell,
   TableBody,
-  InputLabel,
-  Select,
-  Menu,
-  MenuItem,
   TablePagination,
 } from "@mui/material";
-import {
-  DriveFileRenameOutline,
-  AccountCircle,
-  DeleteOutline,
-  Person2,
-  Search,
-} from "@mui/icons-material";
-import AddIcon from "@mui/icons-material/Add";
+import { Search } from "@mui/icons-material";
 import TopicOutlinedIcon from "@mui/icons-material/TopicOutlined";
-import { styled } from "@mui/material/styles";
 
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
 import { useGradesContext } from "../../../../hooks/useGradesContext";
@@ -49,7 +34,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import DownloadForOfflineOutlinedIcon from "@mui/icons-material/DownloadForOfflineOutlined";
-import { useTheme } from "@mui/material";
+import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
 import GradesForm from "./GradesForm";
 const GradesTable = () => {
@@ -243,7 +228,6 @@ const GradesTable = () => {
         <TableCell align="left">Name</TableCell>
         <TableCell align="left">Sex</TableCell>
         <TableCell align="left">Records</TableCell>
-        <TableCell align="left">Actions</TableCell>
       </StyledTableHeadRow>
     );
   };
@@ -304,13 +288,17 @@ const GradesTable = () => {
                 flexDirection: "row",
               }}
             > */}
-            <ButtonBase
+            {/* <ButtonBase
               sx={{ cursor: "pointer" }}
               onClick={() => {
                 setIsFormOpen((o) => !o);
                 setData(val);
                 setID(val.studID);
-              }}
+              }} 
+            >*/}
+            <Link
+              to={`/admin/grade/${val.levelID}/${val.schoolYearID}/${val.studID}`}
+              style={{ textDecoration: "none" }}
             >
               <Paper
                 sx={{
@@ -326,9 +314,9 @@ const GradesTable = () => {
                 <TopicOutlinedIcon />
                 <Typography ml="10px">Grades</Typography>
               </Paper>
-            </ButtonBase>
-            {/* </Box> */}
-
+              {/* </ButtonBase> */}
+              {/* </Box> */}
+            </Link>
             <Paper
               sx={{
                 padding: "2px 10px",
@@ -359,7 +347,6 @@ const GradesTable = () => {
             </Paper>
           </Box>
         </TableCell>
-        <TableCell></TableCell>
       </StyledTableRow>
     );
   };
@@ -528,83 +515,83 @@ const GradesTable = () => {
     );
   };
 
-  const StudGradeTableTitles = () => {
-    return (
-      <TableRow>
-        <TableCell align="left">SUBJECT ID</TableCell>
-        <TableCell align="left">SUBJECT NAME</TableCell>
-        <TableCell align="left">1st </TableCell>
-        <TableCell align="left">2nd </TableCell>
-        <TableCell align="left">3rd </TableCell>
-        <TableCell align="left">4th </TableCell>
-        <TableCell align="left">REMARKS</TableCell>
-      </TableRow>
-    );
-  };
-  const StudGradeTableDetails = ({ val }) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.studID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* Student ID */}
-        <TableCell
-          align="left"
-          onClick={handleCellClick}
-          sx={{ textTransform: "uppercase" }}
-        >
-          {val.subjectID}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {subjects &&
-            subjects
-              .filter((sub) => {
-                return (
-                  sub.subjectID.toLowerCase() === val.subjectID.toLowerCase()
-                );
-              })
-              .map((sub) => {
-                return sub.subjectName;
-              })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter1;
-          })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter2;
-          })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter3;
-          })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter4;
-          })}
-        </TableCell>
+  // const StudGradeTableTitles = () => {
+  //   return (
+  //     <TableRow>
+  //       <TableCell align="left">SUBJECT ID</TableCell>
+  //       <TableCell align="left">SUBJECT NAME</TableCell>
+  //       <TableCell align="left">1st </TableCell>
+  //       <TableCell align="left">2nd </TableCell>
+  //       <TableCell align="left">3rd </TableCell>
+  //       <TableCell align="left">4th </TableCell>
+  //       <TableCell align="left">REMARKS</TableCell>
+  //     </TableRow>
+  //   );
+  // };
+  // const StudGradeTableDetails = ({ val }) => {
+  //   return (
+  //     <StyledTableRow
+  //       key={val._id}
+  //       data-rowid={val.studID}
+  //       sx={
+  //         {
+  //           // "&:last-child td, &:last-child th": { border: 2 },
+  //           // "& td, & th": { border: 2 },
+  //         }
+  //       }
+  //     >
+  //       {/* Student ID */}
+  //       <TableCell
+  //         align="left"
+  //         onClick={handleCellClick}
+  //         sx={{ textTransform: "uppercase" }}
+  //       >
+  //         {val.subjectID}
+  //       </TableCell>
+  //       <TableCell align="left" sx={{ textTransform: "capitalize" }}>
+  //         {subjects &&
+  //           subjects
+  //             .filter((sub) => {
+  //               return (
+  //                 sub.subjectID.toLowerCase() === val.subjectID.toLowerCase()
+  //               );
+  //             })
+  //             .map((sub) => {
+  //               return sub.subjectName;
+  //             })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter1;
+  //         })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter2;
+  //         })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter3;
+  //         })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter4;
+  //         })}
+  //       </TableCell>
 
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val?.remark ? "passed" : "failed"}
-        </TableCell>
-        {/* Student Name */}
-      </StyledTableRow>
-    );
-  };
+  //       <TableCell align="left" sx={{ textTransform: "capitalize" }}>
+  //         {val?.remark ? "passed" : "failed"}
+  //       </TableCell>
+  //       {/* Student Name */}
+  //     </StyledTableRow>
+  //   );
+  // };
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
       fontWeight: "bold",
-      textTransform: "uppercase",
+      textTransform: "capitalize",
     },
     // hide last border
   }));

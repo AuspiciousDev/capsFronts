@@ -19,6 +19,9 @@ import {
   Divider,
   Button,
   Avatar,
+  AppBar,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import {
   AutoStories,
@@ -46,6 +49,36 @@ import { useLevelsContext } from "../../hooks/useLevelsContext";
 import Charts from "react-apexcharts";
 import Loading from "../../global/Loading";
 import useRefreshToken from "../../hooks/useRefreshToken";
+import PropTypes from "prop-types";
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+      style={{ width: "100%" }}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,7 +92,7 @@ const Dashboard = () => {
 
   const { students, studDispatch } = useStudentsContext();
   const { employees, empDispatch } = useEmployeesContext();
-  const { departments, subDispatch } = useSubjectsContext();
+  const { subjects, subDispatch } = useSubjectsContext();
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
   const { levels, levelDispatch } = useLevelsContext();
@@ -67,7 +100,10 @@ const Dashboard = () => {
   // const [students, setStudents] = useState([]);
   const [collection, setCollection] = useState([]);
   const [withData, setWithData] = useState(false);
-  const [loginHistory, setLoginHistory] = useState([]);
+
+  const [empLoginHist, setEmpLoginHist] = useState([]);
+  const [studLoginHist, setStudLoginHist] = useState([]);
+
   const [studentsCount, setStudentsCount] = useState("0");
   const [employeesCount, setEmployeesCount] = useState("0");
   const [subjectsCount, setSubjectsCount] = useState("0");
@@ -98,6 +134,11 @@ const Dashboard = () => {
     },
   }));
 
+  const [value, setValue] = React.useState(0);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   useEffect(() => {
     const getOverviewDetails = async () => {
       const controller = new AbortController();
@@ -113,7 +154,22 @@ const Dashboard = () => {
           activeDispatch({ type: "SET_ACTIVES", payload: json });
         }
         const apiSec = await axiosPrivate.get("/api/sections");
-        const apiLoginHistory = await axiosPrivate.get("/api/loginhistories");
+
+        const apiSetEmpLoginHist = await axiosPrivate.get(
+          "/api/loginhistories/employees"
+        );
+        if (apiSetEmpLoginHist?.status === 200) {
+          const json = await apiSetEmpLoginHist.data;
+          setEmpLoginHist(json);
+        }
+        const apiSetStudLoginHist = await axiosPrivate.get(
+          "/api/loginhistories/students"
+        );
+        if (apiSetStudLoginHist?.status === 200) {
+          const json = await apiSetStudLoginHist.data;
+          setStudLoginHist(json);
+        }
+
         if (apiStud.status === 200) {
           const json = await apiStud.data;
           studDispatch({ type: "SET_STUDENTS", payload: json });
@@ -154,10 +210,7 @@ const Dashboard = () => {
           secDispatch({ type: "SET_SECS", payload: json });
           setSectionsCount(json.length);
         }
-        if (apiLoginHistory?.status === 200) {
-          const json = await apiLoginHistory.data;
-          setLoginHistory(json);
-        }
+
         setIsLoading(false);
       } catch (error) {
         if (!error?.response) {
@@ -174,69 +227,80 @@ const Dashboard = () => {
   }, [studDispatch, empDispatch, subDispatch, secDispatch]);
 
   const totalStudents = (
-    <StyledPaper elevation={2}>
-      {" "}
-      <GroupsOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
-      <Typography
-        variant={fCountVariant}
-        fontWeight={fWeight}
-        margin="20px"
-        align="center"
-      >
-        {studentsCount}
-      </Typography>
-      <Typography align="center" variant={fDescVariant}>
-        Total Number of Students
-      </Typography>
-    </StyledPaper>
+    <Link to="student" style={{ textDecoration: "none" }}>
+      <StyledPaper elevation={2}>
+        {" "}
+        <GroupsOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <Typography
+          variant={fCountVariant}
+          fontWeight={fWeight}
+          margin="20px"
+          align="center"
+        >
+          {students && students.length}
+        </Typography>
+        <Typography align="center" variant={fDescVariant}>
+          Total Number of Students
+        </Typography>
+      </StyledPaper>
+    </Link>
   );
   const totalInstructors = (
-    <StyledPaper elevation={2}>
-      <BadgeOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
-      <Typography
-        variant={fCountVariant}
-        fontWeight={fWeight}
-        margin="20px"
-        align="center"
-      >
-        {employeesCount}
-      </Typography>
-      <Typography align="center" variant={fDescVariant}>
-        Total Number of Instructors
-      </Typography>
-    </StyledPaper>
+    <Link to="faculty" style={{ textDecoration: "none" }}>
+      <StyledPaper elevation={2}>
+        <BadgeOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <Typography
+          variant={fCountVariant}
+          fontWeight={fWeight}
+          margin="20px"
+          align="center"
+        >
+          {/* {employeesCount} */}
+          {employees && employees?.length}
+        </Typography>
+        <Typography align="center" variant={fDescVariant}>
+          Total Number of Faculties
+        </Typography>
+      </StyledPaper>
+    </Link>
   );
   const totalSubjects = (
-    <StyledPaper elevation={2}>
-      <AutoStoriesOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
-      <Typography
-        variant={fCountVariant}
-        fontWeight={fWeight}
-        margin="20px"
-        align="center"
-      >
-        {subjectsCount}
-      </Typography>
-      <Typography align="center" variant={fDescVariant}>
-        Total Number of Subjects
-      </Typography>
-    </StyledPaper>
+    <Link to="subject" style={{ textDecoration: "none" }}>
+      <StyledPaper elevation={2}>
+        <AutoStoriesOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <Typography
+          variant={fCountVariant}
+          fontWeight={fWeight}
+          margin="20px"
+          align="center"
+        >
+          {/* {subjectsCount} */}
+          {subjects && subjects?.length}
+        </Typography>
+        <Typography align="center" variant={fDescVariant}>
+          Total Number of Subjects
+        </Typography>
+      </StyledPaper>
+    </Link>
   );
   const totalSections = (
-    <StyledPaper elevation={2}>
-      <Diversity3Outlined sx={{ fontSize: "80px", alignSelf: "center" }} />
-      <Typography
-        variant={fCountVariant}
-        fontWeight={fWeight}
-        margin="20px"
-        align="center"
-      >
-        {sectionsCount}
-      </Typography>
-      <Typography align="center" variant={fDescVariant}>
-        Total Number of Sections
-      </Typography>
-    </StyledPaper>
+    <Link to="subject" style={{ textDecoration: "none" }}>
+      <StyledPaper elevation={2}>
+        <Diversity3Outlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <Typography
+          variant={fCountVariant}
+          fontWeight={fWeight}
+          margin="20px"
+          align="center"
+        >
+          {/* {sectionsCount} */}
+          {sections && sections?.length}
+        </Typography>
+        <Typography align="center" variant={fDescVariant}>
+          Total Number of Sections
+        </Typography>
+      </StyledPaper>
+    </Link>
   );
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
@@ -386,7 +450,10 @@ const Dashboard = () => {
               }}
             >
               <Paper elevation={2} sx={{ position: "relative", p: 2 }}>
-                <Typography variant="h4">Recent Students</Typography>
+                <Typography variant="h4" mb={1}>
+                  Recent Students
+                </Typography>
+                <Divider />
                 {/* <Typography>Showing 10 entries</Typography> */}
                 <TableContainer>
                   <Table sx={{ minWidth: "100%" }} aria-label="simple table">
@@ -433,89 +500,197 @@ const Dashboard = () => {
                   display: "flex",
                   justifyContent: "center",
                   height: "100%",
-                  mt: { xs: "10px", sm: "0" },
-                  ml: { xs: "", sm: "10px" },
-                  padding: { xs: "20px 0 20px 0", sm: "20px" },
+                  mt: { xs: 1, sm: 0 },
+                  ml: { xs: 0, sm: 2 },
+                  padding: { xs: "20px 0 20px 0", sm: 2 },
                 }}
               >
                 <Box display="flex" flexDirection="column">
-                  <Typography variant="h4" marginBottom={2}>
+                  <Typography variant="h4" mb={1}>
                     Recent Logins
                   </Typography>
-                  <Grid
-                    container
-                    gap={1}
-                    sx={{ width: "400px" }}
-                    direction="column"
-                    alignItems="center"
-                    justify="center"
+
+                  <AppBar
+                    position="static"
+                    sx={{ backgroundColor: colors.appBar[100] }}
+                    enableColorOnDark
                   >
-                    {loginHistory &&
-                      loginHistory
-                        .slice(0, 6)
-                        .filter((fill) => {
-                          return fill.userType === "employee";
-                        })
-                        .map((val, key) => (
-                          <Paper
-                            elevation={2}
-                            sx={{
-                              // backgroundColor: `${colors.gray[900]}`,
-                              color: `${colors.black[100]}`,
-                              display: "flex",
-                              flexDirection: "row",
-                              borderRadius: 5,
-                              padding: "10px",
-                              alignItems: "center",
-                              width: "100%",
-                            }}
-                          >
-                            <Link
-                              to={`/admin/faculty/${val?.username}`}
-                              style={{
+                    <Tabs
+                      value={value}
+                      onChange={handleChange}
+                      aria-label="full width tabs example"
+                      variant="fullWidth"
+                    >
+                      <Tab
+                        label="Students"
+                        {...a11yProps(0)}
+                        sx={{ fontWeight: "bold" }}
+                      />
+                      <Tab
+                        label="Employees"
+                        {...a11yProps(1)}
+                        sx={{ fontWeight: "bold" }}
+                      />
+                    </Tabs>
+                  </AppBar>
+                  <TabPanel
+                    sx={{ width: "350px", mt: 0.5 }}
+                    value={value}
+                    index={0}
+                  >
+                    <Grid
+                      container
+                      gap={1}
+                      sx={{ width: "350px", mt: 0.5 }}
+                      direction="column"
+                      alignItems="center"
+                      justify="center"
+                    >
+                      {studLoginHist &&
+                        studLoginHist
+                          .slice(0, 6)
+                          .filter((fill) => {
+                            return fill.userType === "student";
+                          })
+                          .map((val, key) => (
+                            <Paper
+                              elevation={2}
+                              sx={{
+                                // backgroundColor: `${colors.gray[900]}`,
+                                color: `${colors.black[100]}`,
+                                display: "flex",
+                                flexDirection: "row",
+                                padding: "10px",
                                 alignItems: "center",
-                                color: colors.black[100],
-                                textDecoration: "none",
+                                width: "100%",
                               }}
                             >
-                              <Box
-                                sx={{ display: "flex", alignItems: "center" }}
+                              <Link
+                                to={`/admin/faculty/${val?.username}`}
+                                style={{
+                                  alignItems: "center",
+                                  color: colors.black[100],
+                                  textDecoration: "none",
+                                }}
                               >
-                                <Avatar
-                                  alt="profile-user"
-                                  sx={{ width: "35px", height: "35px" }}
-                                  src={val.imgURL}
-                                  style={{
-                                    marginRight: "15px",
-                                    objectFit: "contain",
-                                    borderRadius: "50%",
-                                  }}
-                                />
-                                <Box>
-                                  <Typography textTransform="capitalize">
-                                    {val.username}
-                                  </Typography>
-                                  {/* <Typography
+                                <Box
+                                  sx={{ display: "flex", alignItems: "center" }}
+                                >
+                                  <Avatar
+                                    alt="profile-user"
+                                    sx={{ width: "35px", height: "35px" }}
+                                    src={val.imgURL}
+                                    style={{
+                                      marginRight: "15px",
+                                      objectFit: "contain",
+                                      borderRadius: "50%",
+                                    }}
+                                  />
+                                  <Box>
+                                    <Typography textTransform="capitalize">
+                                      {val.username}
+                                    </Typography>
+                                    {/* <Typography
                           color="primaryGray"
                           textTransform="capitalize"
                         >
                           {val.firstName + " " + val.lastName}
                         </Typography>*/}
-                                  <Typography textTransform="capitalize">
-                                    {/* console.log(format(new Date(), 'yyyy/MM/dd kk:mm:ss')) */}
-                                    {format(
-                                      new Date(val.createdAt),
-                                      // "kk:mm a  MMM dd, yyyy"
-                                      "hh:mm a, EEEE"
-                                    )}
-                                    {/* {val.createdAt} */}
-                                  </Typography>
+                                    <Typography textTransform="capitalize">
+                                      {/* console.log(format(new Date(), 'yyyy/MM/dd kk:mm:ss')) */}
+                                      {format(
+                                        new Date(val.createdAt),
+                                        // "kk:mm a  MMM dd, yyyy"
+                                        "hh:mm a, EEEE"
+                                      )}
+                                      {/* {val.createdAt} */}
+                                    </Typography>
+                                  </Box>
                                 </Box>
-                              </Box>
-                            </Link>
-                          </Paper>
-                        ))}
-                  </Grid>
+                              </Link>
+                            </Paper>
+                          ))}
+                    </Grid>
+                  </TabPanel>
+                  <TabPanel
+                    sx={{ width: "350px", mt: 0.5 }}
+                    value={value}
+                    index={1}
+                  >
+                    <Grid
+                      container
+                      gap={1}
+                      sx={{ width: "350px", mt: 0.5 }}
+                      direction="column"
+                      alignItems="center"
+                      justify="center"
+                    >
+                      {empLoginHist &&
+                        empLoginHist
+                          .slice(0, 6)
+                          .filter((fill) => {
+                            return fill.userType === "employee";
+                          })
+                          .map((val, key) => (
+                            <Paper
+                              elevation={2}
+                              sx={{
+                                // backgroundColor: `${colors.gray[900]}`,
+                                color: `${colors.black[100]}`,
+                                display: "flex",
+                                flexDirection: "row",
+                                padding: "10px",
+                                alignItems: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <Link
+                                to={`/admin/faculty/${val?.username}`}
+                                style={{
+                                  alignItems: "center",
+                                  color: colors.black[100],
+                                  textDecoration: "none",
+                                }}
+                              >
+                                <Box
+                                  sx={{ display: "flex", alignItems: "center" }}
+                                >
+                                  <Avatar
+                                    alt="profile-user"
+                                    sx={{ width: "35px", height: "35px" }}
+                                    src={val.imgURL}
+                                    style={{
+                                      marginRight: "15px",
+                                      objectFit: "contain",
+                                      borderRadius: "50%",
+                                    }}
+                                  />
+                                  <Box>
+                                    <Typography textTransform="capitalize">
+                                      {val.username}
+                                    </Typography>
+                                    {/* <Typography
+                          color="primaryGray"
+                          textTransform="capitalize"
+                        >
+                          {val.firstName + " " + val.lastName}
+                        </Typography>*/}
+                                    <Typography textTransform="capitalize">
+                                      {/* console.log(format(new Date(), 'yyyy/MM/dd kk:mm:ss')) */}
+                                      {format(
+                                        new Date(val.createdAt),
+                                        // "kk:mm a  MMM dd, yyyy"
+                                        "hh:mm a, EEEE"
+                                      )}
+                                      {/* {val.createdAt} */}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </Link>
+                            </Paper>
+                          ))}
+                    </Grid>
+                  </TabPanel>
                 </Box>
               </Paper>
             </Box>
