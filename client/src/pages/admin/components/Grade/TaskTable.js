@@ -164,7 +164,7 @@ const TaskTable = () => {
         const apiStud = await axiosPrivate.get(`/api/enrolled/search/${id}`);
         if (apiStud?.status === 200) {
           const json = await apiStud.data;
-          console.log("GET_SearchedStudent : ",json);
+          console.log("GET_SearchedStudent : ", json);
           setIsLoading(false);
           setStudentData(json && json[0]);
         }
@@ -446,7 +446,10 @@ const TaskTable = () => {
               alignItems: "center",
             }}
           >
-            <Link to={`/admin/record/task/add/${id}/${year}`}>
+            <Link
+              to={`/admin/record/task/add/${id}/${year}`}
+              style={{ textDecoration: "none" }}
+            >
               <Button
                 type="button"
                 startIcon={<Add />}
@@ -460,7 +463,7 @@ const TaskTable = () => {
                 }}
               >
                 <Typography variant="h6" fontWeight="500">
-                  Add
+                  Add Task
                 </Typography>
               </Button>
             </Link>

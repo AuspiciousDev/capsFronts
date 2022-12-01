@@ -500,8 +500,8 @@ const Dashboard = () => {
                   display: "flex",
                   justifyContent: "center",
                   height: "100%",
-                  mt: { xs: 1, sm: 0 },
-                  ml: { xs: 0, sm: 2 },
+                  mt: { xs: 2, sm: 0 },
+                  ml: { xs: 0, sm: 3 },
                   padding: { xs: "20px 0 20px 0", sm: 2 },
                 }}
               >
@@ -534,14 +534,14 @@ const Dashboard = () => {
                     </Tabs>
                   </AppBar>
                   <TabPanel
-                    sx={{ width: "350px", mt: 0.5 }}
+                    sx={{ width: "360px", mt: 0.5 }}
                     value={value}
                     index={0}
                   >
                     <Grid
                       container
                       gap={1}
-                      sx={{ width: "350px", mt: 0.5 }}
+                      sx={{ width: "360px", mt: 0.5 }}
                       direction="column"
                       alignItems="center"
                       justify="center"

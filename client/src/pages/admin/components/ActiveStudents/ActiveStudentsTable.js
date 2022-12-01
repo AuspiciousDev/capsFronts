@@ -43,6 +43,9 @@ import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+
 import {
   DeleteOutline,
   Search,
@@ -109,7 +112,11 @@ const ActiveStudentsTable = () => {
     title: "",
     message: "",
   });
-
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -198,6 +205,84 @@ const ActiveStudentsTable = () => {
     activeDispatch,
     yearDispatch,
   ]);
+  const toggleStatus = async ({ val }) => {
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
+    });
+    setLoadingDialog({ isOpen: true });
+    let newStatus = val.status;
+    val.status === true
+      ? (newStatus = false)
+      : val.status === false
+      ? (newStatus = true)
+      : (newStatus = false);
+
+    await console.log(newStatus);
+    try {
+      setIsLoading(true);
+      const response = await axiosPrivate.patch(
+        "/api/enrolled/status",
+        JSON.stringify({
+          enrolledID: val.enrolledID,
+          studID: val.studID,
+          schoolYearID: val.schoolYearID,
+          status: newStatus,
+        })
+      );
+      if (response.status === 200) {
+        const json = await response.data;
+        console.log(json);
+        const response2 = await axiosPrivate.get("/api/enrolled");
+        if (response2?.status === 200) {
+          const json = await response2.data;
+          console.log(json);
+          setIsLoading(false);
+          activeDispatch({ type: "SET_ACTIVES", payload: json });
+          setLoadingDialog({ isOpen: false });
+          setSuccessDialog({
+            isOpen: true,
+            message: "Enrolled status changed!",
+          });
+        }
+      }
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response!`,
+        });
+        console.log("no server response!");
+        setIsLoading(false);
+      } else if (error.response.status === 400) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        setIsLoading(false);
+      } else if (error.response.status === 401) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+        setIsLoading(false);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+        setIsLoading(false);
+      } else {
+        setErrorDialog({ isOpen: true, message: `${error}` });
+        console.log(error);
+        setIsLoading(false);
+      }
+    }
+  };
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
       fontWeight: "bold",
@@ -233,10 +318,9 @@ const ActiveStudentsTable = () => {
         <TableCell align="left">
           <Box display="flex" gap={2} width="60%">
             <Link
-              // to={`/admin/record/grade/${val?.studID}/${val?.schoolYearID}`}
+              to={`/admin/student/${val?.studID}`}
               style={{
                 alignItems: "center",
-                color: colors.black[100],
                 textDecoration: "none",
               }}
             >
@@ -250,7 +334,13 @@ const ActiveStudentsTable = () => {
                   alignItems: "center",
                 }}
               >
-                <Typography fontWeight="bold"> {val?.studID}</Typography>
+                <Typography
+                  fontWeight="bold"
+                  sx={{ color: colors.blackOnly[100] }}
+                >
+                  {" "}
+                  {val?.studID}
+                </Typography>
               </Paper>
             </Link>
           </Box>
@@ -308,16 +398,21 @@ const ActiveStudentsTable = () => {
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
           <ButtonBase
             onClick={() => {
-              setConfirmDialog({
+              setValidateDialog({
                 isOpen: true,
-                title: `Are you sure to change status of  ${val.studID}`,
-                message: `${
-                  val.status === true
-                    ? "INACTIVE to ACTIVE"
-                    : " ACTIVE to INACTIVE"
-                }`,
                 onConfirm: () => {
-                  // toggleStatus({ val });
+                  setConfirmDialog({
+                    isOpen: true,
+                    title: `Are you sure to change status of  ${val.studID}`,
+                    message: `${
+                      val.status === true
+                        ? "INACTIVE to ACTIVE"
+                        : " ACTIVE to INACTIVE"
+                    }`,
+                    onConfirm: () => {
+                      toggleStatus({ val });
+                    },
+                  });
                 },
               });
             }}
@@ -355,12 +450,17 @@ const ActiveStudentsTable = () => {
         <TableCell align="left">
           <ButtonBase
             onClick={() => {
-              setConfirmDialog({
+              setValidateDialog({
                 isOpen: true,
-                title: `Are you sure to delete ${val.studID.toUpperCase()}`,
-                message: `This action is irreversible!`,
                 onConfirm: () => {
-                  handleDelete({ val });
+                  setConfirmDialog({
+                    isOpen: true,
+                    title: `Are you sure to delete ${val.studID.toUpperCase()}`,
+                    message: `This action is irreversible!`,
+                    onConfirm: () => {
+                      handleDelete({ val });
+                    },
+                  });
                 },
               });
             }}
@@ -398,104 +498,6 @@ const ActiveStudentsTable = () => {
       </StyledTableRow>
     );
   };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <Tooltip title="Delete">
-          <IconButton sx={{ cursor: "pointer" }}>
-            <DeleteOutline sx={{ color: colors.error[100] }} />
-          </IconButton>
-        </Tooltip>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record </Typography>
-            <Box margin="20px 0">
-              <Typography
-                variant="h2"
-                fontWeight="bold"
-                sx={{ textTransform: "capitalize" }}
-              >
-                {delVal.studID}
-              </Typography>
-
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                textTransform="capitalize"
-              >
-                {students &&
-                  students
-                    .filter((stud) => {
-                      return stud.studID === delVal.studID;
-                    })
-                    .map((stud) => {
-                      return stud?.middleName
-                        ? stud.firstName +
-                            " " +
-                            stud.middleName +
-                            " " +
-                            stud.lastName
-                        : stud.firstName + " " + stud.lastName;
-                    })}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              color="secondary"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {
@@ -525,17 +527,32 @@ const ActiveStudentsTable = () => {
         setIsLoading(false);
         if (!error?.response) {
           console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `${"No Server response!"}`,
+          });
         } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else if (error.response.status === 409) {
           setDepartmentIDError(true);
           setStudentIDError(true);
           setError(true);
           setErrorMessage(error.response.data.message);
-
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
           console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
         }
       }
     } else {
@@ -548,6 +565,7 @@ const ActiveStudentsTable = () => {
       isOpen: false,
     });
     try {
+      setLoadingDialog({ isOpen: true });
       setIsLoading(true);
       const response = await axiosPrivate.delete("/api/enrolled/delete", {
         headers: { "Content-Type": "application/json" },
@@ -563,19 +581,40 @@ const ActiveStudentsTable = () => {
           message: `Enrolled Student ${val.studID} has been Deleted!`,
         });
       }
-
+      setLoadingDialog({ isOpen: false });
       setIsLoading(false);
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
       if (!error?.response) {
-        console.log("no server response");
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response!`,
+        });
+        console.log("no server response!");
         setIsLoading(false);
       } else if (error.response.status === 400) {
         console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        setIsLoading(false);
+      } else if (error.response.status === 401) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
         setIsLoading(false);
       } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
         setIsLoading(false);
       } else {
+        setErrorDialog({ isOpen: true, message: `${error}` });
         console.log(error);
         setIsLoading(false);
       }
@@ -595,6 +634,14 @@ const ActiveStudentsTable = () => {
       <ErrorDialogue
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
+      />{" "}
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div

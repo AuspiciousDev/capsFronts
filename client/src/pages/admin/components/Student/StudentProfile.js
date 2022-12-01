@@ -329,18 +329,17 @@ const StudentProfile = () => {
       ) : val.firstName || val.email ? (
         <Box
           className="deleteScroll"
-          gap={1}
-          mt="20px"
+          gap={1.5}
           display="grid"
           sx={{
-            height: { xs: "750px", sm: "750px" },
+            height: { xs: "780px", sm: "780px" },
             width: { xs: "100%", sm: "100%" },
             gridTemplateColumns: { xs: "1fr", sm: "1fr 3fr" },
             padding: { xs: "0 20px 20px 20px", sm: "3px 3px" },
           }}
         >
           <Paper
-            elevation={3}
+            elevation={2}
             sx={{
               display: "flex",
               justifyContent: "center",
@@ -445,7 +444,7 @@ const StudentProfile = () => {
               >
                 <MenuItem>
                   <Link
-                    to={`/student/edit/${val?.studID}`}
+                    to={`/admin/student/edit/${val?.studID}`}
                     style={{
                       alignItems: "center",
                       color: colors.black[100],
@@ -661,89 +660,84 @@ const StudentProfile = () => {
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ display: { xs: "none", sm: "block" } }}>
-            <Box padding="20px">
-              <Typography>Login History</Typography>
-
-              <Grid
-                mt="10px"
-                container
-                gap={2}
-                sx={{ width: "350px" }}
-                direction="column"
-                alignItems="center"
-                justify="center"
-              >
-                {loginHistory &&
-                  loginHistory
-                    .slice(0, 5)
-                    .filter((fill) => {
-                      return fill.username === id;
-                    })
-                    .map((val, key) => (
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          display: "flex",
-                          padding: "10px 15px",
-                          borderRadius: "20px",
-                          backgroundColor: colors.whiteOnly[100],
-                          width: "100%",
-                        }}
-                      >
-                        <Typography textTransform="capitalize">
-                          {format(
-                            new Date(val.createdAt),
-                            // "kk:mm a  MMM dd, yyyy"
-                            " hh:mm a.  EE, MM-dd-yyyy"
-                          )}
-                          {/* {val.createdAt} */}
-                        </Typography>
-                      </Paper>
-                    ))}
-              </Grid>
-            </Box>
+          <Paper sx={{ display: { xs: "none", sm: "block" }, p: 2 }}>
+            <Typography variant="h4">Login History</Typography>
+            <Grid
+              mt="10px"
+              container
+              gap={2}
+              sx={{ width: "350px" }}
+              direction="column"
+              alignItems="center"
+              justify="center"
+            >
+              {loginHistory &&
+                loginHistory
+                  .slice(0, 5)
+                  .filter((fill) => {
+                    return fill.username === id;
+                  })
+                  .map((val, key) => (
+                    <Paper
+                      elevation={1}
+                      sx={{
+                        display: "flex",
+                        padding: "10px 15px",
+                        borderRadius: "20px",
+                        backgroundColor: colors.whiteOnly[100],
+                        width: "100%",
+                      }}
+                    >
+                      <Typography textTransform="capitalize">
+                        {format(
+                          new Date(val.createdAt),
+                          // "kk:mm a  MMM dd, yyyy"
+                          " hh:mm a.  EE, MM-dd-yyyy"
+                        )}
+                        {/* {val.createdAt} */}
+                      </Typography>
+                    </Paper>
+                  ))}
+            </Grid>
           </Paper>
-          <Paper>
-            <Box padding="20px">
-              <Typography>Enrollment History</Typography>
-              <TableContainer>
-                <Table sx={{ minWidth: "100%" }} aria-label="simple table">
-                  <TableHead>
-                    <StyledTableHeadRow>
-                      <TableCell>Year</TableCell>
-                      {/* <TableCell>Student ID</TableCell> */}
-                      {/* <TableCell align="left">Name</TableCell> */}
-                      <TableCell align="left">Date Enrolled</TableCell>
-                      <TableCell align="left">Level</TableCell>
-                      <TableCell align="left">Section</TableCell>
-                      <TableCell align="left">Records</TableCell>
-                    </StyledTableHeadRow>
-                  </TableHead>
-                  <TableBody>
-                    {actives &&
-                      actives
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Divider />
-              <TablePagination
-                rowsPerPageOptions={[5, 10]}
-                component="div"
-                count={actives && actives.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </Box>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h4">Enrollment History</Typography>
+            <TableContainer>
+              <Table sx={{ minWidth: "100%" }} aria-label="simple table">
+                <TableHead>
+                  <StyledTableHeadRow>
+                    <TableCell>Year</TableCell>
+                    {/* <TableCell>Student ID</TableCell> */}
+                    {/* <TableCell align="left">Name</TableCell> */}
+                    <TableCell align="left">Date Enrolled</TableCell>
+                    <TableCell align="left">Level</TableCell>
+                    <TableCell align="left">Section</TableCell>
+                    <TableCell align="left">Records</TableCell>
+                  </StyledTableHeadRow>
+                </TableHead>
+                <TableBody>
+                  {actives &&
+                    actives
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Divider />
+            <TablePagination
+              rowsPerPageOptions={[5, 10]}
+              component="div"
+              count={actives && actives.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </Paper>
           <Paper sx={{ display: { xs: "block", sm: "none" } }}>
             <Box padding="20px">
@@ -788,7 +782,6 @@ const StudentProfile = () => {
               </Grid>
             </Box>
           </Paper>
-          <br />
         </Box>
       ) : (
         <NotFound404 />

@@ -18,11 +18,13 @@ import {
   TableCell,
   TableBody,
   TablePagination,
+  Button,
 } from "@mui/material";
 import {
   Search,
   DownloadForOfflineOutlined,
   TopicOutlined,
+  Add,
 } from "@mui/icons-material";
 import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
@@ -336,7 +338,7 @@ const GradesCurrent = () => {
             >
               <InputBase
                 sx={{ ml: 1, flex: 1 }}
-                placeholder="Search Student"
+                placeholder="Search Subject"
                 onChange={(e) => {
                   setSearch(e.target.value);
                 }}
@@ -346,6 +348,36 @@ const GradesCurrent = () => {
                 <Search />
               </IconButton>
             </Paper>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                justifyContent: "end",
+                alignItems: "center",
+              }}
+            >
+              <Link
+                to={`/admin/grade/task/add/${year}/${id}`}
+                style={{ textDecoration: "none" }}
+              >
+                <Button
+                  type="button"
+                  startIcon={<Add />}
+                  // onClick={setIsFormOpen((e) => !e)}
+                  variant="contained"
+                  sx={{
+                    width: { xs: "100%", sm: "200px" },
+                    height: "50px",
+                    marginLeft: { xs: "0", sm: "20px" },
+                    marginTop: { xs: "20px", sm: "0" },
+                  }}
+                >
+                  <Typography variant="h6" fontWeight="500">
+                    Add Grade
+                  </Typography>
+                </Button>
+              </Link>
+            </Box>
           </Box>
         </Box>
       </Paper>
@@ -361,10 +393,23 @@ const GradesCurrent = () => {
                 <TableTitles key={"asdas"} />
               </TableHead>
               <TableBody>
-                {getSubjects &&
-                  getSubjects.map((val) => {
-                    return tableDetails(val);
-                  })}
+                {search
+                  ? search &&
+                    getSubjects &&
+                    getSubjects
+                      .filter((fill) => {
+                        return (
+                          fill.subjectID.includes(search) ||
+                          fill.subjectName.toLowerCase().includes(search)
+                        );
+                      })
+                      .map((val) => {
+                        return tableDetails(val);
+                      })
+                  : getSubjects &&
+                    getSubjects.map((val) => {
+                      return tableDetails(val);
+                    })}
               </TableBody>
             </Table>
           </TableContainer>
