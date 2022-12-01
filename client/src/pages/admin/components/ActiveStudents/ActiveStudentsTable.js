@@ -27,7 +27,6 @@ import {
   Tooltip,
   TablePagination,
 } from "@mui/material";
-import { Search, CheckCircle, Cancel, Delete } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import Loading from "../../../../global/Loading";
@@ -41,11 +40,17 @@ import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
 import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
-import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
-import { DeleteOutline } from "@mui/icons-material";
+import {
+  DeleteOutline,
+  Search,
+  CheckCircle,
+  Cancel,
+  Delete,
+  PersonAddAltOutlined,
+} from "@mui/icons-material";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 const ActiveStudentsTable = () => {
@@ -926,7 +931,7 @@ const ActiveStudentsTable = () => {
 
             <Button
               type="button"
-              startIcon={<PersonAddAltOutlinedIcon />}
+              startIcon={<PersonAddAltOutlined />}
               onClick={() => setOpen((o) => !o)}
               variant="contained"
               sx={{

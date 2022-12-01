@@ -46,6 +46,7 @@ import {
   TaskOutlined,
   PermContactCalendarOutlined,
   Logout,
+  RestoreOutlined
 } from "@mui/icons-material";
 import "react-pro-sidebar/dist/css/styles.css";
 import { useEmployeesContext } from "../hooks/useEmployeesContext";
@@ -412,6 +413,24 @@ const Sidebar = () => {
                 width: "90%",
               }}
             /> */}
+            {!isCollapsed ? (
+              <Typography
+                variant="h6"
+                color={colors.primary[900]}
+                sx={{ m: "15px 0 5px 20px" }}
+              >
+                Misc
+              </Typography>
+            ) : (
+              <SidebarHeader />
+            )}
+              <Item
+              title="Logins"
+              to="loginHistory"
+              icon={<RestoreOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
             <Box display="flex" justifyContent="center" mt="20px">
               {!isCollapsed ? (
                 <Typography variant="h3">

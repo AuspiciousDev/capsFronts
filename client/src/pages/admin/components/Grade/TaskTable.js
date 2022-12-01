@@ -34,6 +34,7 @@ import {
   Search,
   Add,
 } from "@mui/icons-material";
+import { format } from "date-fns-tz";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
@@ -163,7 +164,7 @@ const TaskTable = () => {
         const apiStud = await axiosPrivate.get(`/api/enrolled/search/${id}`);
         if (apiStud?.status === 200) {
           const json = await apiStud.data;
-          console.log(json);
+          console.log("GET_SearchedStudent : ",json);
           setIsLoading(false);
           setStudentData(json && json[0]);
         }
@@ -231,7 +232,8 @@ const TaskTable = () => {
         if (apiTaskScore?.status === 200) {
           const json = await apiTaskScore.data;
           setIsLoading(false);
-          taskScoreDispatch({ type: "SET_TASKSCORES", payload: json });
+          console.log("GET_TaskScores :", json);
+          taskScoreDispatch({ type: "SET_SCORES", payload: json });
         }
       } catch (error) {
         console.log(error);
@@ -255,13 +257,14 @@ const TaskTable = () => {
     taskDispatch,
   ]);
 
-  console.log("stud Data:", getStudentData);
+  // console.log("stud Data:", getStudentData);
   const TableTitles = () => {
     return (
       <StyledTableHeadRow
       // sx={{ backgroundColor: `${colors.primary[100]}` }}
       >
         <TableCell>Date</TableCell>
+        <TableCell>Subject</TableCell>
         <TableCell>Title</TableCell>
         <TableCell align="left">Points</TableCell>
         <TableCell align="left">Actions</TableCell>
@@ -281,7 +284,16 @@ const TaskTable = () => {
         }
       >
         {/* <TableCell align="left">-</TableCell> */}
-        <TableCell align="left">{val?.createdAt}</TableCell>
+        <TableCell align="left">
+          {format(new Date(val.createdAt), "MMMM dd, yyyy")}
+        </TableCell>
+        <TableCell
+          component="th"
+          scope="row"
+          sx={{ textTransform: "capitalize" }}
+        >
+          {val?.subjectID}
+        </TableCell>
         <TableCell
           component="th"
           scope="row"
@@ -289,68 +301,14 @@ const TaskTable = () => {
         >
           {val?.taskName}
         </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {/* <Button
-            type="button"
-            onClick={() =>
-              setConfirmDialog({
-                isOpen: true,
-                title: "are you sure to delete this record",
-                subTitle: "You cant undo this operation!",
-              })
-            }
-          >
-            asdasd
-          </Button> */}
-          {val?.status === false ? (
-            <ButtonBase disabled>
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <Bookmark />
-                <Typography ml="5px">ARCHIVED</Typography>
-              </Paper>
-            </ButtonBase>
-          ) : (
-            <ButtonBase
-              type="button"
-              onClick={() =>
-                setValidateDialog({
-                  isOpen: true,
-                  onConfirm: () => {
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: `Are you sure to archived Year ${val.schoolYear}`,
-                      message: "You cant undo this operation!",
-                      onConfirm: () => {
-                        // toggleStatus({ val });
-                      },
-                    });
-                  },
-                })
-              }
-            >
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            </ButtonBase>
-          )}
+        <TableCell
+          component="th"
+          scope="row"
+          sx={{ textTransform: "capitalize" }}
+        >
+          {val?.taskScore} {"/"} {val?.maxPoints}
         </TableCell>
+
         <TableCell align="left">
           <ButtonBase
             onClick={() => {
@@ -557,7 +515,7 @@ const TaskTable = () => {
       </Box>{" "}
       <TabPanel sx={{ width: "100%" }} value={value} index={0}>
         <Paper elevation={2}>
-          <TableContainer sx={{ maxHeight: "700px" }}>
+          <TableContainer>
             <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
               <TableHead>
                 <TableTitles />
@@ -566,7 +524,10 @@ const TaskTable = () => {
                 {taskScore &&
                   taskScore
                     .filter((fill) => {
-                      return fill.taskType === "assignment";
+                      return (
+                        fill.taskType === "assignment" &&
+                        fill.studID === getStudentData.studID
+                      );
                     })
                     .map((val) => {
                       return tableDetails(val);
@@ -578,7 +539,15 @@ const TaskTable = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10]}
             component="div"
-            count={5}
+            count={
+              taskScore &&
+              taskScore.filter((fill) => {
+                return (
+                  fill.taskType === "assignment" &&
+                  fill.studID === getStudentData.studID
+                );
+              }).length
+            }
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -587,10 +556,169 @@ const TaskTable = () => {
         </Paper>
       </TabPanel>
       <TabPanel value={value} index={1}>
-        Item Two
+        <Paper elevation={2}>
+          <TableContainer>
+            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
+              <TableHead>
+                <TableTitles />
+              </TableHead>
+              <TableBody>
+                {taskScore &&
+                  taskScore
+                    .filter((fill) => {
+                      return (
+                        fill.taskType === "activity" &&
+                        fill.studID === getStudentData.studID
+                      );
+                    })
+                    .map((val) => {
+                      return tableDetails(val);
+                    })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider />
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={
+              taskScore &&
+              taskScore.filter((fill) => {
+                return (
+                  fill.taskType === "activity" &&
+                  fill.studID === getStudentData.studID
+                );
+              }).length
+            }
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
       </TabPanel>
       <TabPanel value={value} index={2}>
-        Item Three
+        <Paper elevation={2}>
+          <TableContainer>
+            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
+              <TableHead>
+                <TableTitles />
+              </TableHead>
+              <TableBody>
+                {taskScore &&
+                  taskScore
+                    .filter((fill) => {
+                      return (
+                        fill.taskType === "project" &&
+                        fill.studID === getStudentData.studID
+                      );
+                    })
+                    .map((val) => {
+                      return tableDetails(val);
+                    })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider />
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={
+              taskScore &&
+              taskScore.filter((fill) => {
+                return (
+                  fill.taskType === "project" &&
+                  fill.studID === getStudentData.studID
+                );
+              }).length
+            }
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </TabPanel>
+      <TabPanel value={value} index={3}>
+        <Paper elevation={2}>
+          <TableContainer>
+            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
+              <TableHead>
+                <TableTitles />
+              </TableHead>
+              <TableBody>
+                {taskScore &&
+                  taskScore
+                    .filter((fill) => {
+                      return (
+                        fill.taskType === "quiz" &&
+                        fill.studID === getStudentData.studID
+                      );
+                    })
+                    .map((val) => {
+                      return tableDetails(val);
+                    })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider />
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={
+              taskScore &&
+              taskScore.filter((fill) => {
+                return (
+                  fill.taskType === "quiz" &&
+                  fill.studID === getStudentData.studID
+                );
+              }).length
+            }
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </TabPanel>
+      <TabPanel value={value} index={4}>
+        <Paper elevation={2}>
+          <TableContainer>
+            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
+              <TableHead>
+                <TableTitles />
+              </TableHead>
+              <TableBody>
+                {taskScore &&
+                  taskScore
+                    .filter((fill) => {
+                      return fill.taskType === "exam";
+                    })
+                    .map((val) => {
+                      return tableDetails(val);
+                    })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider />
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={
+              taskScore &&
+              taskScore.filter((fill) => {
+                return (
+                  fill.taskType === "exam" &&
+                  fill.studID === getStudentData.studID
+                );
+              }).length
+            }
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
       </TabPanel>
     </Box>
   );

@@ -26,6 +26,8 @@ import {
   Tab,
   ButtonBase,
   AppBar,
+  InputLabel,
+  InputAdornment,
 } from "@mui/material";
 import {
   ArrowBackIosNewOutlined,
@@ -35,6 +37,7 @@ import {
   Add,
 } from "@mui/icons-material";
 import PropTypes from "prop-types";
+import useAuth from "../../../../hooks/useAuth";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 import { Bookmark } from "@mui/icons-material";
@@ -47,6 +50,13 @@ import { useLevelsContext } from "../../../../hooks/useLevelsContext";
 import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
 import { useTasksContext } from "../../../../hooks/useTasksContext";
+import { useTasksScoresContext } from "../../../../hooks/useTasksScoreContext";
+
+import ConfirmDialogue from "../../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -82,6 +92,7 @@ const TaskForms = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
+  const { auth, setAuth, persist, setPersist } = useAuth();
 
   const { id, year } = useParams();
   const [value, setValue] = React.useState(0);
@@ -92,11 +103,14 @@ const TaskForms = () => {
   const [getLevel, setLevel] = useState([]);
 
   const [getStudSubjectID, setStudSubjectID] = useState("");
-  const [getTaskScore, setTaskScore] = useState("");
-  var studName = useRef();
-  var studLevel = useRef();
-  var studSection = useRef();
-  var studActive = useRef([]);
+
+  const [taskID, setTaskID] = useState("");
+  const [studID, setStudID] = useState("");
+  const [subjectID, setSubjectID] = useState("");
+  const [taskPoints, setTaskPoints] = useState("");
+  const [empID, setEmpID] = useState("");
+  const [description, setDescription] = useState("");
+
   const { students, studDispatch } = useStudentsContext();
   const { grades, gradeDispatch } = useGradesContext();
   const { subjects, subDispatch } = useSubjectsContext();
@@ -105,6 +119,7 @@ const TaskForms = () => {
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
   const { tasks, taskDispatch } = useTasksContext();
+  const { taskScore, taskScoreDispatch } = useTasksScoresContext();
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "",
@@ -125,47 +140,27 @@ const TaskForms = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    setTaskPoints("");
+    setTaskID("");
   };
-
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.primary[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
 
   useEffect(() => {
     const getData = async () => {
       try {
         setIsLoading(true);
-
-        // const apiStud = await axiosPrivate.get(`/api/students/search/${id}`, {
-        //   headers: { "Content-Type": "application/json" },
-        //   withCredentials: true,
-        // });
-        // if (apiStud?.status === 200) {
-        //   const json = await apiStud.data;
-        //   console.log(json);
-        //   setIsLoading(false);
-        //   setStudentData(json);
-        // }
         const apiTasks = await axiosPrivate.get("/api/tasks");
 
         if (apiTasks?.status === 200) {
           const json = await apiTasks.data;
           setIsLoading(false);
+          console.log("GET_TASK :", json);
           taskDispatch({ type: "SET_TASKS", payload: json });
         }
         const apiStud = await axiosPrivate.get(`/api/enrolled/search/${id}`);
@@ -252,12 +247,171 @@ const TaskForms = () => {
 
   const handleSubmitAssignment = async (e) => {
     e.preventDefault();
+    setLoadingDialog({ isOpen: true });
+
+    const data = {
+      taskID,
+      studID: getStudentData.studID,
+      subjectID,
+      taskScore: taskPoints,
+      empID,
+      description,
+    };
+    if (!subjectID) {
+      return (
+        setLoadingDialog({ isOpen: false }),
+        setErrorDialog({ isOpen: true, message: "Select a subject!" })
+      );
+    }
+    if (!taskID || !taskPoints) {
+      try {
+        const response = await axiosPrivate.post(
+          "/api/taskScore/register",
+          JSON.stringify(data)
+        );
+
+        if (response.status === 201) {
+          const json = await response.data;
+          console.log(json);
+          taskScoreDispatch({ type: "CREATE_TASKSCORE", payload: json });
+          setLoadingDialog({ isOpen: false });
+          setSuccessDialog({
+            isOpen: true,
+            message: `TaskScore added successfully!`,
+          });
+        }
+      } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `no server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else {
+          console.log(error);
+        }
+      }
+    } else {
+      setLoadingDialog({ isOpen: false });
+      setErrorDialog({ isOpen: true, message: "Incomplete Fields!" });
+    }
   };
 
-  console.log("stud Data:", getStudentData);
+  const handleSubmitActivity = async (e) => {
+    e.preventDefault();
+    setLoadingDialog({ isOpen: true });
+
+    const data = {
+      taskID,
+      studID: getStudentData.studID,
+      subjectID,
+      taskScore: taskPoints,
+      empID: auth.username,
+      description,
+    };
+    if (!subjectID) {
+      return (
+        setLoadingDialog({ isOpen: false }),
+        setErrorDialog({ isOpen: true, message: "Select a subject!" })
+      );
+    }
+    console.log(taskID, taskPoints);
+    console.log(data);
+    if (taskID && taskPoints) {
+      try {
+        const response = await axiosPrivate.post(
+          "/api/taskScore/register",
+          JSON.stringify(data)
+        );
+        console.log("Response :", response);
+        if (response.status === 201) {
+          const json = await response.data;
+
+          taskScoreDispatch({ type: "CREATE_SCORE", payload: json });
+          setLoadingDialog({ isOpen: false });
+          setSuccessDialog({
+            isOpen: true,
+            message: `TaskScore added successfully!`,
+          });
+        }
+      } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `no server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else {
+          console.log(error);
+        }
+      }
+    } else {
+      setLoadingDialog({ isOpen: false });
+      setErrorDialog({ isOpen: true, message: "Incomplete Fields!" });
+    }
+  };
+  // console.log("stud Data:", getStudentData);
 
   return (
     <Box className="contents-container">
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Paper
         elevation={2}
         sx={{
@@ -342,7 +496,6 @@ const TaskForms = () => {
         elevation={2}
         sx={{
           width: "100%",
-          padding: { xs: "10px", sm: "0 10px" },
           mt: 2,
         }}
       >
@@ -350,21 +503,24 @@ const TaskForms = () => {
         <Box
           sx={{
             display: "flex",
+            flexDirection: "column",
             p: 2,
-            alignItems: "center",
             justifyContent: { xs: "center", sm: "start" },
           }}
         >
-          <FormControl sx={{ width: "50%" }}>
-            <Typography>Subject Name</Typography>
+          <Typography variant="h4">Select a subject</Typography>
+
+          <FormControl required sx={{ width: "50%", mt: 2 }}>
+            <InputLabel id="demo-simple-select-label">Subject Name</InputLabel>
             <Select
+              required
               labelId="demo-simple-select-label"
               id="demo-simple-select"
-              value={getStudSubjectID}
+              value={subjectID}
               // error={}
-              // label="Subject Code"
+              label="Subject Name"
               onChange={(e) => {
-                setStudSubjectID(e.target.value);
+                setSubjectID(e.target.value);
               }}
             >
               <MenuItem aria-label="None" value="" />
@@ -376,417 +532,589 @@ const TaskForms = () => {
                   .map((val) => {
                     return (
                       <MenuItem
-                        value={val?.subjectID}
+                        value={val.subjectID}
                         sx={{ textTransform: "capitalize" }}
                       >
-                        {val?.subjectName}
+                        {val.subjectName}
                       </MenuItem>
                     );
                   })}
             </Select>
           </FormControl>
         </Box>
-      </Paper>
-      <Box
-        sx={{
-          display: "flex",
-          height: "100%",
-          width: "100%",
-          borderBottom: 1,
-          borderColor: "divider",
-          mt: 2,
-        }}
-      >
-        <AppBar
-          position="static"
-          sx={{ backgroundColor: colors.appBar[100] }}
-          enableColorOnDark
+        <Box
+          sx={{
+            display: "flex",
+            height: "100%",
+            width: "100%",
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
         >
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="full width tabs example"
-            variant="fullWidth"
+          <AppBar
+            position="static"
+            sx={{ backgroundColor: colors.appBar[100] }}
+            enableColorOnDark
           >
-            <Tab
-              label="Assignments"
-              {...a11yProps(0)}
-              sx={{ fontWeight: "bold" }}
-            />
-            <Tab
-              label="Activities"
-              {...a11yProps(1)}
-              sx={{ fontWeight: "bold" }}
-            />
-            <Tab
-              label="Projects"
-              {...a11yProps(2)}
-              sx={{ fontWeight: "bold" }}
-            />
-            <Tab
-              label="Quizzes"
-              {...a11yProps(3)}
-              sx={{ fontWeight: "bold" }}
-            />
-            <Tab label="Exams" {...a11yProps(4)} sx={{ fontWeight: "bold" }} />
-          </Tabs>
-        </AppBar>
-      </Box>{" "}
-      <TabPanel sx={{ width: "100%" }} value={value} index={0}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Box width="100%">
-            <form onSubmit={handleSubmitAssignment} style={{ width: "100%" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                }}
-                gap={2}
-              >
-                <FormControl required fullWidth>
-                  <Typography id="demo-simple-select-label">
-                    Assignment Title
-                  </Typography>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={taskName}
-                    // error={}
-                    onChange={(e) => {
-                      setTaskName(e.target.value);
-                    }}
-                  >
-                    {tasks &&
-                      tasks
-                        .filter((fill) => {
-                          return fill.taskType === "assignment";
-                        })
-                        .map((val) => {
-                          return (
-                            <MenuItem value={val.taskID}>
-                              {val.taskName}
-                            </MenuItem>
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              aria-label="full width tabs example"
+              variant="fullWidth"
+            >
+              <Tab
+                label="Assignments"
+                {...a11yProps(0)}
+                sx={{ fontWeight: "bold" }}
+              />
+              <Tab
+                label="Activities"
+                {...a11yProps(1)}
+                sx={{ fontWeight: "bold" }}
+              />
+              <Tab
+                label="Projects"
+                {...a11yProps(2)}
+                sx={{ fontWeight: "bold" }}
+              />
+              <Tab
+                label="Quizzes"
+                {...a11yProps(3)}
+                sx={{ fontWeight: "bold" }}
+              />
+              <Tab
+                label="Exams"
+                {...a11yProps(4)}
+                sx={{ fontWeight: "bold" }}
+              />
+            </Tabs>
+          </AppBar>
+        </Box>{" "}
+        <TabPanel sx={{ width: "100%" }} value={value} index={0}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Box width="100%">
+              <form onSubmit={handleSubmitActivity} style={{ width: "100%" }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  }}
+                  gap={2}
+                >
+                  <Box display="flex" flexDirection="column">
+                    <Typography variant="h4">Select an assignment</Typography>
+                    <FormControl required fullWidth sx={{ mt: 2 }}>
+                      {/* <Typography id="demo-simple-select-label">
+                        Assignment Title
+                      </Typography> */}
+                      <InputLabel id="demo-simple-select-label">
+                        Assignment Title
+                      </InputLabel>
+                      <Select
+                        required
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={taskID}
+                        // error={}
+                        label="Assignment Title"
+                        onChange={(e) => {
+                          setTaskID(e.target.value);
+                        }}
+                      >
+                        <MenuItem aria-label="none" value=""></MenuItem>
+                        {tasks &&
+                          tasks
+                            .filter((fill) => {
+                              return (
+                                fill.taskType === "assignment" &&
+                                fill.subjectID === subjectID
+                              );
+                            })
+                            .map((val) => {
+                              return (
+                                <MenuItem value={val.taskID}>
+                                  {val.taskName}
+                                </MenuItem>
+                              );
+                            })}
+                      </Select>
+                    </FormControl>
+                    <br />
+                    <FormControl fullWidth>
+                      {/* <Typography>Task Score</Typography> */}
+                      <TextField
+                        required
+                        autoComplete="off"
+                        variant="outlined"
+                        label="Activity Score"
+                        type="number"
+                        value={taskPoints}
+                        onChange={(e) => {
+                          const value = Math.max(
+                            0,
+                            Math.min(
+                              taskID &&
+                                tasks &&
+                                tasks
+                                  .filter((fill) => {
+                                    return (
+                                      console.log(fill.taskID === taskID),
+                                      fill.taskID === taskID
+                                    );
+                                  })
+                                  .map((val) => {
+                                    return (
+                                      console.log("points:", val.maxPoints),
+                                      val.maxPoints
+                                    );
+                                  }),
+                              Number(e.target.value)
+                            )
                           );
-                        })}
-                  </Select>
-                </FormControl>
-                <br />
-                <FormControl>
-                  <Typography>Task Score</Typography>
-                  <TextField variant="outlined" />
-                </FormControl>
-                <br />
-                <Box display="flex" justifyContent="end" height="50px" gap={2}>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
+                          setTaskPoints(value);
+                          // setTaskPoints(e.target.value);
+                        }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <Typography
+                                variant="subtitle2"
+                                sx={{ color: colors.black[400] }}
+                              >
+                                {taskPoints}/
+                                {taskID &&
+                                  tasks &&
+                                  tasks
+                                    .filter((fill) => {
+                                      return (
+                                        console.log(fill.taskID === taskID),
+                                        fill.taskID === taskID
+                                      );
+                                    })
+                                    .map((val) => {
+                                      return (
+                                        console.log("points:", val.maxPoints),
+                                        val.maxPoints
+                                      );
+                                    })}
+                              </Typography>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </FormControl>
+                  </Box>
+                  <br />
+                  <Box
+                    display="flex"
+                    justifyContent="end"
+                    height="50px"
+                    gap={2}
+                    sx={{ mt: 2, mb: 2 }}
                   >
-                    <Typography variant="h6" fontWeight="500">
-                      Confirm
-                    </Typography>
-                  </Button>
-                  <Button
-                    fullWidth
-                    type="button"
-                    variant="contained"
-                    onClick={() => {}}
-                  >
-                    <Typography variant="h6" fontWeight="500">
-                      CANCEL
-                    </Typography>
-                  </Button>
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        Submit
+                      </Typography>
+                    </Button>
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="contained"
+                      onClick={() => {}}
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        CANCEL
+                      </Typography>
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            </form>
-          </Box>
-        </Paper>
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Box width="100%">
-            <form style={{ width: "100%" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                }}
-                gap={2}
-              >
-                <FormControl required fullWidth>
-                  <Typography id="demo-simple-select-label">
-                    Activity Title
-                  </Typography>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={taskName}
-                    // error={}
-                    onChange={(e) => {
-                      setTaskName(e.target.value);
-                    }}
-                  >
-                    {tasks &&
-                      tasks
-                        .filter((fill) => {
-                          return fill.taskType === "activity";
-                        })
-                        .map((val) => {
-                          return (
-                            <MenuItem value={val.taskID}>
-                              {val.taskName}
-                            </MenuItem>
+              </form>
+            </Box>
+          </Paper>
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Box width="100%">
+              <form onSubmit={handleSubmitActivity} style={{ width: "100%" }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  }}
+                  gap={2}
+                >
+                  <Box display="flex" flexDirection="column">
+                    <Typography variant="h4">Select an activity</Typography>
+                    <FormControl required fullWidth sx={{ mt: 2 }}>
+                      {/* <Typography id="demo-simple-select-label">
+                        Activity Title
+                      </Typography> */}
+                      <InputLabel id="demo-simple-select-label">
+                        Activity Title
+                      </InputLabel>
+                      <Select
+                        required
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={taskID}
+                        // error={}
+                        label="Activity Title"
+                        onChange={(e) => {
+                          setTaskID(e.target.value);
+                        }}
+                      >
+                        <MenuItem aria-label="none" value=""></MenuItem>
+                        {tasks &&
+                          tasks
+                            .filter((fill) => {
+                              return (
+                                fill.taskType === "activity" &&
+                                fill.subjectID === subjectID
+                              );
+                            })
+                            .map((val) => {
+                              return (
+                                <MenuItem value={val.taskID}>
+                                  {val.taskName}
+                                </MenuItem>
+                              );
+                            })}
+                      </Select>
+                    </FormControl>
+                    <br />
+                    <FormControl fullWidth>
+                      {/* <Typography>Task Score</Typography> */}
+                      <TextField
+                        required
+                        autoComplete="off"
+                        variant="outlined"
+                        label="Activity Score"
+                        type="number"
+                        value={taskPoints}
+                        onChange={(e) => {
+                          const value = Math.max(
+                            0,
+                            Math.min(
+                              taskID &&
+                                tasks &&
+                                tasks
+                                  .filter((fill) => {
+                                    return (
+                                      console.log(fill.taskID === taskID),
+                                      fill.taskID === taskID
+                                    );
+                                  })
+                                  .map((val) => {
+                                    return (
+                                      console.log("points:", val.maxPoints),
+                                      val.maxPoints
+                                    );
+                                  }),
+                              Number(e.target.value)
+                            )
                           );
-                        })}
-                  </Select>
-                </FormControl>
-                <br />
-                <FormControl>
-                  <Typography>Task Score</Typography>
-                  <TextField variant="outlined" />
-                </FormControl>
-                <br />
-                <Box display="flex" justifyContent="end" height="50px" gap={2}>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
+                          setTaskPoints(value);
+                          // setTaskPoints(e.target.value);
+                        }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <Typography
+                                variant="subtitle2"
+                                sx={{ color: colors.black[400] }}
+                              >
+                                {taskPoints}/
+                                {taskID &&
+                                  tasks &&
+                                  tasks
+                                    .filter((fill) => {
+                                      return (
+                                        console.log(fill.taskID === taskID),
+                                        fill.taskID === taskID
+                                      );
+                                    })
+                                    .map((val) => {
+                                      return (
+                                        console.log("points:", val.maxPoints),
+                                        val.maxPoints
+                                      );
+                                    })}
+                              </Typography>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </FormControl>
+                  </Box>
+                  <br />
+                  <Box
+                    display="flex"
+                    justifyContent="end"
+                    height="50px"
+                    gap={2}
+                    sx={{ mt: 2, mb: 2 }}
                   >
-                    <Typography variant="h6" fontWeight="500">
-                      Confirm
-                    </Typography>
-                  </Button>
-                  <Button
-                    fullWidth
-                    type="button"
-                    variant="contained"
-                    onClick={() => {}}
-                  >
-                    <Typography variant="h6" fontWeight="500">
-                      CANCEL
-                    </Typography>
-                  </Button>
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        Submit
+                      </Typography>
+                    </Button>
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="contained"
+                      onClick={() => {}}
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        CANCEL
+                      </Typography>
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            </form>
-          </Box>
-        </Paper>
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Box width="100%">
-            <form style={{ width: "100%" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                }}
-                gap={2}
-              >
-                <FormControl required fullWidth>
-                  <Typography id="demo-simple-select-label">
-                    Project Title
-                  </Typography>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={taskName}
-                    // error={}
-                    onChange={(e) => {
-                      setTaskName(e.target.value);
-                    }}
-                  >
-                    {tasks &&
-                      tasks
-                        .filter((fill) => {
-                          return fill.taskType === "project";
-                        })
-                        .map((val) => {
-                          return (
-                            <MenuItem value={val.taskID}>
-                              {val.taskName}
-                            </MenuItem>
-                          );
-                        })}
-                  </Select>
-                </FormControl>
-                <br />
-                <FormControl>
-                  <Typography>Task Score</Typography>
-                  <TextField variant="outlined" />
-                </FormControl>
-                <br />
-                <Box display="flex" justifyContent="end" height="50px" gap={2}>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                  >
-                    <Typography variant="h6" fontWeight="500">
-                      Confirm
+              </form>
+            </Box>
+          </Paper>
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Box width="100%">
+              <form style={{ width: "100%" }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  }}
+                  gap={2}
+                >
+                  <FormControl required fullWidth>
+                    <Typography id="demo-simple-select-label">
+                      Project Title
                     </Typography>
-                  </Button>
-                  <Button
-                    fullWidth
-                    type="button"
-                    variant="contained"
-                    onClick={() => {}}
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={taskName}
+                      // error={}
+                      onChange={(e) => {
+                        setTaskName(e.target.value);
+                      }}
+                    >
+                      {tasks &&
+                        tasks
+                          .filter((fill) => {
+                            return fill.taskType === "project";
+                          })
+                          .map((val) => {
+                            return (
+                              <MenuItem value={val.taskID}>
+                                {val.taskName}
+                              </MenuItem>
+                            );
+                          })}
+                    </Select>
+                  </FormControl>
+                  <br />
+                  <FormControl>
+                    <Typography>Task Score</Typography>
+                    <TextField variant="outlined" />
+                  </FormControl>
+                  <br />
+                  <Box
+                    display="flex"
+                    justifyContent="end"
+                    height="50px"
+                    gap={2}
                   >
-                    <Typography variant="h6" fontWeight="500">
-                      CANCEL
-                    </Typography>
-                  </Button>
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        Confirm
+                      </Typography>
+                    </Button>
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="contained"
+                      onClick={() => {}}
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        CANCEL
+                      </Typography>
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            </form>
-          </Box>
-        </Paper>
-      </TabPanel>{" "}
-      <TabPanel value={value} index={3}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Box width="100%">
-            <form style={{ width: "100%" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                }}
-                gap={2}
-              >
-                <FormControl required fullWidth>
-                  <Typography id="demo-simple-select-label">
-                    Quiz Title
-                  </Typography>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={taskName}
-                    // error={}
-                    onChange={(e) => {
-                      setTaskName(e.target.value);
-                    }}
-                  >
-                    {tasks &&
-                      tasks
-                        .filter((fill) => {
-                          return fill.taskType === "quiz";
-                        })
-                        .map((val) => {
-                          return (
-                            <MenuItem value={val.taskID}>
-                              {val.taskName}
-                            </MenuItem>
-                          );
-                        })}
-                  </Select>
-                </FormControl>
-                <br />
-                <FormControl>
-                  <Typography>Task Score</Typography>
-                  <TextField variant="outlined" />
-                </FormControl>
-                <br />
-                <Box display="flex" justifyContent="end" height="50px" gap={2}>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                  >
-                    <Typography variant="h6" fontWeight="500">
-                      Confirm
+              </form>
+            </Box>
+          </Paper>
+        </TabPanel>{" "}
+        <TabPanel value={value} index={3}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Box width="100%">
+              <form style={{ width: "100%" }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  }}
+                  gap={2}
+                >
+                  <FormControl required fullWidth>
+                    <Typography id="demo-simple-select-label">
+                      Quiz Title
                     </Typography>
-                  </Button>
-                  <Button
-                    fullWidth
-                    type="button"
-                    variant="contained"
-                    onClick={() => {}}
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={taskName}
+                      // error={}
+                      onChange={(e) => {
+                        setTaskName(e.target.value);
+                      }}
+                    >
+                      {tasks &&
+                        tasks
+                          .filter((fill) => {
+                            return fill.taskType === "quiz";
+                          })
+                          .map((val) => {
+                            return (
+                              <MenuItem value={val.taskID}>
+                                {val.taskName}
+                              </MenuItem>
+                            );
+                          })}
+                    </Select>
+                  </FormControl>
+                  <br />
+                  <FormControl>
+                    <Typography>Task Score</Typography>
+                    <TextField variant="outlined" />
+                  </FormControl>
+                  <br />
+                  <Box
+                    display="flex"
+                    justifyContent="end"
+                    height="50px"
+                    gap={2}
                   >
-                    <Typography variant="h6" fontWeight="500">
-                      CANCEL
-                    </Typography>
-                  </Button>
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        Confirm
+                      </Typography>
+                    </Button>
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="contained"
+                      onClick={() => {}}
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        CANCEL
+                      </Typography>
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            </form>
-          </Box>
-        </Paper>
-      </TabPanel>{" "}
-      <TabPanel value={value} index={4}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Box width="100%">
-            <form style={{ width: "100%" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                }}
-                gap={2}
-              >
-                <FormControl required fullWidth>
-                  <Typography id="demo-simple-select-label">
-                    Exam Title
-                  </Typography>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={taskName}
-                    // error={}
-                    onChange={(e) => {
-                      setTaskName(e.target.value);
-                    }}
-                  >
-                    {tasks &&
-                      tasks
-                        .filter((fill) => {
-                          return fill.taskType === "exam";
-                        })
-                        .map((val) => {
-                          return (
-                            <MenuItem value={val.taskID}>
-                              {val.taskName}
-                            </MenuItem>
-                          );
-                        })}
-                  </Select>
-                </FormControl>
-                <br />
-                <FormControl>
-                  <Typography>Task Score</Typography>
-                  <TextField variant="outlined" />
-                </FormControl>
-                <br />
-                <Box display="flex" justifyContent="end" height="50px" gap={2}>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                  >
-                    <Typography variant="h6" fontWeight="500">
-                      Confirm
+              </form>
+            </Box>
+          </Paper>
+        </TabPanel>{" "}
+        <TabPanel value={value} index={4}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Box width="100%">
+              <form style={{ width: "100%" }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  }}
+                  gap={2}
+                >
+                  <FormControl required fullWidth>
+                    <Typography id="demo-simple-select-label">
+                      Exam Title
                     </Typography>
-                  </Button>
-                  <Button
-                    fullWidth
-                    type="button"
-                    variant="contained"
-                    onClick={() => {}}
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={taskName}
+                      // error={}
+                      onChange={(e) => {
+                        setTaskName(e.target.value);
+                      }}
+                    >
+                      {tasks &&
+                        tasks
+                          .filter((fill) => {
+                            return fill.taskType === "exam";
+                          })
+                          .map((val) => {
+                            return (
+                              <MenuItem value={val.taskID}>
+                                {val.taskName}
+                              </MenuItem>
+                            );
+                          })}
+                    </Select>
+                  </FormControl>
+                  <br />
+                  <FormControl>
+                    <Typography>Task Score</Typography>
+                    <TextField variant="outlined" />
+                  </FormControl>
+                  <br />
+                  <Box
+                    display="flex"
+                    justifyContent="end"
+                    height="50px"
+                    gap={2}
                   >
-                    <Typography variant="h6" fontWeight="500">
-                      CANCEL
-                    </Typography>
-                  </Button>
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="secondary"
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        Confirm
+                      </Typography>
+                    </Button>
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="contained"
+                      onClick={() => {}}
+                    >
+                      <Typography variant="h6" fontWeight="500">
+                        CANCEL
+                      </Typography>
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            </form>
-          </Box>
-        </Paper>
-      </TabPanel>{" "}
+              </form>
+            </Box>
+          </Paper>
+        </TabPanel>{" "}
+      </Paper>
     </Box>
   );
 };

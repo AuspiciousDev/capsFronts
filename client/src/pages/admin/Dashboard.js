@@ -25,6 +25,11 @@ import {
   Diversity3,
   Badge,
   Groups,
+  AutoStoriesOutlined,
+  Diversity3Outlined,
+  Diversity1Outlined,
+  BadgeOutlined,
+  GroupsOutlined,
   AccountCircle,
 } from "@mui/icons-material";
 import { format } from "date-fns-tz";
@@ -171,7 +176,7 @@ const Dashboard = () => {
   const totalStudents = (
     <StyledPaper elevation={2}>
       {" "}
-      <Groups sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <GroupsOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
@@ -187,7 +192,7 @@ const Dashboard = () => {
   );
   const totalInstructors = (
     <StyledPaper elevation={2}>
-      <Badge sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <BadgeOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
@@ -203,7 +208,7 @@ const Dashboard = () => {
   );
   const totalSubjects = (
     <StyledPaper elevation={2}>
-      <AutoStories sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <AutoStoriesOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
@@ -219,7 +224,7 @@ const Dashboard = () => {
   );
   const totalSections = (
     <StyledPaper elevation={2}>
-      <Diversity3 sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <Diversity3Outlined sx={{ fontSize: "80px", alignSelf: "center" }} />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
@@ -380,44 +385,47 @@ const Dashboard = () => {
                 gridTemplateColumns: { xs: "1fr", sm: "8fr 2fr" },
               }}
             >
-              <Paper elevation={2} sx={{ padding: "20px" }}>
-                <Box>
-                  <Typography variant="h4">Recent Students</Typography>
-                  {/* <Typography>Showing 10 entries</Typography> */}
-                  <TableContainer>
-                    <Table sx={{ minWidth: "100%" }} aria-label="simple table">
-                      <TableHead>
-                        <StyledTableHeadRow>
-                          <TableCell>Student ID</TableCell>
-                          <TableCell align="left">Name</TableCell>
-                          <TableCell align="left">Level</TableCell>
-                          <TableCell align="left">Section</TableCell>
-                        </StyledTableHeadRow>
-                      </TableHead>
-                      <TableBody>
-                        {actives &&
-                          actives
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
-                            .map((val) => {
-                              return tableDetails({ val });
-                            })}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  <Divider />
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10]}
-                    component="div"
-                    count={actives && actives.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                  />
-                </Box>
+              <Paper elevation={2} sx={{ position: "relative", p: 2 }}>
+                <Typography variant="h4">Recent Students</Typography>
+                {/* <Typography>Showing 10 entries</Typography> */}
+                <TableContainer>
+                  <Table sx={{ minWidth: "100%" }} aria-label="simple table">
+                    <TableHead>
+                      <StyledTableHeadRow>
+                        <TableCell>Student ID</TableCell>
+                        <TableCell align="left">Name</TableCell>
+                        <TableCell align="left">Level</TableCell>
+                        <TableCell align="left">Section</TableCell>
+                      </StyledTableHeadRow>
+                    </TableHead>
+                    <TableBody>
+                      {actives &&
+                        actives
+                          .slice(
+                            page * rowsPerPage,
+                            page * rowsPerPage + rowsPerPage
+                          )
+                          .map((val) => {
+                            return tableDetails({ val });
+                          })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Divider />
+                <TablePagination
+                  sx={{
+                    position: { xs: "", sm: "absolute" },
+                    bottom: 1,
+                    right: 1,
+                  }}
+                  rowsPerPageOptions={[5, 10]}
+                  component="div"
+                  count={actives && actives.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
               </Paper>
               <Paper
                 elevation={2}

@@ -43,6 +43,7 @@ import Task from "./pages/admin/Task";
 import Taskform from "./pages/admin/components/Task/Taskform";
 import Adviser from "./pages/admin/Adviser";
 import ActiveStudents from "./pages/admin/ActiveStudents";
+import LoginHistoryTable from "./pages/admin/components/LoginHistory/LoginHistoryTable";
 
 import GenerateActiveYearGrades from "./pages/admin/components/GeneratePDF/GenerateActiveYearGrades";
 // Teachers'
@@ -167,6 +168,7 @@ function App() {
                   />
 
                   <Route path="maintenance" element={<Maintenance />} />
+                  <Route path="loginHistory" element={<LoginHistoryTable />} />
                 </Route>
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.Teacher]} />}>

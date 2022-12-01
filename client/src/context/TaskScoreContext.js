@@ -4,15 +4,15 @@ export const TaskScoreContext = createContext();
 
 export const tasksReducer = (state, action) => {
   switch (action.type) {
-    case "SET_TASKSCORES":
+    case "SET_SCORES":
       return {
         taskScore: action.payload,
       };
-    case "CREATE_TASKSCORE":
+    case "CREATE_SCORE":
       return {
         taskScore: [action.payload, ...state.taskScore],
       };
-    case "DELETE_TASKSCORE":
+    case "DELETE_SCORE":
       return {
         taskScore: state.taskScore.filter((w) => w._id !== action.payload._id),
       };

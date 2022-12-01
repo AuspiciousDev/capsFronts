@@ -61,10 +61,6 @@ const GradesTable = () => {
 
   const axiosPrivate = useAxiosPrivate();
   const ref = useRef();
-  const [getLevelID, setLevelID] = useState("");
-  const [getSectionID, setSectionID] = useState("");
-  const [getLevelTitle, setLevelTitle] = useState("");
-  const [getSectionTitle, setSectionTitle] = useState("");
   const [getGrades, setGrades] = useState([]);
   const [getData, setData] = useState([]);
   const [search, setSearch] = useState("");
@@ -778,7 +774,7 @@ const GradesTable = () => {
                     sx={{ ml: 1, flex: 1 }}
                     placeholder="Search Student"
                     onChange={(e) => {
-                      setSearch(e.target.value.toLowerCase());
+                      setSearch(e.target.value);
                     }}
                   />
                   <Divider sx={{ height: 30, m: 1 }} orientation="vertical" />
@@ -790,22 +786,6 @@ const GradesTable = () => {
                     <Search />
                   </IconButton>
                 </Paper>
-                <Button
-                  type="button"
-                  startIcon={<AddIcon />}
-                  // onClick={setIsFormOpen((e) => !e)}
-                  variant="contained"
-                  sx={{
-                    width: { xs: "100%", sm: "200px" },
-                    height: "50px",
-                    marginLeft: { xs: "0", sm: "20px" },
-                    marginTop: { xs: "20px", sm: "0" },
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="500">
-                    Add
-                  </Typography>
-                </Button>
               </Box>
             </Box>
           </Paper>
@@ -824,9 +804,8 @@ const GradesTable = () => {
                     <TableTitles key={"asdas"} />
                   </TableHead>
                   <TableBody>
-                    {getLevelID && getSectionID
-                      ? getLevelID &&
-                        getSectionID &&
+                    {search
+                      ? search &&
                         actives &&
                         actives
                           .slice(
@@ -835,8 +814,8 @@ const GradesTable = () => {
                           )
                           .filter((active) => {
                             return (
-                              active.levelID.toLowerCase() === getLevelID &&
-                              active.sectionID.toLowerCase() === getSectionID
+                              active.status === true &&
+                              active.studID.includes(search)
                             );
                           })
 
