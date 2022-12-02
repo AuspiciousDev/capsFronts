@@ -9,7 +9,7 @@ const Loading = () => {
         <div></div>
         <div></div>
       </div> */}
-      <div class="lds-hourglass"></div>
+      <div className="lds-hourglass"></div>
     </>
   );
 };

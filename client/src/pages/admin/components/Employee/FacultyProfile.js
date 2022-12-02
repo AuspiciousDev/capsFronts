@@ -11,6 +11,15 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  AppBar,
+  Tabs,
+  Tab,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableRow,
 } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
@@ -36,6 +45,37 @@ import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 
 import NotFound404 from "../../../NotFound404";
+import PropTypes from "prop-types";
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+      style={{ width: "100%" }}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
+
 const FacultyProfile = (props) => {
   const { id } = useParams();
   const [val, setVal] = useState([]);
@@ -74,6 +114,11 @@ const FacultyProfile = (props) => {
     message: "",
   });
 
+  const [value, setValue] = React.useState(0);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -83,6 +128,36 @@ const FacultyProfile = (props) => {
     setAnchorEl(null);
   };
 
+  const LevelTableTitles = () => {
+    return (
+      <TableRow>
+        {/* <TableCell align="left"></TableCell> */}
+        <TableCell>Level ID</TableCell>
+        <TableCell>Level </TableCell>
+        <TableCell>Department </TableCell>
+      </TableRow>
+    );
+  };
+  const SectionTableTitles = () => {
+    return (
+      <TableRow>
+        {/* <TableCell align="left"></TableCell> */}
+        <TableCell>Section ID</TableCell>
+        <TableCell>Section Name</TableCell>
+        <TableCell>Level</TableCell>
+      </TableRow>
+    );
+  };
+  const SubjectTableTitles = () => {
+    return (
+      <TableRow>
+        {/* <TableCell align="left"></TableCell> */}
+        <TableCell>Subject ID</TableCell>
+        <TableCell>Subject Name</TableCell>
+        <TableCell>Level </TableCell>
+      </TableRow>
+    );
+  };
   useEffect(() => {
     const getUsersDetails = async () => {
       try {
@@ -158,7 +233,6 @@ const FacultyProfile = (props) => {
         <Box
           className="deleteScroll"
           gap={1}
-          mt="20px"
           display="grid"
           paddingBottom="20px"
           sx={{
@@ -320,6 +394,18 @@ const FacultyProfile = (props) => {
                     }}
                   >
                     Edit Profile
+                  </Link>
+                </MenuItem>
+                <MenuItem>
+                  <Link
+                    to={`/admin/faculty/load/${val?.empID}`}
+                    style={{
+                      alignItems: "center",
+                      color: colors.black[100],
+                      textDecoration: "none",
+                    }}
+                  >
+                    Assign Loads
                   </Link>
                 </MenuItem>
               </Menu>
@@ -547,51 +633,147 @@ const FacultyProfile = (props) => {
               </Box>
             </Box>
           </Paper>
-          <Paper>
-            <Box padding="20px">
-              <Typography>Login History</Typography>
+          <Paper sx={{ p: 2 }}>
+            <Typography>Login History</Typography>
 
-              <Grid
-                mt="10px"
-                container
-                gap={2}
-                sx={{ width: "350px" }}
-                direction="column"
-                alignItems="center"
-                justify="center"
-              >
-                {loginHistory &&
-                  loginHistory
-                    .slice(0, 5)
-                    .filter((fill) => {
-                      return fill.username === id;
-                    })
-                    .map((val, key) => (
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          display: "flex",
-                          padding: "10px 15px",
-                          borderRadius: "20px",
-                          backgroundColor: colors.whiteOnly[100],
-                          width: "100%",
-                        }}
-                      >
-                        <Typography textTransform="capitalize">
-                          {format(
-                            new Date(val.createdAt),
-                            // "kk:mm a  MMM dd, yyyy"
-                            " hh:mm a.  EE, MM-dd-yyyy"
-                          )}
-                          {/* {val.createdAt} */}
-                        </Typography>
-                      </Paper>
-                    ))}
-              </Grid>
-            </Box>
+            <Grid
+              mt="10px"
+              container
+              gap={2}
+              sx={{ width: "350px" }}
+              direction="column"
+              alignItems="center"
+              justify="center"
+            >
+              {loginHistory &&
+                loginHistory
+                  .slice(0, 5)
+                  .filter((fill) => {
+                    return fill.username === id;
+                  })
+                  .map((val, key) => (
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        display: "flex",
+                        padding: "10px 15px",
+                        borderRadius: "20px",
+                        width: "100%",
+                      }}
+                    >
+                      <Typography textTransform="capitalize">
+                        {format(
+                          new Date(val.createdAt),
+                          // "kk:mm a  MMM dd, yyyy"
+                          " hh:mm a.  EE, MM-dd-yyyy"
+                        )}
+                        {/* {val.createdAt} */}
+                      </Typography>
+                    </Paper>
+                  ))}
+            </Grid>
           </Paper>
           <Paper>
-            <Box padding="20px">{/* <Typography>Grade</Typography> */}</Box>
+            <AppBar
+              position="static"
+              sx={{ backgroundColor: colors.appBar[100] }}
+              enableColorOnDark
+            >
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                aria-label="full width tabs example"
+                variant="fullWidth"
+              >
+                <Tab
+                  label="Levels"
+                  {...a11yProps(0)}
+                  sx={{ fontWeight: "bold" }}
+                />
+                <Tab
+                  label="Sections"
+                  {...a11yProps(1)}
+                  sx={{ fontWeight: "bold" }}
+                />
+                <Tab
+                  label="Subjects"
+                  {...a11yProps(2)}
+                  sx={{ fontWeight: "bold" }}
+                />
+              </Tabs>
+            </AppBar>
+            <TabPanel sx={{ width: "100%" }} value={value} index={0}>
+              <Box width="100%">
+                <TableContainer>
+                  <Table aria-label="simple table">
+                    <TableHead>
+                      <LevelTableTitles />
+                    </TableHead>
+                    <TableBody></TableBody>
+                  </Table>
+                </TableContainer>
+                <Divider />
+
+                <Box
+                  display="flex"
+                  width="100%"
+                  sx={{ flexDirection: "column" }}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  {isloading ? <Loading /> : <></>}
+                </Box>
+                <Box display="flex" width="100%" marginTop="20px"></Box>
+              </Box>
+            </TabPanel>
+            <TabPanel sx={{ width: "100%" }} value={value} index={1}>
+              <Box width="100%">
+                <TableContainer>
+                  <Table aria-label="simple table">
+                    <TableHead>
+                      <SectionTableTitles />
+                    </TableHead>
+                    <TableBody></TableBody>
+                  </Table>
+                </TableContainer>
+                <Divider />
+
+                <Box
+                  display="flex"
+                  width="100%"
+                  sx={{ flexDirection: "column" }}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  {isloading ? <Loading /> : <></>}
+                </Box>
+                <Box display="flex" width="100%" marginTop="20px"></Box>
+              </Box>
+            </TabPanel>
+            <TabPanel sx={{ width: "100%" }} value={value} index={2}>
+              <Box width="100%">
+                <TableContainer>
+                  <Table aria-label="simple table">
+                    <TableHead>
+                      <SubjectTableTitles />
+                    </TableHead>
+                    <TableBody></TableBody>
+                  </Table>
+                </TableContainer>
+                <Divider />
+
+                <Box
+                  display="flex"
+                  width="100%"
+                  sx={{ flexDirection: "column" }}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  {isloading ? <Loading /> : <></>}
+                </Box>
+                <Box display="flex" width="100%" marginTop="20px"></Box>
+              </Box>
+            </TabPanel>
           </Paper>
         </Box>
       ) : (

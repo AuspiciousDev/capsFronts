@@ -622,6 +622,7 @@ const TaskTable = () => {
                         fill.studID === getStudentData.studID
                       );
                     })
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((val) => {
                       return tableDetails(val);
                     })}
@@ -664,6 +665,7 @@ const TaskTable = () => {
                         fill.studID === getStudentData.studID
                       );
                     })
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((val) => {
                       return tableDetails(val);
                     })}
@@ -706,6 +708,7 @@ const TaskTable = () => {
                         fill.studID === getStudentData.studID
                       );
                     })
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((val) => {
                       return tableDetails(val);
                     })}
@@ -745,6 +748,7 @@ const TaskTable = () => {
                     .filter((fill) => {
                       return fill.taskType === "exam";
                     })
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((val) => {
                       return tableDetails(val);
                     })}

@@ -40,6 +40,7 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
@@ -95,6 +96,11 @@ const SectionTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -135,6 +141,7 @@ const SectionTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/sections", {
           headers: { "Content-Type": "application/json" },
@@ -165,7 +172,9 @@ const SectionTable = () => {
           setIsLoading(false);
           depDispatch({ type: "SET_DEPS", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
           console.log("no server response");
         } else if (error.response.status === 204) {
@@ -565,6 +574,10 @@ const SectionTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
+      />{" "}
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div

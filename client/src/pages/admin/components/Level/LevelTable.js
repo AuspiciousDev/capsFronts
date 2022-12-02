@@ -46,6 +46,8 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
@@ -110,6 +112,11 @@ const LevelTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const clearInputForms = () => {
     setLevelID("");
@@ -159,6 +166,7 @@ const LevelTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/levels", {
           headers: { "Content-Type": "application/json" },
@@ -178,7 +186,9 @@ const LevelTable = () => {
           setIsLoading(false);
           depDispatch({ type: "SET_DEPS", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
           console.log("no server response");
         } else if (error.response.status === 204) {
@@ -360,89 +370,7 @@ const LevelTable = () => {
       </StyledTableRow>
     );
   };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.secondary[500] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography
-              variant="h3"
-              fontWeight="bold"
-              sx={{ color: colors.whiteOnly[100] }}
-            >
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record</Typography>
-            <Box margin="20px 0">
-              <Typography
-                variant="h2"
-                fontWeight="700"
-                sx={{ textTransform: "uppercase" }}
-              >
-                {delVal.levelID}
-              </Typography>
-              <Typography variant="h4">Level - {delVal.title}</Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6" sx={{ color: colors.whiteOnly[100] }}>
-                Confirm
-              </Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6" sx={{ color: colors.whiteOnly[100] }}>
-                CANCEL
-              </Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -577,6 +505,10 @@ const LevelTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
+      />{" "}
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div

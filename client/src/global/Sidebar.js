@@ -218,7 +218,6 @@ const Sidebar = () => {
                       })
                   }
                   style={{
-                    cursor: "pointer",
                     objectFit: "contain",
                     borderRadius: "50%",
                   }}
@@ -233,25 +232,26 @@ const Sidebar = () => {
                 padding=" 10px 0 10px 15px"
                 // backgroundColor={colors.black[900]}
               >
-                <Avatar
-                  alt="profile-user"
-                  sx={{ width: "50px", height: "50px" }}
-                  src={
-                    employees &&
-                    employees
-                      .filter((data) => {
-                        return data.empID === auth.username;
-                      })
-                      .map((val) => {
-                        return val?.imgURL;
-                      })
-                  }
-                  style={{
-                    cursor: "pointer",
-                    objectFit: "contain",
-                    borderRadius: "50%",
-                  }}
-                />
+                <Link to={`/admin/faculty/${auth.username}`}>
+                  <Avatar
+                    alt="profile-user"
+                    sx={{ width: "50px", height: "50px" }}
+                    src={
+                      employees &&
+                      employees
+                        .filter((data) => {
+                          return data.empID === auth.username;
+                        })
+                        .map((val) => {
+                          return val?.imgURL;
+                        })
+                    }
+                    style={{
+                      objectFit: "contain",
+                      borderRadius: "50%",
+                    }}
+                  />
+                </Link>
 
                 <Box ml="10px">
                   <Typography
@@ -331,13 +331,13 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-             <Item
+            {/* <Item
               title="Advisers"
               to="adviser"
               icon={<PermContactCalendarOutlined />}
               selected={selected}
               setSelected={setSelected}
-            />{" "}
+            />{" "} */}
             <Item
               title="Students"
               to="student"
@@ -381,7 +381,6 @@ const Sidebar = () => {
             ) : (
               <SidebarHeader />
             )}
-           
             <Item
               title="Sections"
               to="section"

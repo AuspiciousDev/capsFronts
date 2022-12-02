@@ -67,6 +67,8 @@ import StudentGenerateActiveYearGrades from "./pages/Student/GeneratePDF/Student
 import RecordTable from "./pages/admin/components/Record/RecordTable";
 import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
+import LoadAssign from "./pages/admin/components/Employee/LoadAssign";
+import LoadManage from "./pages/admin/components/Employee/LoadManage";
 const ROLES = {
   Admin: 2001,
   Teacher: 2002,
@@ -161,6 +163,8 @@ function App() {
                   <Route path="task/add" element={<Taskform />} />
                   <Route path="subject" element={<Subjects />} />
                   <Route path="faculty" element={<Employees />} />
+                  <Route path="faculty/load/:id" element={<LoadAssign />} />
+                  <Route path="faculty/load/add/:id" element={<LoadManage />} />
                   <Route path="faculty/:id" element={<FacultyProfile />} />
                   <Route
                     path="faculty/edit/:id"

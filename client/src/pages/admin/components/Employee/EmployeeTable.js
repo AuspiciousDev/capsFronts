@@ -126,7 +126,7 @@ const EmployeeTable = () => {
     const getUsersDetails = async () => {
       try {
         setIsLoading(true);
-
+        setLoadingDialog({ isOpen: true });
         const response = await axiosPrivate.get("/api/employees");
         if (response.status === 200) {
           const json = await response.data;
@@ -134,7 +134,9 @@ const EmployeeTable = () => {
           setIsLoading(false);
           empDispatch({ type: "SET_EMPLOYEES", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error.response) {
           console.log("no server response");
         } else if (error.response.status === 204) {
@@ -364,7 +366,15 @@ const EmployeeTable = () => {
           {val.gender}
         </TableCell>
         {/* <TableCell align="left">{val?.email || "-"}</TableCell> */}
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
+        <TableCell
+          align="left"
+          sx={{
+            textTransform: "capitalize",
+            "& ul > li ": {
+              marginTop: 1,
+            },
+          }}
+        >
           {/* {val.empType.map((item, i) => {
             return (
               <ul style={{ padding: "0", listStyle: "none" }}>
@@ -382,7 +392,14 @@ const EmployeeTable = () => {
           })} */}
           {val.empType.map((item, i) => {
             return (
-              <ul style={{ display: "flex", padding: "0", listStyle: "none" }}>
+              <ul
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  padding: "0",
+                  listStyleType: "none",
+                }}
+              >
                 {item === 2001 ? (
                   <li>
                     <Paper

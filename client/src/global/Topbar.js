@@ -182,7 +182,7 @@ const Topbar = () => {
             open={open}
             onClose={handleClose}
           >
-            <MenuItem onClick={colorMode.toggleColorMode} disableRipple>
+            <MenuItem onClick={colorMode.toggleColorMode} disableRipple sx={{}}>
               {theme.palette.mode === "dark" ? (
                 <>
                   <DarkModeOutlinedIcon sx={{ fontSize: "20pt" }} />

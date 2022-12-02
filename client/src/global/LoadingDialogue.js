@@ -36,7 +36,7 @@ const LoadingDialogue = (props) => {
           <div></div>
         </div> */}{" "}
         {/* <div class="lds-hourglass"></div> */}
-        <span class="loader"></span>
+        <span className="loader"></span>
       </DialogContent>
     </Dialog>
   );

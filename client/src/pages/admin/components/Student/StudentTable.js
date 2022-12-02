@@ -45,6 +45,7 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material";
@@ -82,6 +83,11 @@ const StudentTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -109,89 +115,11 @@ const StudentTable = () => {
       border: 0,
     },
   }));
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.error[100] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record</Typography>
-            <Box margin="20px 0">
-              <Typography variant="h3" fontWeight="bold">
-                {delVal.studID}
-              </Typography>
-              <Typography variant="h4" sx={{ textTransform: "capitalize" }}>
-                {delVal.middleName
-                  ? delVal.firstName +
-                    " " +
-                    delVal.middleName +
-                    " " +
-                    delVal.lastName
-                  : delVal.firstName + " " + delVal.lastName}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
 
   useEffect(() => {
     const getUsersDetails = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/students", {
           headers: { "Content-Type": "application/json" },
@@ -203,7 +131,9 @@ const StudentTable = () => {
           setIsLoading(false);
           studDispatch({ type: "SET_STUDENTS", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
           console.log("no server response");
           setErrorDialog({
@@ -530,6 +460,10 @@ const StudentTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       {isFormOpen ? (
         <StudentForm />

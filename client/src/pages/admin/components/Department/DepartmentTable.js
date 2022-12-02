@@ -39,6 +39,7 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 const DepartmentTable = () => {
   const theme = useTheme();
@@ -88,6 +89,11 @@ const DepartmentTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -129,6 +135,7 @@ const DepartmentTable = () => {
     const getData = async () => {
       try {
         setIsLoading(true);
+        setLoadingDialog({ isOpen: true });
         const response = await axiosPrivate.get("/api/departments");
         if (response.status === 200) {
           const json = await response.data;
@@ -136,7 +143,9 @@ const DepartmentTable = () => {
           setIsLoading(false);
           depDispatch({ type: "SET_DEPS", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
           console.log("no server response");
         } else if (error.response.status === 204) {
@@ -305,8 +314,7 @@ const DepartmentTable = () => {
   ];
   const TableTitles = () => {
     return (
-      <StyledTableHeadRow
-      >
+      <StyledTableHeadRow>
         <TableCell>DEPARTMENT ID</TableCell>
         <TableCell>DEPARTMENT NAME</TableCell>
         <TableCell align="left">STATUS</TableCell>
@@ -545,6 +553,10 @@ const DepartmentTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
+      />{" "}
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div
@@ -690,7 +702,6 @@ const DepartmentTable = () => {
           </div>
         </div>
       </Popup>
-
       <Paper
         elevation={2}
         sx={{

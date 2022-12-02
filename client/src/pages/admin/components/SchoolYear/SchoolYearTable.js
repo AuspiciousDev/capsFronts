@@ -46,6 +46,8 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -94,6 +96,11 @@ const SchoolYearTable = () => {
     message: "",
   });
   const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
     isOpen: false,
     title: "",
     message: "",
@@ -147,6 +154,7 @@ const SchoolYearTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
@@ -155,7 +163,9 @@ const SchoolYearTable = () => {
           setIsLoading(false);
           yearDispatch({ type: "SET_YEARS", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
           console.log("no server response");
           setErrorDialog({
@@ -615,6 +625,10 @@ const SchoolYearTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       {/* <ConfirmDialogue
         selectedValue={selectedValue}

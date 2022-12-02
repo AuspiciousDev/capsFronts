@@ -28,6 +28,10 @@ import {
   FormGroup,
   FormControlLabel,
   ButtonBase,
+  AppBar,
+  Tabs,
+  Tab,
+  TablePagination,
 } from "@mui/material";
 import {
   ArrowBackIosNewOutlined,
@@ -59,11 +63,46 @@ import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 import AddIcon from "@mui/icons-material/Add";
 import PropTypes from "prop-types";
+
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+      style={{ width: "100%" }}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
+
 const UserTable = () => {
   const CHARACTER_LIMIT = 10;
   const theme = useTheme();
@@ -82,6 +121,9 @@ const UserTable = () => {
   const [cbTeacher, setCbTeacher] = useState(false);
   const [cbStudent, setCbStudent] = useState(false);
 
+  const [empUser, setEmpUser] = useState([]);
+  const [studUser, setStudUser] = useState([]);
+
   const [isStudent, setIsStudent] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isTeacher, setIsTeacher] = useState(false);
@@ -95,6 +137,11 @@ const UserTable = () => {
 
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState();
+
+  const [value, setValue] = React.useState(0);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
 
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -111,6 +158,29 @@ const UserTable = () => {
     title: "",
     message: "",
   });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
 
   const [open, setOpen] = useState(false);
   const closeModal = () => {
@@ -140,6 +210,22 @@ const UserTable = () => {
     const getUsersDetails = async () => {
       setIsLoading(true);
       try {
+        setLoadingDialog({ isOpen: true });
+        const apiSetEmpLoginHist = await axiosPrivate.get(
+          "/api/users/employees"
+        );
+        if (apiSetEmpLoginHist?.status === 200) {
+          const json = await apiSetEmpLoginHist.data;
+          setEmpUser(json);
+        }
+        const apiSetStudUser = await axiosPrivate.get("/api/users/students");
+        if (apiSetStudUser?.status === 200) {
+          const json = await apiSetStudUser.data;
+          console.log("UserStude GET : ", json);
+          console.log("UserStude GET : ", json.length);
+          setStudUser(json);
+        }
+
         const apiUser = await axiosPrivate.get("/api/users", {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
@@ -159,15 +245,41 @@ const UserTable = () => {
           setIsLoading(false);
           empDispatch({ type: "SET_EMPLOYEES", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
-          // console.log("Missing Username/Password");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response!`,
+          });
+          console.log("no server response!");
+          setIsLoading(false);
+        } else if (error.response.status === 400) {
           console.log(error.response.data.message);
-          // setErrMsg(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          setIsLoading(false);
+        } else if (error.response.status === 401) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+          setIsLoading(false);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+          setIsLoading(false);
         } else {
+          setErrorDialog({ isOpen: true, message: `${error}` });
           console.log(error);
+          setIsLoading(false);
         }
       }
 
@@ -259,69 +371,7 @@ const UserTable = () => {
       setIsLoading(false);
     }
   };
-  const handleDelete = async ({ user }) => {
-    setIsLoading(true);
-    setConfirmDialog({
-      ...confirmDialog,
-      isOpen: false,
-    });
-    try {
-      const response = await axiosPrivate.delete("/api/users/delete", {
-        headers: { "Content-Type": "application/json" },
-        data: user,
-        withCredentials: true,
-      });
-      const json = await response.data;
-      if (response.ok) {
-        console.log(response.data.message);
-        userDispatch({ type: "DELETE_USER", payload: json });
-      }
 
-      const apiUsers = await axiosPrivate.get("/api/users", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-      const apiEmp = await axiosPrivate.get("/api/employees", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-
-      if (apiUsers?.status === 200) {
-        const userJSON = await apiUsers.data;
-        console.log(userJSON);
-        setIsLoading(false);
-        userDispatch({ type: "SET_USERS", payload: userJSON });
-      }
-      if (apiEmp?.status === 200) {
-        const userEMP = await apiEmp.data;
-        console.log(userEMP);
-        setIsLoading(false);
-        empDispatch({ type: "SET_EMPLOYEES", payload: userEMP });
-      }
-      setSuccessDialog({
-        isOpen: true,
-        message: "User has been deleted!",
-      });
-      setIsLoading(false);
-    } catch (error) {
-      if (!error?.response) {
-        console.log("no server response");
-        setIsLoading(false);
-      } else if (error.response.status === 204) {
-        console.log(error.response.data.message);
-        setIsLoading(false);
-      } else if (error.response.status === 400) {
-        console.log(error.response.data.message);
-        setIsLoading(false);
-      } else if (error.response.status === 404) {
-        console.log(error.response.data.message);
-        setIsLoading(false);
-      } else {
-        console.log(error);
-        setIsLoading(false);
-      }
-    }
-  };
   const TableTitles = () => {
     return (
       <TableRow>
@@ -335,11 +385,10 @@ const UserTable = () => {
       </TableRow>
     );
   };
-  const tableDetails = ({ user, result }) => {
+  const tableDetails = ({ val }) => {
     return (
       <StyledTableRow
-        key={user._id}
-        data-rowid={user.username}
+        key={val?._id}
         sx={
           {
             // "&:last-child td, &:last-child th": { border: 2 },
@@ -348,32 +397,23 @@ const UserTable = () => {
         }
       >
         {/* <TableCell align="left">-</TableCell> */}
-        <TableCell key={result?.username} align="left">
-          {user?.username || "-"}
-        </TableCell>
+        <TableCell align="left">{val?.username || "-"}</TableCell>
         <TableCell
-          key={result?.firstName}
           component="th"
           scope="row"
           sx={{ textTransform: "capitalize" }}
         >
-          {result?.middleName
-            ? result?.firstName +
+          {val?.middleName
+            ? val?.firstName +
               " " +
-              result?.middleName.charAt(0) +
+              val?.middleName.charAt(0) +
               ". " +
-              result?.lastName
-            : result?.firstName + " " + result?.lastName}
+              val?.lastName
+            : val?.firstName + " " + val?.lastName}
         </TableCell>
-        <TableCell key={result?.username} align="left">
-          {result?.email || "-"}
-        </TableCell>
-        <TableCell
-          key={result?.username}
-          align="left"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {user.roles.map((item, i) => {
+        <TableCell align="left">{val?.profile?.email}</TableCell>
+        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
+          {val?.roles?.map((item, i) => {
             return (
               <ul style={{ display: "flex", padding: "0", listStyle: "none" }}>
                 {item === 2001 ? (
@@ -436,9 +476,9 @@ const UserTable = () => {
             onClick={() => {
               setConfirmDialog({
                 isOpen: true,
-                title: `Are you sure to change status of  ${user.sectionID.toUpperCase()}`,
+                title: `Are you sure to change status of  ${val.username}`,
                 message: `${
-                  user.status === true
+                  val.status === true
                     ? "INACTIVE to ACTIVE"
                     : " ACTIVE to INACTIVE"
                 }`,
@@ -448,7 +488,7 @@ const UserTable = () => {
               });
             }}
           >
-            {user?.status === true ? (
+            {val?.status === true ? (
               <Paper
                 sx={{
                   display: "flex",
@@ -480,10 +520,10 @@ const UserTable = () => {
             onClick={() => {
               setConfirmDialog({
                 isOpen: true,
-                title: `Are you sure to delete year ${user.username}`,
+                title: `Are you sure to delete year ${val.username}`,
                 message: `This action is irreversible!`,
                 onConfirm: () => {
-                  handleDelete({ user });
+                  // handleDelete({ val });
                 },
               });
             }}
@@ -503,33 +543,6 @@ const UserTable = () => {
               <Typography ml="5px">Remove</Typography>
             </Paper>
           </ButtonBase>
-          {/* <Box
-            sx={{
-              display: "grid",
-              width: "50%",
-              gridTemplateColumns: " 1fr 1fr 1fr",
-            }}
-          >
-            <IconButton sx={{ cursor: "pointer" }}>
-              <Person2OutlinedIcon />
-            </IconButton>
-            {/* <UserEditForm user={user} /> */}
-          {/* <IconButton
-              sx={{ cursor: "pointer" }}
-              onClick={() => {
-                setConfirmDialog({
-                  isOpen: true,
-                  title: `Are you sure to delete year ${user.username}`,
-                  message: `This action is irreversible!`,
-                  onConfirm: () => {
-                    handleDelete({ user });
-                  },
-                });
-              }}
-            >
-              <DeleteOutlineOutlinedIcon sx={{ color: colors.error[100] }} /> */}
-          {/* </IconButton> */}
-          {/* </Box> */}
         </TableCell>
       </StyledTableRow>
     );
@@ -547,6 +560,14 @@ const UserTable = () => {
       <ErrorDialogue
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div
@@ -814,41 +835,153 @@ const UserTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%">
-        <TableContainer
-          sx={{
-            height: "700px",
-          }}
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: colors.appBar[100], mt: 2 }}
+        enableColorOnDark
+      >
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          aria-label="full width tabs example"
+          variant="fullWidth"
         >
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableTitles />
-            </TableHead>
-            <TableBody>
-              {employees &&
-                users &&
-                users.map((user) => {
-                  const result = employees.find(
-                    (uuid) => uuid.empID === user.username
-                  );
-                  return tableDetails({ user, result });
-                })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+          <Tab label="Students" {...a11yProps(0)} sx={{ fontWeight: "bold" }} />
+          <Tab
+            label="Employees"
+            {...a11yProps(1)}
+            sx={{ fontWeight: "bold" }}
+          />
+        </Tabs>
+      </AppBar>
+      <TabPanel sx={{ width: "100%" }} value={value} index={0}>
+        <Box width="100%">
+          <TableContainer>
+            <Table aria-label="simple table">
+              <TableHead>
+                <TableTitles />
+              </TableHead>
+              <TableBody>
+                {search
+                  ? search &&
+                    studUser &&
+                    studUser
+                      .filter((fill) => {
+                        return (
+                          fill.userType === "student" &&
+                          (fill.username.includes(search) ||
+                            fill.firstName.includes(search) ||
+                            fill.lastName.includes(search))
+                        );
+                      })
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })
+                  : studUser
+                      .filter((fill) => {
+                        return fill.userType === "student";
+                      })
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider />
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={studUser && studUser.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+          <Box
+            display="flex"
+            width="100%"
+            sx={{ flexDirection: "column" }}
+            justifyContent="center"
+            alignItems="center"
+          >
+            {isloading ? <Loading /> : <></>}
+          </Box>
 
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-        >
-          {isloading ? <Loading /> : <></>}
+          <Box display="flex" width="100%" marginTop="20px"></Box>
         </Box>
+      </TabPanel>
+      <TabPanel sx={{ width: "100%" }} value={value} index={1}>
+        <Box width="100%">
+          <TableContainer>
+            <Table aria-label="simple table">
+              <TableHead>
+                <TableTitles />
+              </TableHead>
+              <TableBody>
+                {search
+                  ? empUser &&
+                    empUser
+                      .filter((fill) => {
+                        return (
+                          fill.userType === "employee" &&
+                          (fill.username.includes(search) ||
+                            fill.firstName.includes(search) ||
+                            fill.lastName.includes(search))
+                        );
+                      })
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })
+                  : empUser &&
+                    empUser
+                      .filter((fill) => {
+                        return fill.userType === "employee";
+                      })
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider />
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={empUser && empUser.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+          <Box
+            display="flex"
+            width="100%"
+            sx={{ flexDirection: "column" }}
+            justifyContent="center"
+            alignItems="center"
+          >
+            {isloading ? <Loading /> : <></>}
+          </Box>
 
-        <Box display="flex" width="100%" marginTop="20px"></Box>
-      </Box>
+          <Box display="flex" width="100%" marginTop="20px"></Box>
+        </Box>
+      </TabPanel>
     </>
   );
 };

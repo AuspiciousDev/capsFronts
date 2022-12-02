@@ -684,14 +684,14 @@ const Dashboard = () => {
                     </Grid>
                   </TabPanel>
                   <TabPanel
-                    sx={{ width: "350px", mt: 0.5 }}
+                    sx={{ width: "360px", mt: 0.5 }}
                     value={value}
                     index={1}
                   >
                     <Grid
                       container
                       gap={1}
-                      sx={{ width: "350px", mt: 0.5 }}
+                      sx={{ width: "360px", mt: 0.5 }}
                       direction="column"
                       alignItems="center"
                       justify="center"

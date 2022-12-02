@@ -50,7 +50,6 @@ import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
-
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material";
@@ -109,6 +108,11 @@ const TaskTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -135,60 +139,6 @@ const TaskTable = () => {
     setDescription("");
   };
 
-  const clearForm = () => {
-    setIsFormOpen(false);
-  };
-  const handleSubmit = async (e) => {
-    let noSpaceSubjectID = "";
-    e.preventDefault();
-    console.log(subjectID, levelID, subjectName);
-    noSpaceSubjectID = subjectID.replace(/ /g, "");
-    const subject = {
-      subjectID: noSpaceSubjectID,
-      levelID,
-      subjectName,
-      description,
-    };
-
-    if (subjectID) {
-      try {
-        const response = await axiosPrivate.post(
-          "/api/subjects/register",
-          JSON.stringify(subject),
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
-        );
-
-        if (response.status === 201) {
-          const json = await response.data;
-          console.log(json);
-          subDispatch({ type: "CREATE_SUBJECT", payload: json });
-          setIsFormOpen(false);
-          setOpen(false);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 400) {
-          console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setDepartmentIDError(true);
-          setOpen(false);
-          setIsLoading(false);
-          setErrorMessage(error.response.data.message);
-
-          console.log(error.response.data.message);
-        } else {
-          console.log(error);
-        }
-      }
-    } else {
-      console.log("Error");
-    }
-  };
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
       fontWeight: "bold",
@@ -208,6 +158,7 @@ const TaskTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/subjects", {
           headers: { "Content-Type": "application/json" },
@@ -242,7 +193,43 @@ const TaskTable = () => {
           setIsLoading(false);
           taskDispatch({ type: "SET_TASKS", payload: json });
         }
-      } catch (error) {}
+        setLoadingDialog({ isOpen: false });
+      } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response!`,
+          });
+          console.log("no server response!");
+          setIsLoading(false);
+        } else if (error.response.status === 400) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          setIsLoading(false);
+        } else if (error.response.status === 401) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+          setIsLoading(false);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+          setIsLoading(false);
+        } else {
+          setErrorDialog({ isOpen: true, message: `${error}` });
+          console.log(error);
+          setIsLoading(false);
+        }
+      }
     };
     getData();
   }, [subDispatch, levelDispatch, depDispatch]);
@@ -547,6 +534,10 @@ const TaskTable = () => {
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
       />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Paper
         elevation={2}
         sx={{
@@ -606,7 +597,7 @@ const TaskTable = () => {
                 <Search />
               </IconButton>
             </Paper>
-            <Link to="/admin/task/add">
+            <Link to="/admin/task/add" style={{ textDecoration: "none" }}>
               <Button
                 type="button"
                 startIcon={<AddIcon />}
