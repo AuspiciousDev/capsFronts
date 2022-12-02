@@ -298,10 +298,10 @@ const DepartmentTable = () => {
     }
   };
   const rows = [
-    depData("elementary", "elem"),
+    // depData("elementary", "elem"),
     depData("junior highschool", "jhs"),
-    depData("senior highschool", "shs"),
-    depData("college", "col"),
+    // depData("senior highschool", "shs"),
+    // depData("college", "col"),
   ];
   const TableTitles = () => {
     return (
@@ -614,14 +614,14 @@ const DepartmentTable = () => {
                         }}
                       >
                         <option aria-label="None" value="" />
-                        <option value={"elementary"}>Elementary</option>
+                        {/* <option value={"elementary"}>Elementary</option> */}
                         <option value={"junior highschool"}>
                           Junior Highschool
                         </option>
-                        <option value={"senior highschool"}>
+                        {/* <option value={"senior highschool"}>
                           Senior Highschool
                         </option>
-                        <option value={"college"}>College</option>
+                        <option value={"college"}>College</option> */}
                       </NativeSelect>
                     </FormControl>
                     <TextField

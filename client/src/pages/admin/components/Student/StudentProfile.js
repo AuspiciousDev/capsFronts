@@ -718,6 +718,9 @@ const StudentProfile = () => {
                 <TableBody>
                   {actives &&
                     actives
+                      .filter((fill) => {
+                        return fill.studID === id;
+                      })
                       .slice(
                         page * rowsPerPage,
                         page * rowsPerPage + rowsPerPage

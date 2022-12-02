@@ -506,6 +506,7 @@ const TaskForms = () => {
             flexDirection: "column",
             p: 2,
             justifyContent: { xs: "center", sm: "start" },
+            borderBottom:`2px solid ${colors.primary[950]}`
           }}
         >
           <Typography variant="h4">Select a subject</Typography>

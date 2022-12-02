@@ -160,6 +160,7 @@ const StudentDashboard = () => {
     },
   }));
 
+  console.log("AUTH username:", auth.username);
   useEffect(() => {
     const getData = async () => {
       try {
@@ -181,8 +182,17 @@ const StudentDashboard = () => {
         if (apiStud?.status === 200) {
           const json = await apiStud.data;
           console.log("GET_SearchedStudent : ", json);
-          setIsLoading(false);
-          setStudentData(json && json[0]);
+          console.log("GET_SearchedStudent : ", json.length);
+          setLoadingDialog({ isOpen: false });
+          if (json.length <= 0) {
+            return setErrorDialog({
+              isOpen: true,
+              title: `No Records Found`,
+            });
+            console.log("hello");
+          } else {
+            setStudentData(json && json[0]);
+          }
         }
 
         const response = await axiosPrivate.get("/api/subjects", {
@@ -373,6 +383,26 @@ const StudentDashboard = () => {
 
   return (
     <div className="contents-container">
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Paper
         elevation={2}
         sx={{
@@ -418,7 +448,7 @@ const StudentDashboard = () => {
               {taskScore &&
                 taskScore
                   .filter((fill) => {
-                    return fill.studID === getStudentData.studID;
+                    return fill?.studID === getStudentData.studID;
                   })
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((val) => {

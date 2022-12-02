@@ -36,12 +36,13 @@ import { useGradesContext } from "../../../hooks/useGradesContext";
 import { format } from "date-fns-tz";
 import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../theme";
-
+import useAuth from "../../../hooks/useAuth";
 import { Add, Search } from "@mui/icons-material";
 const GradesTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
+  const { auth, setAuth, persist, setPersist } = useAuth();
 
   const { students, studDispatch } = useStudentsContext();
   const { grades, gradeDispatch } = useGradesContext();
@@ -397,6 +398,12 @@ const GradesTable = () => {
                 {search
                   ? actives &&
                     actives
+                      .filter((fill) => {
+                        return (
+                          fill.studID === auth.username &&
+                          fill.schoolYearID.includes(search)
+                        );
+                      })
                       .slice(
                         page * rowsPerPage,
                         page * rowsPerPage + rowsPerPage
@@ -409,6 +416,9 @@ const GradesTable = () => {
                       })
                   : actives &&
                     actives
+                      .filter((fill) => {
+                        return fill.studID === auth.username;
+                      })
                       .slice(
                         page * rowsPerPage,
                         page * rowsPerPage + rowsPerPage
