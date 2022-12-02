@@ -1,16 +1,15 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useNavigate, useLocation, Link, useParams } from "react-router-dom";
-
+import { useParams, Link, useNavigate } from "react-router-dom";
+import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
+import ReactHTMLTableToExcel from "react-html-table-to-excel";
 import {
   Box,
   Paper,
-  InputBase,
-  Divider,
   Typography,
-  IconButton,
+  Divider,
   ButtonBase,
+  Grid,
   TableContainer,
   Table,
   TableRow,
@@ -18,17 +17,24 @@ import {
   TableCell,
   TableBody,
   TablePagination,
+  IconButton,
+  InputBase,
   Button,
 } from "@mui/material";
-import {
-  Search,
-  DownloadForOfflineOutlined,
-  TopicOutlined,
-  Add,
-} from "@mui/icons-material";
+import { DownloadForOfflineOutlined, Search, Add } from "@mui/icons-material";
+import { useStudentsContext } from "../../../hooks/useStudentsContext";
+import { useGradesContext } from "../../../hooks/useGradesContext";
+import { useSubjectsContext } from "../../../hooks/useSubjectsContext";
+import { useSectionsContext } from "../../../hooks/useSectionContext";
+import { useLevelsContext } from "../../../hooks/useLevelsContext";
+import { useDepartmentsContext } from "../../../hooks/useDepartmentContext";
+import { useActiveStudentsContext } from "../../../hooks/useActiveStudentContext";
+import { useSchoolYearsContext } from "../../../hooks/useSchoolYearsContext";
+import { axiosPrivate } from "../../../api/axios";
+import { tokens } from "../../../theme";
 import { useTheme, styled } from "@mui/material";
-import { tokens } from "../../../../theme";
-const GradesCurrent = () => {
+import { format } from "date-fns-tz";
+const StudentRecords = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
@@ -105,7 +111,6 @@ const GradesCurrent = () => {
       border: 1,
     },
   }));
-
   const TableTitles = () => {
     return (
       <StyledTableHeadRow>
@@ -293,7 +298,7 @@ const GradesCurrent = () => {
         elevation={2}
         sx={{
           width: "100%",
-          padding: { xs: "10px", sm: "0 10px" },
+          padding: { xs: "10px", sm: "10px 10px" },
         }}
       >
         <Box
@@ -348,36 +353,6 @@ const GradesCurrent = () => {
                 <Search />
               </IconButton>
             </Paper>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "end",
-                alignItems: "center",
-              }}
-            >
-              <Link
-                to={`/admin/grade/task/add/${year}/${id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <Button
-                  type="button"
-                  startIcon={<Add />}
-                  // onClick={setIsFormOpen((e) => !e)}
-                  variant="contained"
-                  sx={{
-                    width: { xs: "100%", sm: "200px" },
-                    height: "50px",
-                    marginLeft: { xs: "0", sm: "20px" },
-                    marginTop: { xs: "20px", sm: "0" },
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="500">
-                    Add Grade
-                  </Typography>
-                </Button>
-              </Link>
-            </Box>
           </Box>
         </Box>
       </Paper>
@@ -415,14 +390,14 @@ const GradesCurrent = () => {
           </TableContainer>
           <Divider />
           {/* <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={5}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          /> */}
+          rowsPerPageOptions={[5, 10]}
+          component="div"
+          count={5}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        /> */}
         </Paper>
         <Box display="flex" width="100%" marginTop="20px"></Box>
       </Box>
@@ -430,4 +405,4 @@ const GradesCurrent = () => {
   );
 };
 
-export default GradesCurrent;
+export default StudentRecords;

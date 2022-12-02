@@ -160,7 +160,6 @@ const EmployeeTable = () => {
     getUsersDetails();
   }, [empDispatch]);
 
-
   const toggleStatus = async ({ val }) => {
     setConfirmDialog({
       ...confirmDialog,
@@ -219,7 +218,7 @@ const EmployeeTable = () => {
       ...confirmDialog,
       isOpen: false,
     });
-    
+
     try {
       setLoadingDialog({ isOpen: true });
       setIsLoading(true);
@@ -551,7 +550,7 @@ const EmployeeTable = () => {
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
       />
-        <LoadingDialogue
+      <LoadingDialogue
         loadingDialog={loadingDialog}
         setLoadingDialog={setLoadingDialog}
       />
@@ -670,10 +669,7 @@ const EmployeeTable = () => {
                       (console.log(search),
                       search
                         ? employees
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
+
                             .filter((data) => {
                               return (
                                 data.firstName
@@ -685,6 +681,10 @@ const EmployeeTable = () => {
                                   .includes(search.toLowerCase())
                               );
                             })
+                            .slice(
+                              page * rowsPerPage,
+                              page * rowsPerPage + rowsPerPage
+                            )
                             .map((data) => {
                               return tableDetails(data);
                             })

@@ -111,31 +111,33 @@ const Login = () => {
         // console.log(JSON.stringify(response));
         const accessToken = response.data?.accessToken;
         const roles = response.data?.roles;
-        if (roles.includes(2003)) {
-          return (
-            setUsernameError(true),
-            setPasswordError(true),
-            setLoadingDialog({ isOpen: false }),
-            setErrorDialog({
-              isOpen: true,
-              message: `Unauthorized access!`,
-            })
-          );
-        } else {
-          setAuth({ username, password, roles, accessToken });
-          setUsername("");
-          setPassword("");
-          console.log(username);
-          console.log(response);
-          console.log(roles);
-          console.log("from:", from);
-          setLoadingDialog({ isOpen: false });
-          from === "/" && roles.includes(2001)
-            ? navigate("/admin", { replace: true })
-            : from === "/" && roles.includes(2002)
-            ? navigate("/teacher", { replace: true })
-            : navigate(from, { replace: true });
-        }
+        // if (roles.includes(2003)) {
+        //   return (
+        //     setUsernameError(true),
+        //     setPasswordError(true),
+        //     setLoadingDialog({ isOpen: false }),
+        //     setErrorDialog({
+        //       isOpen: true,
+        //       message: `Unauthorized access!`,
+        //     })
+        //   );
+        // } else {
+        setAuth({ username, password, roles, accessToken });
+        setUsername("");
+        setPassword("");
+        console.log(username);
+        console.log(response);
+        console.log(roles);
+        console.log("from:", from);
+        setLoadingDialog({ isOpen: false });
+        from === "/" && roles.includes(2001)
+          ? navigate("/admin", { replace: true })
+          : from === "/" && roles.includes(2002)
+          ? navigate("/teacher", { replace: true })
+          : from === "/" && roles.includes(2003)
+          ? navigate("/student", { replace: true })
+          : navigate(from, { replace: true });
+        // }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
         if (!error?.response) {

@@ -639,16 +639,17 @@ const StudentTable = () => {
                       //   })
                       search
                         ? students
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
+
                             .filter((data) => {
                               return (
                                 data.firstName.includes(search) ||
                                 data.studID.includes(search)
                               );
                             })
+                            .slice(
+                              page * rowsPerPage,
+                              page * rowsPerPage + rowsPerPage
+                            )
                             .map((data) => {
                               return tableDetails(data);
                             })

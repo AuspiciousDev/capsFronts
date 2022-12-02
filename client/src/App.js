@@ -59,6 +59,11 @@ import TeachersSection from "./pages/Teachers/TeachersSection";
 // Students
 import StudentMain from "./pages/Student/StudentMain";
 import StudentDashboard from "./pages/Student/StudentDashboard";
+import StudentGrades from "./pages/Student/StudentGrades";
+import StudentRecords from "./pages/Student/Grades/StudentRecords";
+import StudentTask from "./pages/Student/Grades/StudentTask";
+import StudentGenerateActiveYearGrades from "./pages/Student/GeneratePDF/StudentGenerateActiveYearGrades";
+
 import RecordTable from "./pages/admin/components/Record/RecordTable";
 import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
@@ -120,7 +125,10 @@ function App() {
                 <Route path="/admin" element={<MainPage />}>
                   <Route index element={<Dashboard />} />
                   <Route path="grade" element={<Grades />} />
-                  <Route path="grade/:level/:year/:id" element={<GradesCurrent />} />
+                  <Route
+                    path="grade/:level/:year/:id"
+                    element={<GradesCurrent />}
+                  />
 
                   <Route
                     path="record/grade/:id/:year"
@@ -185,9 +193,27 @@ function App() {
                   <Route path="subject" element={<TeachersSubjects />} />
                 </Route>
               </Route>
+              {/* <Route element={<RequireAuth allowedRoles={[ROLES.Student]} />}>
+                <Route path="/student" element={<StudentMain />}>
+                  <Route index element={<StudentDashboard />} />
+                </Route>
+              </Route> */}
               <Route element={<RequireAuth allowedRoles={[ROLES.Student]} />}>
                 <Route path="/student" element={<StudentMain />}>
                   <Route index element={<StudentDashboard />} />
+                  <Route path="grade" element={<StudentGrades />} />
+                  <Route
+                    path="grade/record/:year/:level/:id"
+                    element={<StudentRecords />}
+                  />
+                  <Route
+                    path="grade/record/tasks/:year/:id"
+                    element={<StudentTask />}
+                  />
+                  <Route
+                    path="grade/record/generatepdf/:id/:year"
+                    element={<StudentGenerateActiveYearGrades />}
+                  />
                 </Route>
               </Route>
             </Route>
