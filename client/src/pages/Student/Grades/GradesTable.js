@@ -33,6 +33,12 @@ import { useLevelsContext } from "../../../hooks/useLevelsContext";
 import { useDepartmentsContext } from "../../../hooks/useDepartmentContext";
 import { useGradesContext } from "../../../hooks/useGradesContext";
 
+import ConfirmDialogue from "../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../global/LoadingDialogue";
+
 import { format } from "date-fns-tz";
 import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../theme";
@@ -67,11 +73,36 @@ const GradesTable = () => {
     setPage(0);
   };
 
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   useEffect(() => {
     const getData = async () => {
       try {
         setIsLoading(true);
-
+        setLoadingDialog({ isOpen: true });
         const apiGrade = await axiosPrivate.get("/api/grades", {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
@@ -148,15 +179,46 @@ const GradesTable = () => {
           setIsLoading(false);
           activeDispatch({ type: "SET_ACTIVES", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setIsLoading(false);
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("No server response!");
-          alert("No server response!");
-        } else if (error.response.status === 204) {
-          alert(error.response.data.message);
+          console.log("No server response");
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 401) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 403) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
         } else {
-          // alert(error);
-          // navigate("/login", { state: { from: location }, replace: true });
+          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
         }
       }
     };
@@ -309,6 +371,26 @@ const GradesTable = () => {
 
   return (
     <>
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Box sx={{ paddingBottom: "20px" }} width="100%">
         <Paper
           elevation={2}

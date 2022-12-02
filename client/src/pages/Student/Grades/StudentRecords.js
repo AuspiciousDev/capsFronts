@@ -34,6 +34,13 @@ import { axiosPrivate } from "../../../api/axios";
 import { tokens } from "../../../theme";
 import { useTheme, styled } from "@mui/material";
 import { format } from "date-fns-tz";
+
+import ConfirmDialogue from "../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../global/LoadingDialogue";
+
 const StudentRecords = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -44,6 +51,32 @@ const StudentRecords = () => {
   const [getGrades, setGrades] = useState([]);
   const [getSubjects, setSubjects] = useState([]);
   const [isloading, setIsLoading] = useState(false);
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -59,6 +92,7 @@ const StudentRecords = () => {
   console.log(level, year, id);
   useEffect(() => {
     const getData = async () => {
+      setLoadingDialog({ isOpen: true });
       try {
         setIsLoading(true);
         const apiSubjectByLevel = await axiosPrivate.get(
@@ -69,6 +103,7 @@ const StudentRecords = () => {
           console.log(json);
           setSubjects(json);
           setIsLoading(false);
+          setLoadingDialog({ isOpen: false });
         }
         const apiGradesbyLevel = await axiosPrivate.get(
           `/api/grades/search/${id}/${year}`
@@ -78,16 +113,47 @@ const StudentRecords = () => {
           console.log(json);
           setGrades(json);
           setIsLoading(false);
-        } else {
-          console.log(apiGradesbyLevel);
+          setLoadingDialog({ isOpen: false });
         }
       } catch (error) {
-        console.log(error);
+        setIsLoading(false);
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("No server response!");
-        } else if (error.response.status === 204) {
+          console.log("No server response");
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 401) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 403) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
         } else {
-          // navigate("/login", { state: { from: location }, replace: true });
+          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
         }
       }
     };
@@ -294,6 +360,26 @@ const StudentRecords = () => {
 
   return (
     <Box className="contents-container">
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Paper
         elevation={2}
         sx={{
