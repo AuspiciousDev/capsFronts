@@ -130,7 +130,7 @@ const GradesCurrent = () => {
         <TableCell
           component="th"
           scope="row"
-          sx={{ textTransform: "capitalize" }}
+          sx={{ textTransform: "uppercase" }}
         >
           {val.subjectID}
         </TableCell>
