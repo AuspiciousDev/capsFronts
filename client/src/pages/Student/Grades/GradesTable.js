@@ -191,7 +191,8 @@ const GradesTable = () => {
         <TableCell align="left">
           <Box display="flex" gap={2} width="60%">
             <Link
-              to={`/student/grade/record/${val?.schoolYearID}/${val?.studID}`}
+              // to={`/student/grade/record/${val?.schoolYearID}/${val?.studID}`}
+              to={`/student/grade/record/${val?.schoolYearID}/${val?.levelID}/${val?.studID}`}
               style={{
                 alignItems: "center",
                 color: colors.black[100],
