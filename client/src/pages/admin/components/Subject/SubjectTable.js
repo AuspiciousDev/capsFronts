@@ -49,6 +49,8 @@ import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material";
@@ -97,6 +99,11 @@ const SubjectTable = () => {
     subTitle: "",
   });
   const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
     isOpen: false,
     title: "",
     message: "",
@@ -205,6 +212,7 @@ const SubjectTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/subjects", {
           headers: { "Content-Type": "application/json" },
@@ -233,7 +241,48 @@ const SubjectTable = () => {
           setIsLoading(false);
           depDispatch({ type: "SET_DEPS", payload: json });
         }
-      } catch (error) {}
+        setLoadingDialog({ isOpen: false });
+      } catch (error) {
+        setIsLoading(false);
+        setLoadingDialog({ isOpen: false });
+        if (!error?.response) {
+          console.log("No server response");
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 401) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 403) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else {
+          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
+        }
+      }
     };
     getData();
   }, [subDispatch, levelDispatch, depDispatch]);
@@ -241,15 +290,48 @@ const SubjectTable = () => {
     setIsFormOpen(true);
   };
   const handleDelete = async ({ val }) => {
-    const response = await axiosPrivate.delete("/api/subjects/delete", {
-      headers: { "Content-Type": "application/json" },
-      data: val,
-      withCredentials: true,
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
     });
-    const json = await response.data;
-    if (response.status === 200) {
-      console.log(response.data.message);
-      subDispatch({ type: "DELETE_SUBJECT", payload: json });
+    try {
+      const response = await axiosPrivate.delete("/api/subjects/delete", {
+        headers: { "Content-Type": "application/json" },
+        data: val,
+        withCredentials: true,
+      });
+      const json = await response.data;
+      if (response.status === 200) {
+        console.log(response.data.message);
+        subDispatch({ type: "DELETE_SUBJECT", payload: json });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      if (!error?.response) {
+        console.log("No server response");
+        setErrorDialog({
+          isOpen: true,
+          title: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 403) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error.response.data.message}`,
+        });
+      } else {
+        console.log(error);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error}`,
+        });
+      }
     }
   };
   const toggleStatus = async ({ val }) => {
@@ -444,12 +526,17 @@ const SubjectTable = () => {
             <ButtonBase
               onClick={() => {
                 console.log(val.levelID);
-                setConfirmDialog({
+                setValidateDialog({
                   isOpen: true,
-                  title: `Are you sure to delete section ${val.sectionID.toUpperCase()}`,
-                  message: `This action is irreversible!`,
                   onConfirm: () => {
-                    handleDelete({ val });
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to delete subject ${val.subjectID.toUpperCase()}`,
+                      message: `This action is irreversible!`,
+                      onConfirm: () => {
+                        handleDelete({ val });
+                      },
+                    });
                   },
                 });
               }}
@@ -571,6 +658,10 @@ const SubjectTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
 
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>

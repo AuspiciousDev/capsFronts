@@ -51,8 +51,8 @@ export const SuccessAlert = (props) => {
         <Button
           fullWidth
           variant="contained"
-          // onClick={() => setSuccessDialog({ ...successDialog, isOpen: false })}
-          onClick={successDialog.onConfirm}
+          onClick={() => setSuccessDialog({ ...successDialog, isOpen: false })}
+          // onClick={successDialog.onConfirm}
         >
           OK
         </Button>

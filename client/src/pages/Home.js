@@ -27,14 +27,14 @@ const Home = () => {
          url(${deped})`,
           backgroundSize: "cover",
           margin: "auto",
-          padding: "50px",
+          padding: 5,
         }}
       >
         <Paper
           sx={{
             width: "100%",
-            height: "100%",
-            borderRadius: "20px",
+            height: { sm: "100%" },
+            borderRadius: 2,
             overflow: "hidden",
           }}
         >
@@ -43,8 +43,8 @@ const Home = () => {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: "3fr 7fr",
-              padding: "20px",
+              gridTemplateColumns: { xs: "1fr", sm: "3fr 7fr" },
+              padding: 2,
             }}
           >
             <Box
@@ -55,8 +55,15 @@ const Home = () => {
               }}
             >
               <Box display="flex" flexDirection="column" gap={3}>
-                <Box display="flex" flexDirection="column">
-                  <Typography variant="h1" fontWeight="bold">
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    textAlign: { xs: "center", sm: "left" },
+                  }}
+                >
+                  <Typography fontWeight="bold" variant="h1">
                     Rutherford Academy
                   </Typography>
                   <Typography variant="h2">Student Portal</Typography>
@@ -70,6 +77,7 @@ const Home = () => {
                       border: `1px solid `,
                       borderColor: colors.primary[950],
                       backgroundColor: colors.Sidebar[100],
+                      marginBottom: { xs: 2, sm: 0 },
                     }}
                   >
                     <Link
@@ -96,11 +104,14 @@ const Home = () => {
             <img
               // src={deped}
               src={"https://bulsu.edu.ph/resources/gallery/43/01.jpg"}
+              // src={
+              //   "https://images.unsplash.com/photo-1580582932707-520aed937b7b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8c2Nob29sfGVufDB8fDB8fA%3D%3D&w=1000&q=80"
+              // }
               alt=""
               style={{
                 width: "100%",
-                height: "685px",
-                float: "right",
+                height: { xs: "100%", sm: "84%" },
+                objectPosition: "center",
                 objectFit: "cover",
               }}
             />

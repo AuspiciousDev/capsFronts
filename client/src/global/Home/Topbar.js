@@ -16,87 +16,93 @@ const Topbar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   return (
-    <Box
-      width="100%"
-      sx={{
-        display: "flex",
-        backgroundColor: colors.Sidebar[100],
-        p: { xs: "7.5px 10px", sm: "30px 45px" },
-        boxShadow: "rgba(0, 0, 0, 0.15) 1px 1px 2.6px",
-      }}
-      justifyContent="space-between"
-      alignItems="center"
-    >
-      <Box gap={3} sx={{ display: "flex", alignItems: "center" }}>
-        <Link
-          to="/"
-          style={{
-            alignItems: "center",
-            color: colors.black[100],
-            textDecoration: "none",
-          }}
-        >
-          <img
-            alt="web-logo"
-            src={deped}
-            style={{ width: "100px", objectFit: "contain" }}
-          />
-        </Link>
-        <Typography variant="h3">Student Portal</Typography>
-      </Box>
-
+    <>
       <Box
+        width="100%"
         sx={{
           display: "flex",
-          alignItems: "center",
-          "& a > .MuiPaper-root": {
-            p: "10px 45px",
-            borderRadius: "20px",
-          },
+          flexDirection: { xs: "column", sm: "row" },
+          backgroundColor: colors.Sidebar[100],
+          p: { xs: "7.5px 10px", sm: "30px 45px" },
+          boxShadow: "rgba(0, 0, 0, 0.15) 1px 1px 2.6px",
         }}
-        gap={3}
+        justifyContent="space-between"
+        alignItems="center"
       >
-        {" "}
-        <Link
-          to="/register"
-          style={{
-            alignItems: "center",
-
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          <Paper
-            sx={{
-              border: `1px solid `,
-              borderColor: colors.primary[950],
-              backgroundColor: colors.Sidebar[100],
-              color: colors.PrimaNwhite[100],
+        <Box gap={3} sx={{ display: "flex", alignItems: "center" }}>
+          <Link
+            to="/"
+            style={{
+              alignItems: "center",
+              color: colors.black[100],
+              textDecoration: "none",
             }}
           >
-            <Typography variant="h5">Sign up</Typography>
-          </Paper>
-        </Link>
-        <Link
-          to="/login"
-          style={{
-            alignItems: "center",
-            textDecoration: "none",
+            <img
+              alt="web-logo"
+              src={deped}
+              style={{ width: "100px", objectFit: "contain" }}
+            />
+          </Link>
+          <Typography variant="h3">Student Portal</Typography>
+        </Box>
 
-            fontWeight: "bold",
+        <Box
+          sx={{
+            width: { xs: "100%", sm: "400px" },
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            mt: { xs: 2, sm: 0 },
+            alignItems: "center",
+            textAlign: "center",
+            "& a > .MuiPaper-root": {
+              p: "10px 45px",
+              borderRadius: "20px",
+            },
           }}
+          gap={3}
         >
-          <Paper
-            sx={{
-              backgroundColor: colors.primary[950],
-              color: "white",
+          <Link
+            to="/register"
+            style={{
+              alignItems: "center",
+              textDecoration: "none",
+              fontWeight: "bold",
+              width: "100%",
             }}
           >
-            <Typography variant="h5">Login</Typography>
-          </Paper>
-        </Link>
+            <Paper
+              sx={{
+                border: `1px solid `,
+                borderColor: colors.primary[950],
+                backgroundColor: colors.Sidebar[100],
+                color: colors.PrimaNwhite[100],
+              }}
+            >
+              <Typography variant="h5">Sign up</Typography>
+            </Paper>
+          </Link>
+          <Link
+            to="/login"
+            style={{
+              alignItems: "center",
+              textDecoration: "none",
+
+              fontWeight: "bold",
+            }}
+          >
+            <Paper
+              sx={{
+                backgroundColor: colors.primary[950],
+                color: "white",
+              }}
+            >
+              <Typography variant="h5">Login</Typography>
+            </Paper>
+          </Link>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 

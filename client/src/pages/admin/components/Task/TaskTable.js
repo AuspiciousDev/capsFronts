@@ -247,15 +247,48 @@ const TaskTable = () => {
     setIsFormOpen(true);
   };
   const handleDelete = async ({ val }) => {
-    const response = await axiosPrivate.delete("/api/subjects/delete", {
-      headers: { "Content-Type": "application/json" },
-      data: val,
-      withCredentials: true,
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
     });
-    const json = await response.data;
-    if (response.status === 200) {
-      console.log(response.data.message);
-      subDispatch({ type: "DELETE_SUBJECT", payload: json });
+    try {
+      const response = await axiosPrivate.delete("/api/tasks/delete", {
+        headers: { "Content-Type": "application/json" },
+        data: val,
+        withCredentials: true,
+      });
+      const json = await response.data;
+      if (response.status === 200) {
+        console.log(response.data.message);
+        taskDispatch({ type: "DELETE_TASK", payload: json });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      if (!error?.response) {
+        console.log("No server response");
+        setErrorDialog({
+          isOpen: true,
+          title: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 403) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error.response.data.message}`,
+        });
+      } else {
+        console.log(error);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error}`,
+        });
+      }
     }
   };
   const toggleStatus = async ({ val }) => {
@@ -272,12 +305,21 @@ const TaskTable = () => {
     try {
       setIsLoading(true);
       const response = await axiosPrivate.patch(
-        "/api/subjects/status",
-        JSON.stringify({ subjectID: val.subjectID, status: newStatus })
+        `/api/tasks/status/${val.taskID}`,
+        JSON.stringify({ taskID: val.taskID, status: newStatus })
       );
       if (response.status === 200) {
+        console.log(response);
+        const response2 = await axiosPrivate.get("/api/tasks");
+        if (response2?.status === 200) {
+          const json = await response2.data;
+          setIsLoading(false);
+          taskDispatch({ type: "SET_TASKS", payload: json });
+          setSuccessDialog({ isOpen: true });
+        }
       }
     } catch (error) {
+      setIsLoading(false);
       if (!error?.response) {
         console.log("no server response");
         setErrorDialog({
@@ -285,11 +327,17 @@ const TaskTable = () => {
           title: `no server response`,
         });
       } else if (error.response.status === 400) {
+        console.log(error.response.data.message);
         setErrorDialog({
           isOpen: true,
           title: `${error.response.data.message}`,
         });
+      } else if (error.response.status === 403) {
         console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          title: `${error.response.data.message}`,
+        });
       } else {
         console.log(error);
         setErrorDialog({
@@ -442,12 +490,17 @@ const TaskTable = () => {
             <ButtonBase
               onClick={() => {
                 console.log(val.levelID);
-                setConfirmDialog({
+                setValidateDialog({
                   isOpen: true,
-                  title: `Are you sure to delete section ${val.sectionID.toUpperCase()}`,
-                  message: `This action is irreversible!`,
                   onConfirm: () => {
-                    handleDelete({ val });
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to delete section ${val.taskID.toUpperCase()}`,
+                      message: `This action is irreversible!`,
+                      onConfirm: () => {
+                        handleDelete({ val });
+                      },
+                    });
                   },
                 });
               }}

@@ -50,6 +50,12 @@ import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentCont
 import { useTasksContext } from "../../../../hooks/useTasksContext";
 import { useTasksScoresContext } from "../../../../hooks/useTasksScoreContext";
 
+import ConfirmDialogue from "../../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -125,6 +131,11 @@ const TaskTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -150,7 +161,7 @@ const TaskTable = () => {
     const getData = async () => {
       try {
         setIsLoading(true);
-
+        setLoadingDialog({ isOpen: true });
         // const apiStud = await axiosPrivate.get(`/api/students/search/${id}`, {
         //   headers: { "Content-Type": "application/json" },
         //   withCredentials: true,
@@ -235,13 +246,46 @@ const TaskTable = () => {
           console.log("GET_TaskScores :", json);
           taskScoreDispatch({ type: "SET_SCORES", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
-        console.log(error);
+        setIsLoading(false);
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("No server response!");
-        } else if (error.response.status === 204) {
+          console.log("No server response");
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 401) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 403) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
         } else {
-          // navigate("/login", { state: { from: location }, replace: true });
+          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
         }
       }
     };
@@ -360,6 +404,10 @@ const TaskTable = () => {
 
   return (
     <Box className="contents-container">
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Paper
         elevation={2}
         sx={{
