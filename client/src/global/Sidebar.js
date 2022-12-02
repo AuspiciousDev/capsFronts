@@ -310,13 +310,13 @@ const Sidebar = () => {
             ) : (
               <SidebarHeader />
             )}
-            {/* <Item
+            <Item
               title="Users"
               to="user"
               icon={<Person2OutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            /> */}
+            />
             <Item
               title="Tasks"
               to="task"
@@ -331,6 +331,13 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
+             <Item
+              title="Advisers"
+              to="adviser"
+              icon={<PermContactCalendarOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />{" "}
             <Item
               title="Students"
               to="student"
@@ -374,13 +381,7 @@ const Sidebar = () => {
             ) : (
               <SidebarHeader />
             )}
-            <Item
-              title="Advisers"
-              to="adviser"
-              icon={<PermContactCalendarOutlined />}
-              selected={selected}
-              setSelected={setSelected}
-            />{" "}
+           
             <Item
               title="Sections"
               to="section"

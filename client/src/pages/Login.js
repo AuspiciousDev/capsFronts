@@ -28,7 +28,7 @@ import Topbar from "../global/Home/Topbar";
 
 import ErrorDialogue from "../global/ErrorDialogue";
 import LoadingDialogue from "../global/LoadingDialogue";
-
+import deped from "../images/bsu1.jpg";
 const LOGIN_URL = "/auth";
 const Login = () => {
   const theme = useTheme();
@@ -177,7 +177,20 @@ const Login = () => {
     localStorage.setItem("persist", persist);
   }, [persist]);
   return (
-    <div className="mainpage-container">
+    <Box
+      sx={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
+       url(${deped})`,
+        backgroundSize: "cover",
+        margin: "auto",
+        padding: 5,
+      }}
+    >
       <ErrorDialogue
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
@@ -186,24 +199,42 @@ const Login = () => {
         loadingDialog={loadingDialog}
         setLoadingDialog={setLoadingDialog}
       />
-      <Box className="mainpage-content" sx={{ padding: "50px" }}>
-        <Paper
+
+      <Paper
+        sx={{
+          // display: "flex",
+          // justifyContent:"center",
+          // alignItems:'center',
+          display: "flex" /*added*/,
+          flexDirection: "column" /*added*/,
+          width: "100%",
+          height: "100%",
+          background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
+          borderRadius: 5,
+        }}
+      >
+        <Topbar />
+        <Box
           sx={{
-            // display: "flex",
-            // justifyContent:"center",
-            // alignItems:'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             width: "100%",
             height: "100%",
-            borderRadius: "20px",
-            overflow: "hidden",
           }}
         >
-          <Topbar />
           <Box
-            className="container-child"
-            sx={{ backgroundColor: colors.black[900] }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              padding: 5,
+              backgroundColor: colors.black[900],
+              borderRadius: 5,
+            }}
           >
-            <Typography>Login to your Account</Typography>
+            <Typography variant="h2" sx={{ mb: 2 }}>
+              Login to your Account
+            </Typography>
 
             <form onSubmit={handleSubmit}>
               <Box display="flex" flexDirection="column" gap={2}>
@@ -289,9 +320,9 @@ const Login = () => {
               </div>
             </form>
           </Box>
-        </Paper>
-      </Box>
-    </div>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

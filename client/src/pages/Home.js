@@ -35,7 +35,8 @@ const Home = () => {
           flexDirection: "column" /*added*/,
           width: "100%",
           height: "100%",
-          borderRadius: 2,
+          borderRadius: 5,
+          // background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
         }}
       >
         <Topbar />
@@ -116,12 +117,16 @@ const Home = () => {
             sx={{
               width: "100%",
               height: "100%",
-              backgroundPosition: " center center",
+              borderRadius: 2,
+              backgroundPosition: "center center",
               backgroundRepeat: "no-repeat",
+              objectFit: "cover",
               // backgroundImage:
               //   " url('https://images.unsplash.com/photo-1569878698889-7bffa1896872?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60')",
               backgroundImage:
                 " url('https://bulsu.edu.ph/resources/gallery/43/01.jpg')",
+              // backgroundImage:
+              //   " url('https://www.sti.edu/cms/images/events/2019/sanjosedelmonte/front_306x191.jpg')",
             }}
           />
         </Box>

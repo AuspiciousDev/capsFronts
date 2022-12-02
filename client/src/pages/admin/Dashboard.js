@@ -50,6 +50,12 @@ import Charts from "react-apexcharts";
 import Loading from "../../global/Loading";
 import useRefreshToken from "../../hooks/useRefreshToken";
 import PropTypes from "prop-types";
+import ConfirmDialogue from "../../global/ConfirmDialogue";
+import SuccessDialogue from "../../global/SuccessDialogue";
+import ErrorDialogue from "../../global/ErrorDialogue";
+import ValidateDialogue from "../../global/ValidateDialogue";
+import LoadingDialogue from "../../global/LoadingDialogue";
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -143,7 +149,9 @@ const Dashboard = () => {
     const getOverviewDetails = async () => {
       const controller = new AbortController();
       setIsLoading(true);
+
       try {
+        setLoadingDialog({ isOpen: true });
         const apiStud = await axiosPrivate.get("/api/students");
         const apiEmp = await axiosPrivate.get("/api/employees");
         const apiSub = await axiosPrivate.get("/api/subjects");
@@ -210,27 +218,82 @@ const Dashboard = () => {
           secDispatch({ type: "SET_SECS", payload: json });
           setSectionsCount(json.length);
         }
-
+        setLoadingDialog({ isOpen: false });
         setIsLoading(false);
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
-          console.log(error.response.data.message);
-        } else if (error.response.status === 401) {
-          navigate("/login", { state: { from: location }, replace: true });
-          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `no server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else {
+          console.log(error);
         }
       }
     };
     getOverviewDetails();
   }, [studDispatch, empDispatch, subDispatch, secDispatch]);
 
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
   const totalStudents = (
     <Link to="student" style={{ textDecoration: "none" }}>
       <StyledPaper elevation={2}>
-        {" "}
-        <GroupsOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <GroupsOutlined
+          sx={{
+            fontSize: "80px",
+            alignSelf: "center",
+            transition: "transform 0.15s ease-in-out",
+            "&:hover": {
+              transform: "scale3d(1.2, 1.2, 1)",
+              color: colors.primary[900],
+            },
+          }}
+        />
         <Typography
           variant={fCountVariant}
           fontWeight={fWeight}
@@ -379,19 +442,28 @@ const Dashboard = () => {
   };
   return (
     <div className="contents-container">
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       {isloading ? (
-        <>
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="100vh"
-            flexDirection="column"
-          >
-            <Loading />
-            <Typography variant="h3">Loading...</Typography>
-          </Box>
-        </>
+        <></>
       ) : (
         <Box sx={{ height: { xs: "800px", sm: "100%" } }}>
           <Paper
@@ -423,22 +495,21 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Paper>
-          <Box width="100%" mt={2} marginBottom={2}>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr 1fr", sm: "1fr 1fr 1fr 1fr" },
-              }}
-              gap={2}
-            >
-              <Box>{totalStudents}</Box>
-              <Box>{totalInstructors}</Box>
-              <Box>{totalSubjects}</Box>
-              <Box>{totalSections}</Box>
-            </Box>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr 1fr", sm: "2fr 2fr 2fr 2fr" },
+              mb: 2,
+            }}
+            gap={2}
+          >
+            <Box>{totalStudents}</Box>
+            <Box>{totalInstructors}</Box>
+            <Box>{totalSubjects}</Box>
+            <Box>{totalSections}</Box>
           </Box>
 
-          <Box height="100%" sx={{ paddingBottom: "10px" }}>
+          <Box height="100%" sx={{ paddingBottom: 2 }}>
             {/* <Typography variant="h4">Recent Students</Typography>
           <Typography>Showing 10 entries</Typography> */}
 
@@ -446,7 +517,7 @@ const Dashboard = () => {
               height="520px"
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "8fr 2fr" },
+                gridTemplateColumns: { xs: "1fr", sm: "6fr 2fr" },
               }}
             >
               <Paper elevation={2} sx={{ position: "relative", p: 2 }}>
@@ -501,7 +572,7 @@ const Dashboard = () => {
                   justifyContent: "center",
                   height: "100%",
                   mt: { xs: 2, sm: 0 },
-                  ml: { xs: 0, sm: 3 },
+                  ml: { xs: 0, sm: 2 },
                   padding: { xs: "20px 0 20px 0", sm: 2 },
                 }}
               >

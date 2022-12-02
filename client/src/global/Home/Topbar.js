@@ -25,6 +25,7 @@ const Topbar = () => {
           backgroundColor: colors.Sidebar[100],
           p: { xs: "7.5px 10px", sm: "30px 45px" },
           boxShadow: "rgba(0, 0, 0, 0.15) 1px 1px 2.6px",
+          borderRadius: "20px 20px 0 0 ",
         }}
         justifyContent="space-between"
         alignItems="center"

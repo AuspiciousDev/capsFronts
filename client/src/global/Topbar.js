@@ -151,7 +151,26 @@ const Topbar = () => {
           gap={2}
         >
           <IconButton onClick={handleClick}>
-            <SettingsOutlinedIcon sx={{ fontSize: "20pt" }} />
+            <SettingsOutlinedIcon
+              sx={{
+                color: colors.primary[900],
+                fontSize: "20pt",
+                transition: "transform 0.15s ease-in-out",
+                "&:hover": {
+                  transform: "scale3d(1.5, 1.5, 1)",
+                  animation: "rotation 1s linear infinite",
+                  "@keyframes rotation": {
+                    "0%": {
+                      transform: "rotate(0deg)",
+                    },
+                    "100%": {
+                      transform: "rotate(360deg)",
+                    },
+                  },
+                  color: colors.primary[900],
+                },
+              }}
+            />
             {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
           </IconButton>
           <StyledMenu
@@ -280,10 +299,7 @@ const Topbar = () => {
                   <Typography>Dashboard</Typography>
                 </StyledBox2>
               </Link>
-              <Link
-
-              to={`grade`}
-              >
+              <Link to={`grade`}>
                 <StyledBox2 gap={2}>
                   <GradeOutlined />
                   <Typography>Grades</Typography>

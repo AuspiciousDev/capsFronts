@@ -187,93 +187,6 @@ const UserTable = () => {
     getUsersDetails();
   }, [userDispatch, empDispatch]);
 
-  const DeleteRecord = ({ user, employee }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.error[100] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete user </Typography>
-            <Box margin="20px 0">
-              <Typography variant="h2" fontWeight="bold">
-                {user?.username}
-              </Typography>
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                textTransform="capitalize"
-              >
-                {employee?.middleName
-                  ? employee?.firstName +
-                    " " +
-                    employee?.middleName.charAt(0) +
-                    ". " +
-                    employee?.lastName
-                  : employee?.firstName + " " + employee?.lastName}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ user });
-                close();
-              }}
-              variant="contained"
-              color="secondary"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
-  const handleAdd = () => {
-    setIsFormOpen(true);
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -452,10 +365,7 @@ const UserTable = () => {
               result?.lastName
             : result?.firstName + " " + result?.lastName}
         </TableCell>
-        <TableCell
-          key={result?.username}
-          align="left"
-        >
+        <TableCell key={result?.username} align="left">
           {result?.email || "-"}
         </TableCell>
         <TableCell
@@ -829,7 +739,6 @@ const UserTable = () => {
         elevation={2}
         sx={{
           width: "100%",
-          margin: "20px 0 5px 0",
           padding: { xs: "10px", sm: "0 10px" },
         }}
       >
@@ -924,7 +833,6 @@ const UserTable = () => {
                   );
                   return tableDetails({ user, result });
                 })}
-                
             </TableBody>
           </Table>
         </TableContainer>
