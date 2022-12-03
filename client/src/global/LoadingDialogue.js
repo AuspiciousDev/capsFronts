@@ -28,7 +28,7 @@ const LoadingDialogue = (props) => {
         },
       }}
     >
-      <DialogContent >
+      <DialogContent sx={{ p: 5 }}>
         {/* <div className="lds-ellipsis">
           <div></div>
           <div></div>

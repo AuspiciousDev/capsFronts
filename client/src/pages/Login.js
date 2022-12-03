@@ -141,10 +141,9 @@ const Login = () => {
       } catch (error) {
         setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log(error);
           setErrorDialog({
             isOpen: true,
-            message: `${error?.response}!`,
+            message: `No server response!`,
           });
         } else if (error.response.status === 400) {
           setUsernameError(true);

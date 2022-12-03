@@ -122,7 +122,6 @@ const LoadManage = () => {
           : event.target.value,
     }));
   };
-
   const handleSecFieldChange = (event) => {
     console.log(event);
     event.preventDefault();
@@ -234,7 +233,7 @@ const LoadManage = () => {
         });
         if (getSections?.status === 200) {
           const json = await getSections.data;
-          // console.log(json);
+          console.log("SET_SECS :", json);
           setIsLoading(false);
           secDispatch({ type: "SET_SECS", payload: json });
         }
@@ -293,36 +292,67 @@ const LoadManage = () => {
     activeDispatch,
     taskDispatch,
   ]);
-  const LevelTableTitles = () => {
-    return (
-      <TableRow>
-        {/* <TableCell align="left"></TableCell> */}
-        <TableCell>Level ID</TableCell>
-        <TableCell>Level </TableCell>
-        <TableCell>Department </TableCell>
-      </TableRow>
-    );
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoadingDialog({ isOpen: true });
+
+    const loads = {
+      empID: id,
+      levelLoad,
+      sectionLoad,
+      subjectLoad,
+    };
+    console.log(loads);
+
+    try {
+      const response = await axiosPrivate.post(
+        `/api/employees/update/loads/${id}`,
+        JSON.stringify(loads)
+      );
+      if (response.status === 201) {
+        const json = await response.data;
+        console.log("response;", json);
+
+        setLoadingDialog({ isOpen: false });
+        setSuccessDialog({
+          isOpen: true,
+          message: "Employee Load/s been added!",
+          onConfirm: () => {
+            setSuccessDialog({ isOpen: false });
+          },
+        });
+      }
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      if (!error?.response) {
+        console.log("no server response");
+        setErrorDialog({
+          isOpen: true,
+          message: `${"No server response!"}`,
+        });
+      } else if (error.response.status === 400) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 409) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else {
+        console.log(error);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+      }
+    }
   };
-  const SectionTableTitles = () => {
-    return (
-      <TableRow>
-        {/* <TableCell align="left"></TableCell> */}
-        <TableCell>Section ID</TableCell>
-        <TableCell>Section Name</TableCell>
-        <TableCell>Level</TableCell>
-      </TableRow>
-    );
-  };
-  const SubjectTableTitles = () => {
-    return (
-      <TableRow>
-        {/* <TableCell align="left"></TableCell> */}
-        <TableCell>Subject ID</TableCell>
-        <TableCell>Subject Name</TableCell>
-        <TableCell>Level </TableCell>
-      </TableRow>
-    );
-  };
+
   return (
     <div className="contents-container">
       <ConfirmDialogue
@@ -396,40 +426,7 @@ const LoadManage = () => {
                   : empData.firstName + " " + empData.lastName}{" "}
               </Typography>
               <Typography>{empData.empID}</Typography>
-              <Typography>
-                {empData &&
-                  empData?.empType?.map((item, i) => {
-                    return (
-                      <ul
-                        style={{
-                          display: "flex",
-                          padding: "0",
-                          listStyle: "none",
-                        }}
-                      >
-                        {item === 2001 ? (
-                          <li>
-                            <Box sx={{ display: "flex", flexDirection: "row" }}>
-                              <AdminPanelSettings />
-                              <Typography sx={{ ml: "5px" }}>Admin</Typography>
-                            </Box>
-                          </li>
-                        ) : item === 2002 ? (
-                          <li>
-                            <Box sx={{ display: "flex", flexDirection: "row" }}>
-                              <Badge />
-                              <Typography sx={{ ml: "5px" }}>
-                                Teacher
-                              </Typography>
-                            </Box>
-                          </li>
-                        ) : (
-                          <></>
-                        )}
-                      </ul>
-                    );
-                  })}
-              </Typography>
+              <Typography></Typography>
             </Box>
           </Box>
         </Box>
@@ -438,7 +435,7 @@ const LoadManage = () => {
       <Box
         sx={{ display: "flex", flexDirection: "column", width: "100%", p: 2 }}
       >
-        <form>
+        <form onSubmit={handleSubmit}>
           <Typography variant="h3">Select Loads</Typography>
           <FormControl fullWidth sx={{ m: "10px 0" }}>
             <TextField
@@ -447,27 +444,26 @@ const LoadManage = () => {
               name="types"
               id="types"
               variant="outlined"
-              label="Levels"
+              label="Level ID"
               SelectProps={{
                 multiple: true,
                 value: levelLoad.types,
                 onChange: handleFieldChange,
               }}
             >
+              <MenuItem aria-label="none" value={""} />
               {levels &&
                 levels
                   .filter((fill) => {
-                    return fill.status === true;
+                    return fill?.status === true;
                   })
                   .map((val) => {
                     return (
-                      <MenuItem value={val.levelID}>
-                        [{val.levelID}] Grade - {val.levelNum}
+                      <MenuItem key={val?._id} value={val?.levelID}>
+                        {val?.departmentID} - {val?.levelNum}
                       </MenuItem>
                     );
                   })}
-
-              {/* <MenuItem value={2002}>Teacher</MenuItem> */}
             </TextField>
           </FormControl>
           <FormControl fullWidth sx={{ m: "10px 0" }}>
@@ -477,33 +473,34 @@ const LoadManage = () => {
               name="types"
               id="types"
               variant="outlined"
-              label="Sections"
+              label="Section ID"
               SelectProps={{
                 multiple: true,
                 value: sectionLoad.types,
                 onChange: handleSecFieldChange,
               }}
             >
+              <MenuItem aria-label="none" value={""} />
               {levelLoad &&
                 sections &&
                 sections
                   .filter((fill) => {
-                    const res = levelLoad.map((val) => {
-                      return val.types;
-                    });
-                    return fill.status === true && fill.levelID.includes(res);
+                    return (
+                      fill?.status === true &&
+                      levelLoad &&
+                      levelLoad.types.some((e) => e === fill.levelID)
+                      // console.log(levelLoad.types)
+                    );
                   })
                   .map((val) => {
                     return (
-                      <MenuItem value={val.sectionID}>
-                        {val.levelID} - {val.sectionName}
+                      <MenuItem key={val?._id} value={val?.sectionID}>
+                        {val?.levelID} - {val?.sectionName}
                       </MenuItem>
                     );
                   })}
-
-              {/* <MenuItem value={2002}>Teacher</MenuItem> */}
             </TextField>
-          </FormControl>{" "}
+          </FormControl>
           <FormControl fullWidth sx={{ m: "10px 0" }}>
             <TextField
               required
@@ -511,27 +508,31 @@ const LoadManage = () => {
               name="types"
               id="types"
               variant="outlined"
-              label="Subjects"
+              label="Subject ID"
               SelectProps={{
                 multiple: true,
                 value: subjectLoad.types,
                 onChange: handleSubFieldChange,
               }}
             >
-              {levels &&
-                levels
+              <MenuItem aria-label="none" value={""} />
+              {levelLoad.types &&
+                subjects &&
+                subjects
                   .filter((fill) => {
-                    return fill.status === true;
+                    return (
+                      fill?.status === true &&
+                      levelLoad &&
+                      levelLoad.types.some((e) => e === fill.levelID)
+                    );
                   })
                   .map((val) => {
                     return (
-                      <MenuItem value={val.levelID}>
-                        Grade - {val.levelNum}
+                      <MenuItem key={val?._id} value={val?.subjectID}>
+                        {val?.levelID} - {val?.subjectName}
                       </MenuItem>
                     );
                   })}
-
-              {/* <MenuItem value={2002}>Teacher</MenuItem> */}
             </TextField>
           </FormControl>
           <Box
@@ -562,55 +563,6 @@ const LoadManage = () => {
           </Box>
         </form>
       </Box>
-      {/* <AppBar
-        position="static"
-        sx={{ backgroundColor: colors.appBar[100] }}
-        enableColorOnDark
-      >
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          aria-label="full width tabs example"
-          variant="fullWidth"
-        >
-          <Tab label="Levels" {...a11yProps(0)} sx={{ fontWeight: "bold" }} />
-          <Tab label="Sections" {...a11yProps(1)} sx={{ fontWeight: "bold" }} />
-          <Tab label="Subjects" {...a11yProps(2)} sx={{ fontWeight: "bold" }} />
-        </Tabs>
-      </AppBar>
-      <TabPanel sx={{ width: "100%" }} value={value} index={0}>
-       
-      </TabPanel>
-      <TabPanel sx={{ width: "100%" }} value={value} index={1}>
-        <Box width="100%">
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <SectionTableTitles />
-              </TableHead>
-              <TableBody></TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-
-          <Box display="flex" width="100%" marginTop="20px"></Box>
-        </Box>
-      </TabPanel>
-      <TabPanel sx={{ width: "100%" }} value={value} index={2}>
-        <Box width="100%">
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <SubjectTableTitles />
-              </TableHead>
-              <TableBody></TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-
-          <Box display="flex" width="100%" marginTop="20px"></Box>
-        </Box>
-      </TabPanel> */}
     </div>
   );
 };

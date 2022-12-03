@@ -99,9 +99,9 @@ const Sidebar = () => {
 
   const [userName, setUserName] = useState();
   const [userType, setUserType] = useState();
+  const [userProfile, setUserProfile] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [getPath, setPath] = useState("");
   const toggleMenu = (e) => {
@@ -112,10 +112,13 @@ const Sidebar = () => {
     console.log(auth);
     const getOverviewDetails = async () => {
       try {
-        const apiEmp = await axiosPrivate.get("/api/employees");
+        const apiEmp = await axiosPrivate.get(
+          `/api/employees/search/${auth.username}`
+        );
         if (apiEmp?.status === 200) {
           const json = await apiEmp.data;
-          empDispatch({ type: "SET_EMPLOYEES", payload: json });
+          // empDispatch({ type: "SET_EMPLOYEES", payload: json });
+          setUserProfile(json);
         }
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
@@ -135,6 +138,7 @@ const Sidebar = () => {
     };
     getOverviewDetails();
   }, [empDispatch, yearDispatch]);
+
   useEffect(() => {
     setIsCollapsed(!matches);
   }, [matches]);
@@ -207,16 +211,7 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="50px"
                   height="50px"
-                  src={
-                    employees &&
-                    employees
-                      .filter((data) => {
-                        return data.empID === auth.username;
-                      })
-                      .map((val) => {
-                        return val?.imgURL;
-                      })
-                  }
+                  src={userProfile.imgURL}
                   style={{
                     objectFit: "contain",
                     borderRadius: "50%",

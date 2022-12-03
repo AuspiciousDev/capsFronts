@@ -359,11 +359,12 @@ const LoadAssign = () => {
                   : empData.firstName + " " + empData.lastName}{" "}
               </Typography>
               <Typography>{empData.empID}</Typography>
-              <Typography>
+              <Box>
                 {empData &&
                   empData?.empType?.map((item, i) => {
                     return (
                       <ul
+                      key={item}
                         style={{
                           display: "flex",
                           padding: "0",
@@ -392,7 +393,7 @@ const LoadAssign = () => {
                       </ul>
                     );
                   })}
-              </Typography>
+              </Box>
             </Box>
           </Box>
           <Box
@@ -404,7 +405,7 @@ const LoadAssign = () => {
             }}
           >
             <Link
-                to={`/admin/faculty/load/add/${id}`}
+              to={`/admin/faculty/load/add/${id}`}
               style={{ textDecoration: "none" }}
             >
               <Button

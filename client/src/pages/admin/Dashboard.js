@@ -465,7 +465,13 @@ const Dashboard = () => {
       {isloading ? (
         <></>
       ) : (
-        <Box sx={{ height: { xs: "800px", sm: "100%" } }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            height: { xs: "800px", sm: "100%" },
+          }}
+        >
           <Paper
             elevation={2}
             sx={{

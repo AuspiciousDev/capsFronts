@@ -306,6 +306,7 @@ const EmployeeTable = () => {
       >
         <TableCell sx={{ p: "0 10px" }} align="center">
           <Box display="flex" justifyContent="center" alignItems="center">
+            {console.log(val?.imgURL)}
             <Avatar
               alt="profile-user"
               sx={{ width: "50px", height: "50px" }}
@@ -363,7 +364,7 @@ const EmployeeTable = () => {
             : val?.firstName + " " + val?.lastName}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val.gender}
+          {val?.gender}
         </TableCell>
         {/* <TableCell align="left">{val?.email || "-"}</TableCell> */}
         <TableCell
@@ -393,6 +394,7 @@ const EmployeeTable = () => {
           {val.empType.map((item, i) => {
             return (
               <ul
+                key={item}
                 style={{
                   display: "flex",
                   flexDirection: "row",

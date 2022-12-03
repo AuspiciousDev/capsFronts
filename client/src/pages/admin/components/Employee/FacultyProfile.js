@@ -41,7 +41,7 @@ import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import { format } from "date-fns-tz";
 import { ModeEditOutlineOutlined } from "@mui/icons-material";
 
-import { useTheme } from "@mui/material";
+import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
 
 import NotFound404 from "../../../NotFound404";
@@ -128,6 +128,16 @@ const FacultyProfile = (props) => {
     setAnchorEl(null);
   };
 
+  const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    "&:nth-of-type(odd)": {
+      // backgroundColor: colors.tableRow[100],
+    },
+    // hide last border
+    "&:last-child td, &:last-child th": {
+      border: 0,
+    },
+  }));
+
   const LevelTableTitles = () => {
     return (
       <TableRow>
@@ -158,6 +168,23 @@ const FacultyProfile = (props) => {
       </TableRow>
     );
   };
+
+  const tableDetails = (val) => {
+    return (
+      <StyledTableRow
+        key={val}
+        sx={
+          {
+            // "&:last-child td, &:last-child th": { border: 1 },
+            // "& td, & th": { border: 1 },
+          }
+        }
+      >
+        <TableCell align="left">{val}</TableCell>
+      </StyledTableRow>
+    );
+  };
+
   useEffect(() => {
     const getUsersDetails = async () => {
       try {
@@ -709,7 +736,11 @@ const FacultyProfile = (props) => {
                     <TableHead>
                       <LevelTableTitles />
                     </TableHead>
-                    <TableBody></TableBody>
+                    <TableBody>
+                      {val?.LevelLoads.map((val) => {
+                        return tableDetails(val);
+                      })}
+                    </TableBody>
                   </Table>
                 </TableContainer>
                 <Divider />
@@ -733,7 +764,11 @@ const FacultyProfile = (props) => {
                     <TableHead>
                       <SectionTableTitles />
                     </TableHead>
-                    <TableBody></TableBody>
+                    <TableBody>
+                      {val?.SectionLoads.map((val) => {
+                        return tableDetails(val);
+                      })}
+                    </TableBody>
                   </Table>
                 </TableContainer>
                 <Divider />
@@ -757,7 +792,12 @@ const FacultyProfile = (props) => {
                     <TableHead>
                       <SubjectTableTitles />
                     </TableHead>
-                    <TableBody></TableBody>
+                    <TableBody>
+                      {" "}
+                      {val?.SubjectLoads.map((val) => {
+                        return tableDetails(val);
+                      })}
+                    </TableBody>
                   </Table>
                 </TableContainer>
                 <Divider />
