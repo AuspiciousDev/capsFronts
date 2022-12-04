@@ -104,12 +104,9 @@ const Sidebar = () => {
   const [selected, setSelected] = useState("Dashboard");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [getPath, setPath] = useState("");
-  const toggleMenu = (e) => {
-    setIsMenuOpen(!isMenuOpen);
-  };
 
   useEffect(() => {
-    console.log(auth);
+    console.log("Sidebar Auth :", auth);
     const getOverviewDetails = async () => {
       try {
         const apiEmp = await axiosPrivate.get(
@@ -119,6 +116,7 @@ const Sidebar = () => {
           const json = await apiEmp.data;
           // empDispatch({ type: "SET_EMPLOYEES", payload: json });
           setUserProfile(json);
+          console.log("Sidebar DATA: ", json);
         }
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
@@ -137,7 +135,7 @@ const Sidebar = () => {
       }
     };
     getOverviewDetails();
-  }, [empDispatch, yearDispatch]);
+  }, [empDispatch, yearDispatch, auth, axiosPrivate]);
 
   useEffect(() => {
     setIsCollapsed(!matches);
@@ -167,6 +165,7 @@ const Sidebar = () => {
         },
       }}
     >
+      {console.log(userProfile)}
       <ProSidebar
         collapsed={isCollapsed}
         style={{
@@ -227,43 +226,38 @@ const Sidebar = () => {
                 padding=" 10px 0 10px 15px"
                 // backgroundColor={colors.black[900]}
               >
-                <Link to={`/admin/faculty/${auth.username}`}>
-                  <Avatar
-                    alt="profile-user"
-                    sx={{ width: "50px", height: "50px" }}
-                    src={
-                      employees &&
-                      employees
-                        .filter((data) => {
-                          return data.empID === auth.username;
-                        })
-                        .map((val) => {
-                          return val?.imgURL;
-                        })
-                    }
-                    style={{
-                      objectFit: "contain",
-                      borderRadius: "50%",
-                    }}
-                  />
-                </Link>
+                <Avatar
+                  alt="profile-user"
+                  sx={{ width: "50px", height: "50px" }}
+                  src={userProfile.imgURL}
+                  style={{
+                    objectFit: "contain",
+                    borderRadius: "50%",
+                  }}
+                />
 
                 <Box ml="10px">
-                  <Typography
-                    variant="h5"
-                    width="180px"
-                    color={colors.black[50]}
-                    sx={{ textTransform: "capitalize" }}
-                  >
-                    {employees &&
+                  {" "}
+                  <Link to={`/admin/faculty/${auth.username}`}>
+                    <Typography
+                      variant="h5"
+                      width="180px"
+                      color={colors.black[50]}
+                      sx={{ textTransform: "capitalize" }}
+                    >
+                      {userProfile &&
+                        userProfile.firstName + " " + userProfile.lastName}
+                      {/* {(employees &&
                       employees
                         .filter((data) => {
                           return data.empID === auth.username;
                         })
                         .map((val) => {
                           return val.firstName + " " + val.lastName;
-                        })}
-                  </Typography>
+                        })) ||
+                      auth.username} */}
+                    </Typography>{" "}
+                  </Link>
                   <Typography color={colors.primary[900]} variant="subtitle2">
                     {auth.roles == 2001 ? "Admin" : ""}
                     {auth.roles == 2002 ? "Teacher" : ""}

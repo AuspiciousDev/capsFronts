@@ -311,7 +311,17 @@ const Dashboard = () => {
   const totalInstructors = (
     <Link to="faculty" style={{ textDecoration: "none" }}>
       <StyledPaper elevation={2}>
-        <BadgeOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <BadgeOutlined
+          sx={{
+            fontSize: "80px",
+            alignSelf: "center",
+            transition: "transform 0.15s ease-in-out",
+            "&:hover": {
+              transform: "scale3d(1.2, 1.2, 1)",
+              color: colors.primary[900],
+            },
+          }}
+        />
         <Typography
           variant={fCountVariant}
           fontWeight={fWeight}
@@ -330,7 +340,17 @@ const Dashboard = () => {
   const totalSubjects = (
     <Link to="subject" style={{ textDecoration: "none" }}>
       <StyledPaper elevation={2}>
-        <AutoStoriesOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <AutoStoriesOutlined
+          sx={{
+            fontSize: "80px",
+            alignSelf: "center",
+            transition: "transform 0.15s ease-in-out",
+            "&:hover": {
+              transform: "scale3d(1.2, 1.2, 1)",
+              color: colors.primary[900],
+            },
+          }}
+        />
         <Typography
           variant={fCountVariant}
           fontWeight={fWeight}
@@ -349,7 +369,17 @@ const Dashboard = () => {
   const totalSections = (
     <Link to="subject" style={{ textDecoration: "none" }}>
       <StyledPaper elevation={2}>
-        <Diversity3Outlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+        <Diversity3Outlined
+          sx={{
+            fontSize: "80px",
+            alignSelf: "center",
+            transition: "transform 0.15s ease-in-out",
+            "&:hover": {
+              transform: "scale3d(1.2, 1.2, 1)",
+              color: colors.primary[900],
+            },
+          }}
+        />
         <Typography
           variant={fCountVariant}
           fontWeight={fWeight}

@@ -4,10 +4,20 @@ import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
+import {
+  DataGrid,
+  GridRowsProp,
+  GridColDef,
+  GridToolbar,
+} from "@mui/x-data-grid";
+
 import Loading from "../../../../global/Loading";
 import {
   Box,
@@ -42,6 +52,8 @@ const LoginHistoryTable = () => {
   const [search, setSearch] = useState();
 
   const [getEmpData, setEmpData] = useState([]);
+  const [getStudData, setStudData] = useState([]);
+  const [getAllData, setAllData] = useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -66,10 +78,17 @@ const LoginHistoryTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   useEffect(() => {
     const getData = async () => {
+      let stud, emp;
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get(
           "/api/loginhistories/employees",
@@ -79,12 +98,30 @@ const LoginHistoryTable = () => {
           }
         );
         if (response.status === 200) {
-          const json = await response.data;
-          console.log(json);
+          emp = await response.data;
+          console.log(emp);
           setIsLoading(false);
-          setEmpData(json);
+          setEmpData(emp);
+          setLoadingDialog({ isOpen: false });
         }
+        const response1 = await axiosPrivate.get(
+          "/api/loginhistories/students",
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+        if (response1.status === 200) {
+          stud = await response1.data;
+          console.log(stud);
+          setIsLoading(false);
+          setStudData(stud);
+          setLoadingDialog({ isOpen: false });
+        }
+        setAllData([...stud, ...emp]);
+        console.log(getAllData);
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
           console.log("no server response");
         } else if (error.response.status === 204) {
@@ -95,7 +132,7 @@ const LoginHistoryTable = () => {
       }
     };
     getData();
-  }, []);
+  }, [axiosPrivate]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -136,6 +173,37 @@ const LoginHistoryTable = () => {
       </StyledTableHeadRow>
     );
   };
+
+  const columns = [
+    { field: "username", headerName: "Username", width: 130 },
+    { field: "firstName", headerName: "First name", width: 130 },
+    {
+      field: "middleName",
+      headerName: "Middle name",
+      width: 130,
+      valueFormatter: (params) => params?.value || "-",
+    },
+    { field: "lastName", headerName: "Last name", width: 130 },
+    {
+      field: "fullName",
+      headerName: "Full name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 160,
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.lastName || ""}`,
+    },
+    { field: "userType", headerName: "Type", width: 130 },
+    {
+      field: "createdAt",
+      headerName: "Date",
+      width: 130,
+      flex: 0.5,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+  ];
+
   const tableDetails = (val) => {
     return (
       <StyledTableRow
@@ -149,12 +217,9 @@ const LoginHistoryTable = () => {
         }
       >
         {/* <TableCell align="left">-</TableCell> */}
-        <TableCell >
+        <TableCell>
           <Box display="flex" justifyContent="center" alignItems="center">
-            <Avatar
-              alt="profile-user"
-              src={val?.imgURL}
-            />{" "}
+            <Avatar alt="profile-user" src={val?.imgURL} />{" "}
           </Box>
         </TableCell>
 
@@ -209,9 +274,14 @@ const LoginHistoryTable = () => {
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
       />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Paper
         elevation={2}
         sx={{
+          display: "flex",
           width: "100%",
           padding: { xs: "10px", sm: "0 10px" },
         }}
@@ -276,13 +346,55 @@ const LoginHistoryTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%" sx={{ mt: 2 }}>
-        <Paper elevation={2}>
-          <TableContainer
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <div style={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={
+              // getEmpData &&
+              // getEmpData.map((val) => {
+              //   return val;
+              // })
+              getAllData &&
+              getAllData.map((val) => {
+                return val;
+              })
+            }
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={rowsPerPage}
+            onPageSizeChange={(newPageSize) => setRowsPerPage(newPageSize)}
+            rowsPerPageOptions={[5, 10, 15]}
+            pagination
             sx={{
-              maxHeight: "700px",
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
             }}
-          >
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  firstName: true,
+                  lastName: true,
+                  middleName: true,
+                  email: true,
+                },
+              },
+            }}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
+        <Box sx={{ display: "none" }}>
+          <TableContainer>
             <Table aria-label="simple table">
               <TableHead>
                 <TableTitles />
@@ -294,7 +406,11 @@ const LoginHistoryTable = () => {
                     getEmpData
 
                       .filter((fill) => {
-                        return fill.username.includes(search);
+                        return (
+                          fill.username.includes(search) ||
+                          fill.firstName.includes(search) ||
+                          fill.lastName.includes(search)
+                        );
                       })
                       .slice(
                         page * rowsPerPage,
@@ -333,17 +449,17 @@ const LoginHistoryTable = () => {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-          paddingBottom="20px"
-        >
-          {isloading ? <Loading /> : <></>}
         </Box>
+      </Paper>
+      <Box
+        display="flex"
+        width="100%"
+        sx={{ flexDirection: "column" }}
+        justifyContent="center"
+        alignItems="center"
+        paddingBottom="20px"
+      >
+        {isloading ? <Loading /> : <></>}
       </Box>
     </Box>
   );

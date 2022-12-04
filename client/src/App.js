@@ -69,6 +69,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import LoadAssign from "./pages/admin/components/Employee/LoadAssign";
 import LoadManage from "./pages/admin/components/Employee/LoadManage";
+import ActivateUser from "./pages/ActivateUser";
 const ROLES = {
   Admin: 2001,
   Teacher: 2002,
@@ -120,6 +121,10 @@ function App() {
               }
             />
             <Route path="reset" element={<ResetPassword />} />
+            <Route
+              path="/api/auth/activate/:activation_token"
+              element={<ActivateUser />}
+            />
             <Route path="unauthorized" element={<Unauthorized />} />
             {/* ADMIN ROUTES*/}
             <Route element={<PersistLogin />}>

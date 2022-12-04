@@ -20,6 +20,7 @@ import {
   TableBody,
   TableCell,
   TableRow,
+  TablePagination,
 } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
@@ -36,7 +37,17 @@ import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 import Loading from "../../../../global/Loading";
 
+import { useStudentsContext } from "../../../../hooks/useStudentsContext";
+import { useGradesContext } from "../../../../hooks/useGradesContext";
+import { useSubjectsContext } from "../../../../hooks/useSubjectsContext";
+import { useSectionsContext } from "../../../../hooks/useSectionContext";
+import { useLevelsContext } from "../../../../hooks/useLevelsContext";
+import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
+import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
+import { useTasksContext } from "../../../../hooks/useTasksContext";
+import { useTasksScoresContext } from "../../../../hooks/useTasksScoreContext";
 import { useEmployeesContext } from "../../../../hooks/useEmployeesContext";
+
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import { format } from "date-fns-tz";
 import { ModeEditOutlineOutlined } from "@mui/icons-material";
@@ -87,6 +98,18 @@ const FacultyProfile = (props) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [loginHistory, setLoginHistory] = useState([]);
+
+  const { students, studDispatch } = useStudentsContext();
+  const { grades, gradeDispatch } = useGradesContext();
+  const { subjects, subDispatch } = useSubjectsContext();
+  const { levels, levelDispatch } = useLevelsContext();
+  const { departments, depDispatch } = useDepartmentsContext();
+  const { sections, secDispatch } = useSectionsContext();
+  const { actives, activeDispatch } = useActiveStudentsContext();
+  const { tasks, taskDispatch } = useTasksContext();
+  const { employees, empDispatch } = useEmployeesContext();
+  const { taskScore, taskScoreDispatch } = useTasksScoresContext();
+
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "",
@@ -138,6 +161,18 @@ const FacultyProfile = (props) => {
     },
   }));
 
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const LevelTableTitles = () => {
     return (
       <TableRow>
@@ -169,21 +204,200 @@ const FacultyProfile = (props) => {
     );
   };
 
-  const tableDetails = (val) => {
+  const SubjectsTableDetails = (val) => {
     return (
-      <StyledTableRow
-        key={val}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 1 },
-            // "& td, & th": { border: 1 },
-          }
-        }
-      >
+      <StyledTableRow key={val}>
         <TableCell align="left">{val}</TableCell>
+        <TableCell align="left">
+          {subjects &&
+            subjects
+              .filter((fill) => {
+                return fill.subjectID === val;
+              })
+              .map((val) => {
+                return val.subjectName;
+              })}
+        </TableCell>
+        <TableCell align="left">
+          {subjects &&
+            subjects
+              .filter((fill) => {
+                return fill.subjectID === val;
+              })
+              .map((val) => {
+                return val.levelID;
+              })}
+        </TableCell>
       </StyledTableRow>
     );
   };
+  const SectionTableDetails = (val) => {
+    return (
+      <StyledTableRow key={val}>
+        <TableCell align="left">{val}</TableCell>
+        <TableCell align="left">
+          {sections &&
+            sections
+              .filter((fill) => {
+                return fill.sectionID === val;
+              })
+              .map((val) => {
+                return val.sectionName;
+              })}
+        </TableCell>
+        <TableCell align="left">
+          {sections &&
+            sections
+              .filter((fill) => {
+                return fill.sectionID === val;
+              })
+              .map((val) => {
+                return val.levelID;
+              })}
+        </TableCell>
+      </StyledTableRow>
+    );
+  };
+  const LevelTableDetails = (val) => {
+    return (
+      <StyledTableRow key={val}>
+        <TableCell align="left">{val}</TableCell>
+        <TableCell align="left">
+          {levels &&
+            levels
+              .filter((fill) => {
+                return fill.levelID === val;
+              })
+              .map((val) => {
+                return val.levelNum;
+              })}
+        </TableCell>
+        <TableCell align="left">
+          {" "}
+          {levels &&
+            levels
+              .filter((fill) => {
+                return fill.levelID === val;
+              })
+              .map((val) => {
+                return val.departmentID;
+              })}
+        </TableCell>
+      </StyledTableRow>
+    );
+  };
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        setIsLoading(true);
+        setLoadingDialog({ isOpen: true });
+        // const apiStud = await axiosPrivate.get(`/api/students/search/${id}`, {
+        //   headers: { "Content-Type": "application/json" },
+        //   withCredentials: true,
+        // });
+        // if (apiStud?.status === 200) {
+        //   const json = await apiStud.data;
+        //   console.log(json);
+        //   setIsLoading(false);
+        //   setStudentData(json);
+        // }
+
+        const response = await axiosPrivate.get("/api/subjects", {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        });
+        if (response.status === 200) {
+          const json = await response.data;
+          // console.log(json);
+          setIsLoading(false);
+          subDispatch({ type: "SET_SUBJECTS", payload: json });
+        }
+        const getLevels = await axiosPrivate.get("/api/levels", {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        });
+        if (getLevels.status === 200) {
+          const json = await getLevels.data;
+          // console.log(json);
+          setIsLoading(false);
+          levelDispatch({ type: "SET_LEVELS", payload: json });
+        }
+        const getDepartment = await axiosPrivate.get("/api/departments", {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        });
+        if (getDepartment?.status === 200) {
+          const json = await getDepartment.data;
+          // console.log(json);
+          setIsLoading(false);
+          depDispatch({ type: "SET_DEPS", payload: json });
+        }
+        const getSections = await axiosPrivate.get("/api/sections", {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        });
+        if (getSections?.status === 200) {
+          const json = await getSections.data;
+          console.log("SET_SECS :", json);
+          setIsLoading(false);
+          secDispatch({ type: "SET_SECS", payload: json });
+        }
+
+        setLoadingDialog({ isOpen: false });
+      } catch (error) {
+        setIsLoading(false);
+        setLoadingDialog({ isOpen: false });
+        if (!error?.response) {
+          console.log("No server response");
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 401) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 403) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 404) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error.response.data.message}`,
+          });
+        } else {
+          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
+        }
+      }
+    };
+    getData();
+  }, [
+    studDispatch,
+    gradeDispatch,
+    subDispatch,
+    levelDispatch,
+    depDispatch,
+    secDispatch,
+    activeDispatch,
+    taskDispatch,
+  ]);
 
   useEffect(() => {
     const getUsersDetails = async () => {
@@ -261,12 +475,11 @@ const FacultyProfile = (props) => {
           className="deleteScroll"
           gap={1}
           display="grid"
-          paddingBottom="20px"
           sx={{
-            height: { xs: "750px", sm: "100%" },
+            height: "100%",
             width: { xs: "100%", sm: "100%" },
             gridTemplateColumns: { xs: "1fr", sm: "1fr 3fr" },
-            padding: { xs: "0 20px 20px 20px", sm: "3px 3px" },
+            padding: { xs: "0 20px 20px 20px", sm: "3px" },
             overflow: "scroll",
           }}
         >
@@ -456,7 +669,7 @@ const FacultyProfile = (props) => {
                 </Paper>
               </Link> */}
             </Box>
-            <Box padding="20px" display="grid" gridTemplateRows="1fr">
+            <Box padding={2} display="grid" gridTemplateRows="1fr">
               <Box
                 sx={{ display: "flex", flexDirection: "column" }}
                 padding="10px 10px 0 10px"
@@ -738,13 +951,21 @@ const FacultyProfile = (props) => {
                     </TableHead>
                     <TableBody>
                       {val?.LevelLoads.map((val) => {
-                        return tableDetails(val);
+                        return LevelTableDetails(val);
                       })}
                     </TableBody>
                   </Table>
                 </TableContainer>
                 <Divider />
-
+                <TablePagination
+                  rowsPerPageOptions={[5, 10]}
+                  component="div"
+                  count={val?.LevelLoads && val?.LevelLoads.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
                 <Box
                   display="flex"
                   width="100%"
@@ -766,13 +987,21 @@ const FacultyProfile = (props) => {
                     </TableHead>
                     <TableBody>
                       {val?.SectionLoads.map((val) => {
-                        return tableDetails(val);
+                        return SectionTableDetails(val);
                       })}
                     </TableBody>
                   </Table>
                 </TableContainer>
                 <Divider />
-
+                <TablePagination
+                  rowsPerPageOptions={[5, 10]}
+                  component="div"
+                  count={val?.SectionLoads && val?.SectionLoads.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
                 <Box
                   display="flex"
                   width="100%"
@@ -795,13 +1024,21 @@ const FacultyProfile = (props) => {
                     <TableBody>
                       {" "}
                       {val?.SubjectLoads.map((val) => {
-                        return tableDetails(val);
+                        return SubjectsTableDetails(val);
                       })}
                     </TableBody>
                   </Table>
                 </TableContainer>
                 <Divider />
-
+                <TablePagination
+                  rowsPerPageOptions={[5, 10]}
+                  component="div"
+                  count={val?.SubjectLoads && val?.SubjectLoads.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
                 <Box
                   display="flex"
                   width="100%"

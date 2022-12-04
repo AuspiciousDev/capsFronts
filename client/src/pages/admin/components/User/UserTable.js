@@ -181,7 +181,6 @@ const UserTable = () => {
     setPage(0);
   };
 
-
   const [open, setOpen] = useState(false);
   const closeModal = () => {
     setOpen(false);
@@ -826,10 +825,26 @@ const UserTable = () => {
                 height: "50px",
                 marginLeft: { xs: "0", sm: "20px" },
                 marginTop: { xs: "20px", sm: "0" },
+                transition: "transform 0.15s ease-in-out",
+                "&.MuiButtonBase-root:hover": {
+                  "&.MuiButtonBase-root  .MuiButton-startIcon": {
+                    animation: "rotation 5s linear infinite",
+                    "@keyframes rotation": {
+                      "0%": {
+                        transform: "rotate(0deg)",
+                      },
+                      "100%": {
+                        transform: "rotate(360deg)",
+                      },
+                    },
+                  },
+
+                  color: colors.primary[900],
+                },
               }}
             >
               <Typography variant="h6" fontWeight="bold">
-                Add
+                Add User
               </Typography>
             </Button>
           </Box>

@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useTheme } from "@mui/material";
+import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
 
 import PropTypes from "prop-types";
@@ -90,6 +90,7 @@ function a11yProps(index) {
 
 const LoadAssign = () => {
   const { id } = useParams();
+  const [loadData, setLoadData] = useState([]);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
@@ -138,6 +139,17 @@ const LoadAssign = () => {
     setValue(newValue);
   };
 
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
   useEffect(() => {
     const getData = async () => {
       try {
@@ -153,6 +165,15 @@ const LoadAssign = () => {
         //   setIsLoading(false);
         //   setStudentData(json);
         // }
+        const response1 = await axiosPrivate.get(`/api/employees/search/${id}`);
+        if (response1.status === 200) {
+          const json = await response1.data;
+          console.log("Employees GET : ", json);
+          setIsLoading(false);
+          setLoadingDialog({ isOpen: false });
+          setLoadData(json);
+        }
+
         const apiStud = await axiosPrivate.get(`/api/employees/search/${id}`);
         if (apiStud?.status === 200) {
           const json = await apiStud.data;
@@ -255,7 +276,20 @@ const LoadAssign = () => {
     secDispatch,
     activeDispatch,
     taskDispatch,
+    id,
+    axiosPrivate,
   ]);
+
+  const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    "&:nth-of-type(odd)": {
+      // backgroundColor: colors.tableRow[100],
+    },
+    // hide last border
+    "&:last-child td, &:last-child th": {
+      border: 0,
+    },
+  }));
+
   const LevelTableTitles = () => {
     return (
       <TableRow>
@@ -286,6 +320,90 @@ const LoadAssign = () => {
       </TableRow>
     );
   };
+
+  const SubjectsTableDetails = (val) => {
+    return (
+      <StyledTableRow key={val}>
+        <TableCell align="left">{val}</TableCell>
+        <TableCell align="left">
+          {subjects &&
+            subjects
+              .filter((fill) => {
+                return fill.subjectID === val;
+              })
+              .map((val) => {
+                return val.subjectName;
+              })}
+        </TableCell>
+        <TableCell align="left">
+          {subjects &&
+            subjects
+              .filter((fill) => {
+                return fill.subjectID === val;
+              })
+              .map((val) => {
+                return val.levelID;
+              })}
+        </TableCell>
+      </StyledTableRow>
+    );
+  };
+  const SectionTableDetails = (val) => {
+    return (
+      <StyledTableRow key={val}>
+        <TableCell align="left">{val}</TableCell>
+        <TableCell align="left">
+          {sections &&
+            sections
+              .filter((fill) => {
+                return fill.sectionID === val;
+              })
+              .map((val) => {
+                return val.sectionName;
+              })}
+        </TableCell>
+        <TableCell align="left">
+          {sections &&
+            sections
+              .filter((fill) => {
+                return fill.sectionID === val;
+              })
+              .map((val) => {
+                return val.levelID;
+              })}
+        </TableCell>
+      </StyledTableRow>
+    );
+  };
+  const LevelTableDetails = (val) => {
+    return (
+      <StyledTableRow key={val}>
+        <TableCell align="left">{val}</TableCell>
+        <TableCell align="left">
+          {levels &&
+            levels
+              .filter((fill) => {
+                return fill.levelID === val;
+              })
+              .map((val) => {
+                return val.levelNum;
+              })}
+        </TableCell>
+        <TableCell align="left">
+          {" "}
+          {levels &&
+            levels
+              .filter((fill) => {
+                return fill.levelID === val;
+              })
+              .map((val) => {
+                return val.departmentID;
+              })}
+        </TableCell>
+      </StyledTableRow>
+    );
+  };
+
   return (
     <div className="contents-container">
       <ConfirmDialogue
@@ -364,7 +482,7 @@ const LoadAssign = () => {
                   empData?.empType?.map((item, i) => {
                     return (
                       <ul
-                      key={item}
+                        key={item}
                         style={{
                           display: "flex",
                           padding: "0",
@@ -451,11 +569,23 @@ const LoadAssign = () => {
               <TableHead>
                 <LevelTableTitles />
               </TableHead>
-              <TableBody></TableBody>
+              <TableBody>
+                {loadData?.LevelLoads?.map((val) => {
+                  return LevelTableDetails(val);
+                })}
+              </TableBody>
             </Table>
           </TableContainer>
           <Divider />
-
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={loadData?.LevelLoads && loadData?.LevelLoads.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
           <Box display="flex" width="100%" marginTop="20px"></Box>
         </Box>
       </TabPanel>
@@ -466,11 +596,23 @@ const LoadAssign = () => {
               <TableHead>
                 <SectionTableTitles />
               </TableHead>
-              <TableBody></TableBody>
+              <TableBody>
+                {loadData?.SectionLoads?.map((val) => {
+                  return SectionTableDetails(val);
+                })}
+              </TableBody>
             </Table>
           </TableContainer>
           <Divider />
-
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={loadData?.SectionLoads && loadData?.SectionLoads.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
           <Box display="flex" width="100%" marginTop="20px"></Box>
         </Box>
       </TabPanel>
@@ -481,11 +623,23 @@ const LoadAssign = () => {
               <TableHead>
                 <SubjectTableTitles />
               </TableHead>
-              <TableBody></TableBody>
+              <TableBody>
+                {loadData?.SubjectLoads?.map((val) => {
+                  return SubjectsTableDetails(val);
+                })}
+              </TableBody>
             </Table>
           </TableContainer>
           <Divider />
-
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={loadData?.SubjectLoads && loadData?.SubjectLoads.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
           <Box display="flex" width="100%" marginTop="20px"></Box>
         </Box>
       </TabPanel>
