@@ -132,6 +132,8 @@ const Register = () => {
           });
           setUserNameError(true);
           setEmailError(true);
+          setPasswordError(true);
+          setConfPasswordError(true);
           console.log(error.response.data.message);
         } else if (error.response.status === 409) {
           setError(true);
