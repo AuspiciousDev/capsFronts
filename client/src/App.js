@@ -66,6 +66,7 @@ import StudentGenerateActiveYearGrades from "./pages/Student/GeneratePDF/Student
 
 import RecordTable from "./pages/admin/components/Record/RecordTable";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 import Home from "./pages/Home";
 import LoadAssign from "./pages/admin/components/Employee/LoadAssign";
 import LoadManage from "./pages/admin/components/Employee/LoadManage";
@@ -90,7 +91,6 @@ function App() {
         <Router>
           <Routes>
             {/* PUBLIC ROUTES*/}
-
             <Route
               path="/"
               element={
@@ -109,7 +109,6 @@ function App() {
                 Object.keys(auth).length > 0 ? <Navigate to="/" /> : <Login />
               }
             />
-
             <Route
               path="register"
               element={
@@ -119,8 +118,12 @@ function App() {
                   <Register />
                 )
               }
+            />{" "}
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="auth/forgot-password/:resetToken"
+              element={<ResetPassword />}
             />
-            <Route path="reset" element={<ResetPassword />} />
             <Route
               path="/api/auth/activate/:activation_token"
               element={<ActivateUser />}

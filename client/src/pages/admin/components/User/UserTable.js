@@ -410,7 +410,7 @@ const UserTable = () => {
               val?.lastName
             : val?.firstName + " " + val?.lastName}
         </TableCell>
-        <TableCell align="left">{val?.profile?.email}</TableCell>
+        <TableCell align="left">{val?.email}</TableCell>
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
           {val?.roles?.map((item, i) => {
             return (
@@ -799,7 +799,7 @@ const UserTable = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 p: { xs: "0 20px", sm: "0 20px" },
-                mr: { xs: "0", sm: " 10px" },
+                mr: { xs: "0", sm: "0" },
               }}
             >
               <InputBase
@@ -816,6 +816,7 @@ const UserTable = () => {
               </IconButton>
             </Paper>
             <Button
+              disabled
               startIcon={<AddIcon />}
               type="button"
               onClick={() => setOpen((o) => !o)}

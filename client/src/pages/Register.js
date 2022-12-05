@@ -81,7 +81,12 @@ const Register = () => {
         setPasswordError(true),
         setConfPasswordError(true),
         setErrorMessage("Password doesn't match!"),
-        console.log(errorMessage)
+        console.log(errorMessage),
+        setLoadingDialog({ isOpen: false }),
+        setErrorDialog({
+          isOpen: true,
+          message: `Password doesn't match!`,
+        })
       );
     }
     const data = {
@@ -92,12 +97,16 @@ const Register = () => {
     console.log(data);
     if (!usernameError && !emailError && !passwordError && !confPasswordError) {
       try {
-        const response = await axios.post("/register", JSON.stringify(data), {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
+        const response = await axios.post(
+          "/auth/register",
+          JSON.stringify(data),
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
 
-        if (response.status === 201) {
+        if (response.status === 200) {
           const json = await response.data;
           console.log("response;", json);
           setUsername("");
@@ -107,10 +116,8 @@ const Register = () => {
           setLoadingDialog({ isOpen: false });
           setSuccessDialog({
             isOpen: true,
-            message: `Registration of ${json.userType} - ${json.username} Success!`,
-            onConfirm: () => {
-              navigate("/login", { replace: true });
-            },
+            // message: `Registration of ${json.userType} - ${json.username} Success!`,
+            message: `${json.message}`,
           });
         }
       } catch (error) {

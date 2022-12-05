@@ -128,7 +128,7 @@ const EmployeeForm = () => {
     setSuffix("");
     setDateOfBirth("12/31/1991");
     setGender("");
-    setEmail("");
+    // setEmail("");
   };
 
   const handleSubmit = async (e) => {
@@ -144,7 +144,6 @@ const EmployeeForm = () => {
       suffix,
       gender,
       dateOfBirth,
-      email,
     };
     console.log(employee);
 
@@ -188,9 +187,9 @@ const EmployeeForm = () => {
         if (error.response.data.message.includes("Employee")) {
           setEmpIDError(true);
         }
-        if (error.response.data.message.includes("Email")) {
-          setEmailError(true);
-        }
+        // if (error.response.data.message.includes("Email")) {
+        //   setEmailError(true);
+        // }
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
@@ -345,6 +344,7 @@ const EmployeeForm = () => {
                     <MenuItem value={2002}>Teacher</MenuItem>
                   </TextField>
                   <TextField
+                    disabled
                     required
                     autoComplete="off"
                     variant="outlined"

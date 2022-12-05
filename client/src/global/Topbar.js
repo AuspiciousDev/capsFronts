@@ -211,7 +211,7 @@ const Topbar = () => {
               disableRipple
             >
               <LogoutOutlinedIcon />
-              Logouts
+              Logout
             </MenuItem>
           </StyledMenu>
         </Box>

@@ -307,7 +307,7 @@ const Login = () => {
                     checked={persist}
                   />
                   <label htmlFor="persist">Remember me</label>
-                  <Link to="/reset">Forgot Password?</Link>
+                  <Link to="/forgot-password">Forgot Password?</Link>
                 </div>
               </Box>
               <input className="login-btn" type="submit" />

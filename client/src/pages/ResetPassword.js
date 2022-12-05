@@ -1,166 +1,256 @@
-import React, { useEffect, useState, useRef } from "react";
-import useAuth from "../hooks/useAuth";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-
+import React from "react";
+import { Link, useParams } from "react-router-dom";
+import { useTheme } from "@mui/material";
+import { tokens } from "../theme";
+import { useState, useEffect } from "react";
+import ErrorDialogue from "../global/ErrorDialogue";
+import SuccessDialogue from "../global/SuccessDialogue";
+import LoadingDialogue from "../global/LoadingDialogue";
 import {
   Container,
   TextField,
   Button,
   Box,
   InputAdornment,
-  Typography,
   IconButton,
+  Paper,
 } from "@mui/material";
+import Topbar from "../global/Home/Topbar";
+import axios from "../api/axios";
 import {
-  LockOutlined,
+  Lock,
+  Person,
   VisibilityOutlined,
   VisibilityOffOutlined,
-  EmailOutlined,
 } from "@mui/icons-material";
-import background from "../images/bluevector.jpg";
-import "../App.css";
-
-import { useTheme } from "@mui/material";
-import { tokens } from "../theme";
-import axios from "./../api/axios";
-const LOGIN_URL = "/auth";
 const ResetPassword = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
-  const { setAuth, persist, setPersist } = useAuth();
-
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || "/";
-
-  const [username, setUsername] = useState("");
+  const { resetToken } = useParams();
   const [password, setPassword] = useState("");
+  const [confPassword, setConfPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [error, setError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [confPasswordError, setConfPasswordError] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
-  const [errMsg, setErrMsg] = useState("");
-  const errRef = useRef();
-  useEffect(() => {
-    setErrMsg("");
-  }, [username, password]);
-  useEffect(() => {
-    const inputs = document.querySelectorAll(".input");
-    function addcl() {
-      let parent = this.parentNode.parentNode;
-      parent.classList.add("focus");
-    }
-
-    function remcl() {
-      let parent = this.parentNode.parentNode;
-      if (this.value === "") {
-        parent.classList.remove("focus");
-      }
-    }
-
-    inputs.forEach((input) => {
-      input.addEventListener("focus", addcl);
-      input.addEventListener("blur", remcl);
-    });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
   });
 
-  const togglePersist = () => {
-    setPersist((prev) => !prev);
-  };
-  useEffect(() => {
-    localStorage.setItem("persist", persist);
-  }, [persist]);
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post(
-        LOGIN_URL,
-        JSON.stringify({ user: username, pwd: password }),
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+    setLoadingDialog({ isOpen: true });
+    if (password !== confPassword) {
+      return (
+        setError(true),
+        setPasswordError(true),
+        setConfPasswordError(true),
+        setErrorMessage("Password doesn't match!"),
+        console.log(errorMessage),
+        setLoadingDialog({ isOpen: false }),
+        setErrorDialog({
+          isOpen: true,
+          message: `Password doesn't match!`,
+        })
       );
-      const loginHistory = await axios.post(
-        "api/loginhistories/register",
-        JSON.stringify({ username }),
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
-      console.log(loginHistory?.data);
-      console.log(JSON.stringify(response.data));
-      // console.log(JSON.stringify(response));
-      const accessToken = response.data?.accessToken;
-      const roles = response.data?.roles;
+    }
+    const data = {
+      password,
+    };
+    console.log(data);
+    if (!passwordError && !confPasswordError) {
+      try {
+        const response = await axios.post(
+          "/auth/reset-password",
+          JSON.stringify(data),
+          {
+            headers: {
+              Authorization: `Bearer ${resetToken}`,
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+        console.log(response);
+        if (response.status === 200) {
+          const json = await response.data;
+          console.log("response;", json);
 
-      setAuth({ username, password, roles, accessToken });
-      setUsername("");
-      setPassword("");
-      console.log(username);
-      console.log(response);
-      console.log(roles);
-      navigate(from, { replace: true });
-    } catch (error) {
-      if (!error?.response) {
-        console.log("no server response");
-      } else if (error.response.status === 400) {
-        // console.log("Missing Username/Password");
-        console.log(error.response.data.message);
-        // setErrMsg(error.response.data.message);
-      } else if (error.response.status === 401) {
-        // console.log("Unauthorized");
-        console.log(error.response.data.message);
-        // setErrMsg(error.response.data.message);
-      } else {
-        console.log(error);
+          setPassword("");
+          setConfPassword("");
+          setLoadingDialog({ isOpen: false });
+          setSuccessDialog({
+            isOpen: true,
+            // message: `Registration of ${json.userType} - ${json.username} Success!`,
+            message: `${json.message}`,
+          });
+        }
+      } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        if (!error.response) {
+          console.log("no server response");
+        } else if (error.response.status === 400) {
+          setError(true);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+
+          console.log(error.response.data.message);
+        } else if (error.response.status === 409) {
+          setError(true);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+
+          console.log(error.response.data.message);
+        } else {
+          console.log(error);
+        }
       }
     }
   };
   return (
-    <div className="mainpage-container">
-      <Container className="container-parent">
-        <Box
-          className="container-child"
-          sx={{ backgroundColor: colors.black[900] }}
-        >
-          <Typography>Forgot Password</Typography>
+    <div>
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
 
-          <form onSubmit={handleSubmit}>
-            <Box display="flex" flexDirection="column" gap={2}>
-              <TextField
-                required
-                fullWidth
-                type="email"
-                label="Email"
-                name="password"
-                variant="outlined"
-                className="register-input"
-                autoComplete="off"
-                value={password}
-                // onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailOutlined />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+      {/* <img className="login-background" src={background} alt="" /> */}
+      <Box className="mainpage-container">
+        {/* <pre>{JSON.stringify(formValues, undefined, 2)}</pre> */}
+
+        <Box className="mainpage-content" sx={{ padding: "50px" }}>
+          <Paper
+            sx={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "20px",
+              overflow: "hidden",
+            }}
+          >
+            <Topbar />
+            <Box
+              className="container-child"
+              sx={{ backgroundColor: colors.black[900] }}
+            >
+              <p>Register Account</p>
+
+              <form onSubmit={handleSubmit}>
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <TextField
+                    required
+                    type={showPassword ? "text" : "password"}
+                    label="Password"
+                    name="password"
+                    variant="outlined"
+                    autoComplete="off"
+                    value={password}
+                    error={passwordError}
+                    onChange={(e) => {
+                      setError(false);
+                      setPasswordError(false);
+                      setConfPasswordError(false);
+                      setPassword(e.target.value);
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            onMouseDown={handleMouseDownPassword}
+                          >
+                            {showPassword ? (
+                              <VisibilityOutlined />
+                            ) : (
+                              <VisibilityOffOutlined />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <TextField
+                    required
+                    type={showPassword ? "text" : "password"}
+                    name="confPassword"
+                    label="Confirm Password"
+                    variant="outlined"
+                    autoComplete="off"
+                    value={confPassword}
+                    error={confPasswordError}
+                    helperText={error ? errorMessage : ""}
+                    onChange={(e) => {
+                      setError(false);
+                      setPasswordError(false);
+                      setConfPasswordError(false);
+                      setConfPassword(e.target.value);
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            onMouseDown={handleMouseDownPassword}
+                          >
+                            {showPassword ? (
+                              <VisibilityOutlined />
+                            ) : (
+                              <VisibilityOffOutlined />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+
+                  <input
+                    disabled={passwordError || confPasswordError}
+                    className="login-btn"
+                    type="submit"
+                  />
+                </Box>
+              </form>
+              <div className="container-footer">
+                <p>Don't have account yet?</p>
+                <Link to="/login">
+                  <span>Login</span>
+                </Link>
+                {/* <Link to="/register">Register here</Link> */}
+              </div>
             </Box>
-            <input className="login-btn" type="submit" />
-            <div className="container-footer">
-              <Typography>Don't have account yet?</Typography>
-              <Link to="/login">
-                <span>Login</span>
-              </Link>
-            </div>
-          </form>
+          </Paper>
         </Box>
-      </Container>
+      </Box>
     </div>
   );
 };

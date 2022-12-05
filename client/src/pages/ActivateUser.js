@@ -13,6 +13,7 @@ const ActivateUser = () => {
   const { activation_token } = useParams();
   const [title, setTitle] = useState();
   const [message, setMessage] = useState();
+  const [activate, setActivate] = useState(false);
   const navigate = useNavigate();
 
   const goLogin = async () => {
@@ -36,63 +37,63 @@ const ActivateUser = () => {
     title: "",
     message: "",
   });
-  useEffect(() => {
-    const activation = async () => {
-      try {
-        const data = { activation_token };
-        setLoadingDialog({ isOpen: true });
-        const activateAccount = await axios.post(
-          "/auth/activation",
-          JSON.stringify(data)
-        );
-        if (activateAccount.status === 200) {
-          setLoadingDialog({ isOpen: false });
-          setSuccessDialog({
-            isOpen: true,
-            message: `User activated successfully!`,
-          });
-        }
-      } catch (error) {
-        setLoadingDialog({ isOpen: false });
 
-        if (!error?.response) {
-          setErrorDialog({
-            isOpen: true,
-            message: `no server response`,
-          });
-        } else if (error.response.status === 400) {
-          console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-        } else if (error.response.status === 409) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-        } else if (error.response.status === 404) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-        } else if (error.response.status === 500) {
-          console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            message: `Invalid activation token.`,
-          });
-        } else {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error}`,
-          });
-          console.log(error);
-        }
+  const activation = async () => {
+    try {
+      const data = { activation_token };
+      setLoadingDialog({ isOpen: true });
+      const activateAccount = await axios.post(
+        "/auth/activation",
+        JSON.stringify(data)
+      );
+      if (activateAccount.status === 200) {
+        setLoadingDialog({ isOpen: false });
+        setSuccessDialog({
+          isOpen: true,
+          message: `User activated successfully!`,
+        });
+        setActivate(true);
       }
-    };
-    activation();
-  }, []);
+    } catch (error) {
+      setActivate(false);
+      setLoadingDialog({ isOpen: false });
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `no server response`,
+        });
+      } else if (error.response.status === 400) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+      } else if (error.response.status === 500) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `Invalid activation token.`,
+        });
+      } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        console.log(error);
+      }
+    }
+  };
+
   return (
     <Box
       display="flex"
@@ -123,9 +124,15 @@ const ActivateUser = () => {
         without physical papers or interaction
       </Typography>
       <br />
-      <Button type="button" variant="contained" onClick={goLogin}>
-        Go Back
-      </Button>
+      {activate ? (
+        <Button type="button" variant="contained" onClick={goLogin}>
+          Login
+        </Button>
+      ) : (
+        <Button type="button" variant="contained" onClick={activation}>
+          Activate
+        </Button>
+      )}
     </Box>
   );
 };

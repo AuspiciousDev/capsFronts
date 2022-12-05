@@ -54,7 +54,7 @@ const LoginHistoryTable = () => {
   const [getEmpData, setEmpData] = useState([]);
   const [getStudData, setStudData] = useState([]);
   const [getAllData, setAllData] = useState([]);
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(5);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const [isloading, setIsLoading] = useState(false);
@@ -132,7 +132,7 @@ const LoginHistoryTable = () => {
       }
     };
     getData();
-  }, [axiosPrivate]);
+  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -362,35 +362,32 @@ const LoginHistoryTable = () => {
               // getEmpData.map((val) => {
               //   return val;
               // })
-              getAllData &&
-              getAllData.map((val) => {
-                return val;
-              })
+              getAllData
             }
             getRowId={(row) => row._id}
             columns={columns}
-            pageSize={rowsPerPage}
-            onPageSizeChange={(newPageSize) => setRowsPerPage(newPageSize)}
-            rowsPerPageOptions={[5, 10, 15]}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[5, 10, 20]}
             pagination
             sx={{
               "& .MuiDataGrid-cell": {
                 textTransform: "capitalize",
               },
             }}
-            initialState={{
-              columns: {
-                columnVisibilityModel: {
-                  firstName: true,
-                  lastName: true,
-                  middleName: true,
-                  email: true,
-                },
-              },
-            }}
-            components={{
-              Toolbar: GridToolbar,
-            }}
+            // initialState={{
+            //   columns: {
+            //     columnVisibilityModel: {
+            //       firstName: true,
+            //       lastName: true,
+            //       middleName: true,
+            //       email: true,
+            //     },
+            //   },
+            // }}
+            // components={{
+            //   Toolbar: GridToolbar,
+            // }}
           />
         </div>
         <Box sx={{ display: "none" }}>
