@@ -39,7 +39,7 @@ import {
 import { styled, alpha } from "@mui/material/styles";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import useLogout from "../hooks/useLogout";
-
+import useAuth from "../hooks/useAuth";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 const StyledMenu = styled((props) => (
   <Menu
@@ -90,7 +90,7 @@ const Topbar = () => {
   const colorMode = useContext(ColorModeContext);
 
   const navigate = useNavigate();
-
+  const { auth } = useAuth();
   const [dashOpen, setDashOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState();
   const open = Boolean(anchorEl);
@@ -200,9 +200,14 @@ const Topbar = () => {
                 </>
               )}
             </MenuItem>
-            <MenuItem onClick={() => {}} disableRipple>
+            <MenuItem
+              onClick={() => {
+                navigate(`/admin/changePassword`);
+              }}
+              disableRipple
+            >
               <ManageAccountsOutlined />
-              Account
+              Change Password 
             </MenuItem>
             <MenuItem
               onClick={() => {

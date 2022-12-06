@@ -2,7 +2,7 @@ import React from "react";
 import Popup from "reactjs-popup";
 import axios from "axios";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { Search } from "@mui/icons-material";
 import {
@@ -38,6 +38,8 @@ import { useSubjectsContext } from "../../../../hooks/useSubjectsContext";
 import { useLevelsContext } from "../../../../hooks/useLevelsContext";
 import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useTasksContext } from "../../../../hooks/useTasksContext";
+import { useSectionsContext } from "../../../../hooks/useSectionContext";
+
 import CancelIcon from "@mui/icons-material/Cancel";
 import {
   Delete,
@@ -65,14 +67,17 @@ const Taskform = () => {
 
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { subjects, subDispatch } = useSubjectsContext();
+  const { sections, secDispatch } = useSectionsContext();
   const { levels, levelDispatch } = useLevelsContext();
   const { tasks, taskDispatch } = useTasksContext();
   const [isLoading, setIsLoading] = useState(false);
   var schoolYearID = useRef();
   // const [levelID, setLevelID] = useState("");
   const [levelID, setLevelID] = useState("");
+  const [sectionID, setSectionID] = useState("");
   const [taskType, setTaskType] = useState("");
   const [taskName, setTaskName] = useState("");
   const [subjectID, setSubjectID] = useState("");
@@ -108,6 +113,7 @@ const Taskform = () => {
     setSubjectID("");
     setTaskType("");
     setLevelID("");
+    setSectionID("");
     setMaxPoints("");
     setTaskName("");
     setDescription("");
@@ -124,6 +130,7 @@ const Taskform = () => {
       subjectID,
       taskName,
       levelID,
+      sectionID,
       taskType,
       maxPoints,
       schoolYearID: schoolYearID.current,
@@ -140,40 +147,50 @@ const Taskform = () => {
         if (response.status === 201) {
           const json = await response.data;
           console.log(json);
-          taskDispatch({ type: "CREATE_TASK", payload: json });
           setLoadingDialog({ isOpen: false });
           setSuccessDialog({
             isOpen: true,
             message: `Task ${json.taskName} added successfully!`,
           });
+          clearInputForms();
         }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        setErrorDialog({
-          isOpen: true,
-          message: `${error}`,
-        });
+        setIsLoading(false);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            message: `no server response`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-        } else if (error.response.status === 409) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -200,6 +217,7 @@ const Taskform = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setIsLoading({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/subjects", {
           headers: { "Content-Type": "application/json" },
@@ -226,7 +244,58 @@ const Taskform = () => {
           setIsLoading(false);
           schoolYearID.current = json.schoolYearID;
         }
-      } catch (error) {}
+
+        const responseSec = await axiosPrivate.get("/api/sections", {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        });
+        if (responseSec.status === 200) {
+          const json = await responseSec.data;
+          console.log(json);
+          setIsLoading(false);
+          secDispatch({ type: "SET_SECS", payload: json });
+        }
+        setIsLoading({ isOpen: false });
+      } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
+          console.log(error);
+        }
+      }
     };
     getData();
   }, [subDispatch, levelDispatch]);
@@ -270,24 +339,43 @@ const Taskform = () => {
         }
       }
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
         setErrorDialog({
           isOpen: true,
-          title: `no server response`,
+          message: `No server response`,
         });
       } else if (error.response.status === 400) {
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
       } else {
-        console.log(error);
         setErrorDialog({
           isOpen: true,
-          title: `${error}`,
+          message: `${error}`,
         });
+        console.log(error);
       }
     }
   };
@@ -352,6 +440,7 @@ const Taskform = () => {
               <FormControl required fullWidth>
                 <Typography id="demo-simple-select-label">Level</Typography>
                 <Select
+                  required
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
                   value={levelID}
@@ -362,16 +451,49 @@ const Taskform = () => {
                 >
                   <MenuItem aria-label="None" value="" />
                   {levels &&
-                    levels.map((val) => {
-                      return (
-                        <MenuItem value={val.levelID}>{val.levelNum}</MenuItem>
-                      );
-                    })}
+                    levels
+                      .filter((fil) => {
+                        return fil.status === true;
+                      })
+                      .map((val) => {
+                        return (
+                          <MenuItem value={val.levelID}>
+                            {val.levelNum}
+                          </MenuItem>
+                        );
+                      })}
+                </Select>
+              </FormControl>
+              <FormControl required fullWidth>
+                <Typography id="demo-simple-select-label">Section</Typography>
+                <Select
+                  required
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={sectionID}
+                  // error={}
+                  onChange={(e) => {
+                    setSectionID(e.target.value);
+                  }}
+                >
+                  {sections &&
+                    sections
+                      .filter((fill) => {
+                        return fill.levelID === levelID;
+                      })
+                      .map((val) => {
+                        return (
+                          <MenuItem value={val.sectionID}>
+                            {val.sectionName}
+                          </MenuItem>
+                        );
+                      })}
                 </Select>
               </FormControl>
               <FormControl required fullWidth>
                 <Typography id="demo-simple-select-label">Subject</Typography>
                 <Select
+                  required
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
                   value={subjectID}
@@ -397,6 +519,7 @@ const Taskform = () => {
               <FormControl required fullWidth>
                 <Typography id="demo-simple-select-label">Task Type</Typography>
                 <Select
+                  required
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
                   value={taskType}
@@ -416,6 +539,7 @@ const Taskform = () => {
                 <Typography id="demo-simple-select-label">Task Name</Typography>
 
                 <TextField
+                  required
                   variant="outlined"
                   value={taskName}
                   onChange={(e) => {
@@ -427,6 +551,7 @@ const Taskform = () => {
                 <Typography id="demo-simple-select-label">Points</Typography>
 
                 <TextField
+                  required
                   type="number"
                   variant="outlined"
                   value={maxPoints}

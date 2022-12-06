@@ -22,6 +22,7 @@ import {
   Select,
   Menu,
   MenuItem,
+  InputAdornment,
 } from "@mui/material";
 import Grades from "../../Grades";
 import { useTheme } from "@mui/material";
@@ -38,18 +39,20 @@ import { useLevelsContext } from "../../../../hooks/useLevelsContext";
 import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
 import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
-
+import { useParams } from "react-router-dom";
 import useAuth from "../../../../hooks/useAuth";
 import GradesTable from "./GradesTable";
 
-const GradesForm = ({ val }) => {
-  console.log(val);
-  const [getID, setID] = useState("");
+import ConfirmDialogue from "../../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+import { useNavigate, useLocation } from "react-router-dom";
 
-  useEffect(() => {
-    setID(val.studID);
-  }, []);
-  console.log(getID);
+const GradesForm = () => {
+  const { id, year, level, section } = useParams();
+  console.log(id, year, level, section);
   const { auth } = useAuth();
   const [isFormOpen, setIsFormOpen] = useState(true);
   const [quarter1Grade, setQuarter1Grade] = useState();
@@ -66,6 +69,8 @@ const GradesForm = ({ val }) => {
   const colors = tokens(theme.palette.mode);
 
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { students, studDispatch } = useStudentsContext();
   const { grades, gradeDispatch } = useGradesContext();
@@ -75,6 +80,32 @@ const GradesForm = ({ val }) => {
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
   const { years, yearDispatch } = useSchoolYearsContext();
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
@@ -116,10 +147,11 @@ const GradesForm = ({ val }) => {
           return fill.status === true;
         })
         .map((val) => {
-          return setCurrYear(val.schoolYearID);
+          return setCurrYear(val?.schoolYearID);
         });
   }, []);
   const handleSubmit = async (e) => {
+    setLoadingDialog({ isOpen: true });
     e.preventDefault();
     console.log(auth.username);
     // let username =
@@ -134,7 +166,7 @@ const GradesForm = ({ val }) => {
     //   },
     // ];
     const data = {
-      studID: val.studID,
+      studID: id,
       subjectID: getStudSubjectID,
       schoolYearID: currYear,
       empID: auth.username,
@@ -152,15 +184,54 @@ const GradesForm = ({ val }) => {
         const json = await response.data;
         console.log("response;", json);
         gradeDispatch({ type: "CREATE_GRADE", payload: json });
+        setSuccessDialog({
+          isOpen: true,
+          message: "Grade added successfully!",
+        });
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
       if (!error?.response) {
-        console.log("no server response");
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
       } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
       } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
       } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         console.log(error);
       }
     }
@@ -186,8 +257,8 @@ const GradesForm = ({ val }) => {
     let grade4 = 0;
     return (
       <StyledTableRow
-        key={val._id}
-        data-rowid={val.studID}
+        key={val?._id}
+        data-rowid={id}
         sx={{
           display: "table",
           width: "100%",
@@ -198,15 +269,15 @@ const GradesForm = ({ val }) => {
       >
         {/* Student ID */}
         <TableCell align="left" onClick={handleCellClick}>
-          {val.subjectID}
+          {val?.subjectID}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
           {subjects &&
             subjects
               .filter((sub) => {
-                // return console.log(sub.subjectID, val.subjectID);
+                // return console.log(sub.subjectID, val?.subjectID);
                 return (
-                  sub.subjectID.toLowerCase() === val.subjectID.toLowerCase()
+                  sub.subjectID.toLowerCase() === val?.subjectID.toLowerCase()
                 );
               })
               .map((sub) => {
@@ -218,8 +289,8 @@ const GradesForm = ({ val }) => {
           grades
             .filter((fill) => {
               return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
+                fill.studID === id &&
+                fill.subjectID === val?.subjectID &&
                 fill.quarter === 1
               );
             })
@@ -234,8 +305,8 @@ const GradesForm = ({ val }) => {
           grades
             .filter((fill) => {
               return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
+                fill.studID === id &&
+                fill.subjectID === val?.subjectID &&
                 fill.quarter === 2
               );
             })
@@ -250,8 +321,8 @@ const GradesForm = ({ val }) => {
           grades
             .filter((fill) => {
               return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
+                fill.studID === id &&
+                fill.subjectID === val?.subjectID &&
                 fill.quarter === 3
               );
             })
@@ -266,8 +337,8 @@ const GradesForm = ({ val }) => {
           grades
             .filter((fill) => {
               return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
+                fill.studID === id &&
+                fill.subjectID === val?.subjectID &&
                 fill.quarter === 4
               );
             })
@@ -302,317 +373,336 @@ const GradesForm = ({ val }) => {
   };
 
   return (
-    <>
-      {!isFormOpen ? (
-        <GradesTable />
-      ) : (
-        <Box
-          className="formContainer"
-          display="block"
-          width="100%"
-          height="900px"
-          flexDirection="column"
-          justifyContent="center"
+    <Box
+      className="contents-container"
+      flexDirection="column"
+      justifyContent="start"
+    >
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Paper
+          elevation={2}
+          sx={{
+            width: "100%",
+            padding: { xs: "10px", sm: "0 10px" },
+          }}
         >
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
             }}
           >
-            <Paper
-              elevation={2}
+            <Box
               sx={{
-                width: "100%",
-                padding: { xs: "10px", sm: "0 10px" },
+                display: "flex",
+                alignItems: "center",
+                m: { xs: "20px 0" },
+                ".MuiBox-root > h3": {
+                  textTransform: "capitalize",
+                },
+                ".MuiBox-root > p": {
+                  textTransform: "capitalize",
+                },
               }}
+              gap={2}
             >
               <Box
                 sx={{
-                  width: "100%",
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    m: { xs: "20px 0" },
-                    ".MuiBox-root > h3": {
-                      textTransform: "capitalize",
-                    },
-                    ".MuiBox-root > p": {
-                      textTransform: "capitalize",
-                    },
-                  }}
-                  gap={2}
-                >
-                  <IconButton
-                    onClick={() => {
-                      setIsFormOpen((o) => !o);
-                    }}
-                  >
-                    <ArrowBackIosNewOutlined sx={{ fontSize: "40px" }} />
-                  </IconButton>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Typography variant="h3">
-                      {students &&
-                        students
-                          .filter((stud) => {
-                            return stud.studID === val.studID;
-                          })
-                          .map((stud) => {
-                            return stud?.middleName
-                              ? stud.firstName +
-                                  " " +
-                                  stud.middleName +
-                                  " " +
-                                  stud.lastName
-                              : stud.firstName + " " + stud.lastName;
-                          })}
-                    </Typography>
-                    <Typography> {val.studID}</Typography>
-                    <Typography>
-                      {" "}
-                      Grade{[" "]}
-                      {levels &&
-                        levels
-                          .filter((lvl) => {
-                            // return console.log(lvl.levelID, val.levelID);
-                            return lvl.levelID === val.levelID.toLowerCase();
-                          })
-                          .map((stud) => {
-                            return stud.levelNum;
-                          })}
-                      {[" - "]}
-                      {sections &&
-                        sections
-                          .filter((sec) => {
-                            // return console.log(lvl.levelID, val.levelID);
-                            return (
-                              sec.sectionID === val.sectionID.toLowerCase()
-                            );
-                          })
-                          .map((stud) => {
-                            return stud.sectionName;
-                          })}
-                    </Typography>
-                  </Box>
-                </Box>
+                <Typography variant="h3">
+                  {students &&
+                    students
+                      .filter((stud) => {
+                        return stud?.studID === id;
+                      })
+                      .map((stud) => {
+                        return stud?.middleName
+                          ? stud?.firstName +
+                              " " +
+                              stud?.middleName +
+                              " " +
+                              stud?.lastName
+                          : stud?.firstName + " " + stud?.lastName;
+                      })}
+                </Typography>
+                <Typography> {id}</Typography>
+                <Typography>
+                  {" "}
+                  Grade{[" "]}
+                  {levels &&
+                    levels
+                      .filter((lvl) => {
+                        // return console.log(lvl.levelID, val?.levelID);
+                        return lvl?.levelID === level;
+                      })
+                      .map((stud) => {
+                        return stud?.levelNum;
+                      })}
+                  {[" - "]}
+                  {sections &&
+                    sections
+                      .filter((sec) => {
+                        // return console.log(lvl.levelID, val?.levelID);
+                        return sec?.sectionID === section;
+                      })
+                      .map((stud) => {
+                        return stud?.sectionName;
+                      })}
+                </Typography>
               </Box>
-            </Paper>
-            <Box sx={{ mt: 2 }}>
-              <Paper>
-                <TableContainer>
-                  <Box mt="10px" sx={{ p: 2 }}>
-                    <Typography variant="h3">GRADES</Typography>
-                  </Box>
-                  <Table
-                    aria-label="simple table"
-                    style={{ tableLayout: "fixed" }}
-                  >
-                    <TableHead
-                      sx={{
-                        display: "table",
-                        width: "100%",
-                        tableLayout: "fixed",
-                      }}
-                    >
-                      <StudGradeTableTitles key={"asdas"} />
-                    </TableHead>
-                    <TableBody
-                      sx={{
-                        display: "block",
-                        height: "200px",
-                        overflow: "auto",
-                      }}
-                    >
-                      {/* {grades &&
+            </Box>
+          </Box>
+        </Paper>
+        <Box sx={{ mt: 2 }}>
+          <Paper>
+            <Box mt="10px" sx={{ p: 2 }}>
+              <Typography variant="h3">GRADES</Typography>
+            </Box>
+            <TableContainer
+              aria-label="simple table"
+              style={{ tableLayout: "fixed" }}
+            >
+              <TableHead
+                sx={{
+                  display: "table",
+                  width: "100%",
+                  tableLayout: "fixed",
+                }}
+              >
+                <StudGradeTableTitles key={"asdas"} />
+              </TableHead>
+              <TableBody
+                sx={{
+                  display: "block",
+                  height: "200px",
+                  overflow: "auto",
+                }}
+              >
+                {/* {grades &&
                       grades
                         .filter((grade) => {
-                          return grade.studID === val.studID;
+                          return grade.studID === id;
                         })
                         .map((val) => {
                           return StudGradeTableDetails({ val });
                         })} */}
-                      {actives &&
-                        subjects &&
-                        subjects
-                          .filter((fill) => {
-                            const act = actives
-                              .filter((fill) => {
-                                return fill.studID === val.studID;
-                              })
-                              .map((val) => {
-                                return val.levelID;
-                              });
-                            return fill.levelID === act[0];
-                          })
-                          .map((val) => {
-                            return StudGradeTableDetails({ val });
-                          })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            </Box>
-            {/* <Box mt="50px">
+                {actives &&
+                  subjects &&
+                  subjects
+                    .filter((fill) => {
+                      const act = actives
+                        .filter((fill) => {
+                          return fill?.studID === id;
+                        })
+                        .map((val) => {
+                          return val?.levelID;
+                        });
+                      return fill.levelID === act[0];
+                    })
+                    .map((val) => {
+                      return StudGradeTableDetails({ val });
+                    })}
+              </TableBody>
+            </TableContainer>
+          </Paper>
+        </Box>
+        {/* <Box mt="50px">
           <Typography variant="h3">ADD GRADES</Typography>
         </Box> */}
-            <Paper sx={{ mt: 2, p: 2 }}>
-              <form
-                style={{
-                  width: "100%",
-                }}
-                onSubmit={handleSubmit}
-              >
-                {/* <FormControl>
+        <Paper sx={{ mt: 2, p: 2 }}>
+          <form
+            style={{
+              width: "100%",
+            }}
+            onSubmit={handleSubmit}
+          >
+            {/* <FormControl>
             <Typography>Subject Code</Typography>
             <TextField variant="outlined" disabled value={"Lorem Ipsum"} />
           </FormControl> */}
-                <Box
-                  sx={{
-                    // width: { xs: "100%", sm: "80% " },
-                    width: "100%",
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr " },
+            <Box
+              sx={{
+                // width: { xs: "100%", sm: "80% " },
+                width: "100%",
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr " },
+              }}
+              gap={2}
+            >
+              <FormControl fullWidth>
+                <Typography>Subject Code</Typography>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={getStudSubjectID}
+                  // error={}
+                  // label="Subject Code"
+                  onChange={(e) => {
+                    setStudSubjectID(e.target.value);
                   }}
-                  gap={2}
                 >
-                  <FormControl fullWidth>
-                    <Typography>Subject Code</Typography>
-                    <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      value={getStudSubjectID}
-                      // error={}
-                      // label="Subject Code"
-                      onChange={(e) => {
-                        setStudSubjectID(e.target.value);
-                      }}
-                    >
-                      <MenuItem aria-label="None" value="" />
-                      {subjects &&
-                        subjects
-                          .filter((subj) => {
-                            return subj.levelID === val.levelID.toLowerCase();
-                            // return console.log(
-                            //   subj.levelID,
-                            //   val.levelID.toLowerCase()
-                            // );
-                          })
-                          .map((val) => {
-                            return (
-                              <MenuItem value={val?.subjectID}>
-                                {val?.subjectID}
-                              </MenuItem>
-                            );
-                          })}
-                    </Select>
-                  </FormControl>
+                  <MenuItem aria-label="None" value="" />
+                  {subjects &&
+                    subjects
+                      .filter((subj) => {
+                        return subj.levelID === level;
+                        // return console.log(
+                        //   subj.levelID,
+                        //   val?.levelID.toLowerCase()
+                        // );
+                      })
+                      .map((val) => {
+                        return (
+                          <MenuItem value={val?.subjectID}>
+                            {val?.subjectID}
+                          </MenuItem>
+                        );
+                      })}
+                </Select>
+              </FormControl>
 
-                  <FormControl fullWidth>
-                    <Typography>Subject Name</Typography>
-                    <TextField
-                      variant="outlined"
-                      disabled
-                      value={
-                        getStudSubjectID &&
-                        subjects &&
-                        subjects
-                          .filter((subj) => {
-                            return (
-                              subj.subjectID.toLowerCase() ===
-                              getStudSubjectID.toLowerCase()
-                            );
-                            // return console.log(
-                            //   subj.subjectID.toLowerCase() ===
-                            //     getStudSubjectID.toLowerCase()
-                            // );
-                          })
-                          .map((val2) => {
-                            // return console.log(val.subjectName);
-                            return val2.subjectName;
-                          })
-                      }
-                    />
-                  </FormControl>
-                  <FormControl fullWidth required>
-                    <Typography>Quarter</Typography>
-                    <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      value={quarter}
-                      onChange={(e) => {
-                        setQuarter(e.target.value);
-                      }}
-                    >
-                      <MenuItem aria-label="None" value="" />
-                      <MenuItem value={1}>Q1</MenuItem>
-                      <MenuItem value={2}>Q2</MenuItem>
-                      <MenuItem value={3}>Q3</MenuItem>
-                      <MenuItem value={4}>Q4</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Typography>Final Grade</Typography>
-                    <TextField
-                      variant="outlined"
-                      value={subjectGrade}
-                      onChange={(e) => {
-                        setSubjectGrade(e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                  <div></div>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      justifyContent: { xs: "center", sm: "end" },
-                    }}
-                    mt="20px"
-                  >
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="secondary"
-                      sx={{
-                        width: { xs: "100%", sm: "200px" },
-                        height: "50px",
-                      }}
-                    >
-                      <Typography variant="h6">Confirm</Typography>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="contained"
-                      sx={{
-                        width: { xs: "100%", sm: "200px" },
-                        height: "50px",
-                        ml: { xs: "0", sm: "20px" },
-                        mt: { xs: "20px", sm: "0" },
-                      }}
-                      // onClick={closeModal}
-                    >
-                      <Typography variant="h6">CANCEL</Typography>
-                    </Button>
-                  </Box>
-                </Box>
-              </form>
-            </Paper>
-          </Box>
-        </Box>
-      )}
-    </>
+              <FormControl fullWidth>
+                <Typography>Subject Name</Typography>
+                <TextField
+                  variant="outlined"
+                  disabled
+                  value={
+                    getStudSubjectID &&
+                    subjects &&
+                    subjects
+                      .filter((subj) => {
+                        return (
+                          subj.subjectID.toLowerCase() ===
+                          getStudSubjectID.toLowerCase()
+                        );
+                        // return console.log(
+                        //   subj.subjectID.toLowerCase() ===
+                        //     getStudSubjectID.toLowerCase()
+                        // );
+                      })
+                      .map((val2) => {
+                        // return console.log(val?.subjectName);
+                        return val2.subjectName;
+                      })
+                  }
+                />
+              </FormControl>
+              <FormControl fullWidth required>
+                <Typography>Quarter</Typography>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={quarter}
+                  onChange={(e) => {
+                    setQuarter(e.target.value);
+                  }}
+                >
+                  <MenuItem aria-label="None" value="" />
+                  <MenuItem value={1}>Q1</MenuItem>
+                  <MenuItem value={2}>Q2</MenuItem>
+                  <MenuItem value={3}>Q3</MenuItem>
+                  <MenuItem value={4}>Q4</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <Typography>Final Grade</Typography>
+                <TextField
+                  variant="outlined"
+                  value={subjectGrade}
+                  onChange={(e) => {
+                    const value = Math.max(
+                      0,
+                      Math.min(100, Number(e.target.value))
+                    );
+                    // setTaskPoints(e.target.value);
+                    // setSubjectGrade(e.target.value);
+                    setSubjectGrade(value);
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ color: colors.black[400] }}
+                        >
+                          {subjectGrade} / 100
+                        </Typography>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </FormControl>
+              <div></div>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: { xs: "center", sm: "end" },
+                }}
+                mt="20px"
+              >
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="secondary"
+                  sx={{
+                    width: { xs: "100%", sm: "200px" },
+                    height: "50px",
+                  }}
+                >
+                  <Typography variant="h6">Confirm</Typography>
+                </Button>
+                <Button
+                  type="button"
+                  variant="contained"
+                  sx={{
+                    width: { xs: "100%", sm: "200px" },
+                    height: "50px",
+                    ml: { xs: "0", sm: "20px" },
+                    mt: { xs: "20px", sm: "0" },
+                  }}
+                  onClick={(e) => {
+                    navigate(-1);
+                  }}
+                >
+                  <Typography variant="h6">CANCEL</Typography>
+                </Button>
+              </Box>
+            </Box>
+          </form>
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

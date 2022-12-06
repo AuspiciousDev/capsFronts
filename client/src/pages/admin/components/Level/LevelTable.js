@@ -20,20 +20,12 @@ import {
   Divider,
   FormControl,
   InputLabel,
-  MenuItem,
-  Select,
   NativeSelect,
   TextField,
   ButtonBase,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import {
-  AutoStories,
-  DeleteOutline,
-  CheckCircle,
-  Cancel,
-  Delete,
-} from "@mui/icons-material";
+import { CheckCircle, Cancel, Delete } from "@mui/icons-material";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 import Loading from "../../../../global/Loading";
@@ -48,14 +40,35 @@ import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
+
 const LevelTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { levels, levelDispatch } = useLevelsContext();
   const { departments, depDispatch } = useDepartmentsContext();
@@ -79,8 +92,9 @@ const LevelTable = () => {
     setOpen(false);
     clearInputForms();
   };
+  const [page, setPage] = React.useState(15);
 
-  const [page, setPage] = React.useState(0);
+  // const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -189,11 +203,35 @@ const LevelTable = () => {
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -233,11 +271,36 @@ const LevelTable = () => {
         }
       }
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
       } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
       } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         console.log(error);
       }
     }
@@ -420,18 +483,38 @@ const LevelTable = () => {
           });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setLevelIDError(true);
-          setError(true);
-          setErrorMessage(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
-        setIsLoading(false);
       }
     } else {
       setIsLoading(false);
@@ -457,12 +540,12 @@ const LevelTable = () => {
         levelDispatch({ type: "DELETE_LEVEL", payload: json });
       }
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
-        setIsLoading(false);
         setErrorDialog({
           isOpen: true,
-          message: "no server response",
+          message: `No server response`,
         });
       } else if (error.response.status === 400) {
         setErrorDialog({
@@ -470,23 +553,162 @@ const LevelTable = () => {
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 404) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
       } else {
         setErrorDialog({
           isOpen: true,
           message: `${error}`,
         });
         console.log(error);
-        setIsLoading(false);
       }
     }
+  };
+
+  const columns = [
+    {
+      field: "levelID",
+      headerName: "Level ID",
+      width: 150,
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
+
+    { field: "levelNum", headerName: "Level", width: 200 },
+    { field: "depName", headerName: "Deparment", width: 200 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of ${params?.row?.levelID}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete level - [${params.row.levelID}]`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
   };
   return (
     <>
@@ -743,7 +965,7 @@ const LevelTable = () => {
               <Paper
                 elevation={3}
                 sx={{
-                  display: "flex",
+                  display: "none",
                   width: { xs: "100%", sm: "320px" },
                   height: "50px",
                   minWidth: "250px",
@@ -788,7 +1010,49 @@ const LevelTable = () => {
             </Box>
           </Box>
         </Paper>
-        <Box width="100%" sx={{ mt: 2 }}>
+        <Paper
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            mt: 2,
+          }}
+        >
+          <Box sx={{ height: "100%", width: "100%" }}>
+            <DataGrid
+              rows={levels ? levels && levels : 0}
+              getRowId={(row) => row._id}
+              columns={columns}
+              pageSize={page}
+              onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+              rowsPerPageOptions={[15, 50]}
+              pagination
+              sx={{
+                "& .MuiDataGrid-cell": {
+                  textTransform: "capitalize",
+                },
+                "& .MuiDataGrid-columnHeaderTitle": {
+                  fontWeight: "bold",
+                },
+              }}
+              initialState={{
+                columns: {
+                  columnVisibilityModel: {
+                    firstName: true,
+                    lastName: true,
+                    middleName: true,
+                    email: true,
+                  },
+                },
+              }}
+              components={{
+                Toolbar: CustomToolbar,
+              }}
+            />
+          </Box>
+        </Paper>
+        <Box display="none" width="100%" sx={{ mt: 2 }}>
           <Paper elevation={2}>
             <TableContainer sx={{ maxHeight: { xs: "500px", sm: "700px" } }}>
               <Table aria-label="simple table">

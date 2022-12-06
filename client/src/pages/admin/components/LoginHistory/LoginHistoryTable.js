@@ -1,9 +1,9 @@
 import React from "react";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import { useEffect, useState } from "react";
-import { styled } from "@mui/material/styles";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
@@ -11,41 +11,43 @@ import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
-import {
-  DataGrid,
-  GridRowsProp,
-  GridColDef,
-  GridToolbar,
-} from "@mui/x-data-grid";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
 
 import Loading from "../../../../global/Loading";
 import {
   Box,
-  Button,
   IconButton,
   InputBase,
   Paper,
   Typography,
-  TableContainer,
-  TablePagination,
-  Table,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBody,
   Divider,
-  NativeSelect,
-  FormControl,
-  TextField,
-  InputLabel,
   ButtonBase,
   Avatar,
 } from "@mui/material";
 import { Search, Delete, Cancel, CheckCircle } from "@mui/icons-material";
 import { format } from "date-fns-tz";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+        printOptions={{
+          fields: ["username", "fullName", "userType", "createdAt"],
+        }}
+        // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
+
 const LoginHistoryTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const axiosPrivate = useAxiosPrivate();
 
@@ -54,7 +56,7 @@ const LoginHistoryTable = () => {
   const [getEmpData, setEmpData] = useState([]);
   const [getStudData, setStudData] = useState([]);
   const [getAllData, setAllData] = useState([]);
-  const [page, setPage] = React.useState(5);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const [isloading, setIsLoading] = useState(false);
@@ -91,11 +93,7 @@ const LoginHistoryTable = () => {
         setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get(
-          "/api/loginhistories/employees",
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
+          "/api/loginhistories/employees"
         );
         if (response.status === 200) {
           emp = await response.data;
@@ -105,11 +103,7 @@ const LoginHistoryTable = () => {
           setLoadingDialog({ isOpen: false });
         }
         const response1 = await axiosPrivate.get(
-          "/api/loginhistories/students",
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
+          "/api/loginhistories/students"
         );
         if (response1.status === 200) {
           stud = await response1.data;
@@ -123,10 +117,29 @@ const LoginHistoryTable = () => {
       } catch (error) {
         setLoadingDialog({ isOpen: false });
         if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response.`,
+          });
           console.log("no server response");
-        } else if (error.response.status === 204) {
+        } else if (error.response.status === 403) {
           console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -134,48 +147,39 @@ const LoginHistoryTable = () => {
     getData();
   }, []);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
-
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow
-      // sx={{ backgroundColor: `${colors.darkLightBlue[100]}` }}
-      >
-        <TableCell align="center"></TableCell>
-        <TableCell>USERNAME</TableCell>
-        <TableCell>NAME</TableCell>
-        <TableCell align="left">USER TYPE</TableCell>
-        <TableCell>DATE</TableCell>
-        {/* <TableCell align="left">ACTION</TableCell> */}
-      </StyledTableHeadRow>
-    );
-  };
-
   const columns = [
-    { field: "username", headerName: "Username", width: 130 },
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "username",
+      headerName: "Username",
+      width: 130,
+    },
+
     { field: "firstName", headerName: "First name", width: 130 },
     {
       field: "middleName",
@@ -183,7 +187,18 @@ const LoginHistoryTable = () => {
       width: 130,
       valueFormatter: (params) => params?.value || "-",
     },
-    { field: "lastName", headerName: "Last name", width: 130 },
+    {
+      field: "lastName",
+      headerName: "Last name",
+      width: 130,
+      // renderCell: (params) => {
+      //   return params && params.value === "tabing" ? (
+      //     <p>kwek</p>
+      //   ) : (
+      //     <p>{params.value}</p>
+      //   );
+      // },
+    },
     {
       field: "fullName",
       headerName: "Full name",
@@ -197,63 +212,154 @@ const LoginHistoryTable = () => {
     {
       field: "createdAt",
       headerName: "Date",
-      width: 130,
-      flex: 0.5,
+      width: 240,
+
       valueFormatter: (params) =>
         format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
     },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
   ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete login history of ${params.row.username}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete(params.value);
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
+  };
 
-  const tableDetails = (val) => {
-    return (
-      <StyledTableRow
-        key={val?._id}
-        data-rowid={val?.username}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
+  const handleDelete = async (_id) => {
+    let stud, emp;
+    setLoadingDialog({ isOpen: true });
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
+    });
+    try {
+      console.log(_id);
+      setIsLoading(true);
+
+      const deleteResponse = await axiosPrivate.delete(
+        "/api/loginhistories/delete",
+        {
+          data: { _id: _id },
         }
-      >
-        {/* <TableCell align="left">-</TableCell> */}
-        <TableCell>
-          <Box display="flex" justifyContent="center" alignItems="center">
-            <Avatar alt="profile-user" src={val?.imgURL} />{" "}
-          </Box>
-        </TableCell>
+      );
+      console.log("DELETE loginHistory: ", deleteResponse);
+      if (deleteResponse.status === 200) {
+        const json = await deleteResponse.data;
+        setSuccessDialog({
+          isOpen: true,
+          message: `Login history of ${json.username} has been deleted!`,
+        });
+        console.log("DELETE loginHistory: ", json);
 
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val?.username}
-        </TableCell>
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {" "}
-          {val?.middleName
-            ? val?.firstName +
-              " " +
-              val?.middleName.charAt(0) +
-              ". " +
-              val?.lastName
-            : val?.firstName + " " + val?.lastName}
-        </TableCell>
-
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val?.userType}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {format(
-            new Date(val.createdAt),
-            "hh:mm a - MMM dd, yyyy"
-            // "hh:mm a, EEEE"
-          )}
-        </TableCell>
-        {/* <TableCell align="left">delete?</TableCell> */}
-      </StyledTableRow>
-    );
+        const getEmpLogins = await axiosPrivate.get(
+          "/api/loginhistories/employees"
+        );
+        if (getEmpLogins.status === 200) {
+          emp = await getEmpLogins.data;
+          console.log(emp);
+          setIsLoading(false);
+          setEmpData(emp);
+          setLoadingDialog({ isOpen: false });
+        }
+        const getStudLogins = await axiosPrivate.get(
+          "/api/loginhistories/students"
+        );
+        if (getStudLogins.status === 200) {
+          stud = await getStudLogins.data;
+          console.log(stud);
+          setIsLoading(false);
+          setStudData(stud);
+          setLoadingDialog({ isOpen: false });
+        }
+        setAllData([...stud, ...emp]);
+        console.log(getAllData);
+      }
+      setLoadingDialog({ isOpen: false });
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        console.log(error);
+      }
+    }
   };
 
   return (
@@ -283,7 +389,7 @@ const LoginHistoryTable = () => {
         sx={{
           display: "flex",
           width: "100%",
-          padding: { xs: "10px", sm: "0 10px" },
+          padding: { xs: 1, sm: "0 20px" },
         }}
       >
         <Box
@@ -311,7 +417,7 @@ const LoginHistoryTable = () => {
           </Box>
           <Box
             sx={{
-              display: "flex",
+              display: "none",
               flexDirection: { xs: "column", sm: "row" },
               justifyContent: "end",
               alignItems: "center",
@@ -355,109 +461,39 @@ const LoginHistoryTable = () => {
           mt: 2,
         }}
       >
-        <div style={{ height: "100%", width: "100%" }}>
+        <Box sx={{ height: "100%", width: "100%" }}>
           <DataGrid
-            rows={
-              // getEmpData &&
-              // getEmpData.map((val) => {
-              //   return val;
-              // })
-              getAllData
-            }
+            rows={getAllData}
             getRowId={(row) => row._id}
             columns={columns}
             pageSize={page}
             onPageSizeChange={(newPageSize) => setPage(newPageSize)}
-            rowsPerPageOptions={[5, 10, 20]}
+            rowsPerPageOptions={[15, 50]}
             pagination
             sx={{
               "& .MuiDataGrid-cell": {
                 textTransform: "capitalize",
               },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
             }}
-            // initialState={{
-            //   columns: {
-            //     columnVisibilityModel: {
-            //       firstName: true,
-            //       lastName: true,
-            //       middleName: true,
-            //       email: true,
-            //     },
-            //   },
-            // }}
-            // components={{
-            //   Toolbar: GridToolbar,
-            // }}
-          />
-        </div>
-        <Box sx={{ display: "none" }}>
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? search &&
-                    getEmpData &&
-                    getEmpData
-
-                      .filter((fill) => {
-                        return (
-                          fill.username.includes(search) ||
-                          fill.firstName.includes(search) ||
-                          fill.lastName.includes(search)
-                        );
-                      })
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails(val);
-                      })
-                  : getEmpData &&
-                    getEmpData
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails(val);
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={
-              search
-                ? search &&
-                  getEmpData &&
-                  getEmpData.filter((fill) => {
-                    return fill.username.includes(search);
-                  }).length
-                : getEmpData && getEmpData.length
-            }
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  firstName: true,
+                  lastName: true,
+                  middleName: true,
+                  email: true,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
           />
         </Box>
       </Paper>
-      <Box
-        display="flex"
-        width="100%"
-        sx={{ flexDirection: "column" }}
-        justifyContent="center"
-        alignItems="center"
-        paddingBottom="20px"
-      >
-        {isloading ? <Loading /> : <></>}
-      </Box>
     </Box>
   );
 };

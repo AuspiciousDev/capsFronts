@@ -19,6 +19,7 @@ import PersistLogin from "./pages/PersistLogin";
 import NotFound404 from "./pages/NotFound404";
 // Admin
 import MainPage from "./pages/main/Mainpage";
+
 import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Grades from "./pages/admin/Grades";
@@ -45,7 +46,7 @@ import Taskform from "./pages/admin/components/Task/Taskform";
 import Adviser from "./pages/admin/Adviser";
 import ActiveStudents from "./pages/admin/ActiveStudents";
 import LoginHistoryTable from "./pages/admin/components/LoginHistory/LoginHistoryTable";
-
+import ChangePassword from "./pages/admin/ChangePassword";
 import GenerateActiveYearGrades from "./pages/admin/components/GeneratePDF/GenerateActiveYearGrades";
 // Teachers'
 import TeacherOutlet from "./pages/Teachers/TeacherOutlet";
@@ -136,12 +137,12 @@ function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="grade" element={<Grades />} />
                   <Route
-                    path="grade/:level/:year/:id"
+                    path="grade/:level/:section/:year/:id"
                     element={<GradesCurrent />}
                   />
 
                   <Route
-                    path="record/grade/:id/:year"
+                    path="grade/record/:level/:section/:year/:id"
                     element={<GradesForm />}
                   />
                   <Route
@@ -192,6 +193,7 @@ function App() {
 
                   <Route path="maintenance" element={<Maintenance />} />
                   <Route path="loginHistory" element={<LoginHistoryTable />} />
+                  <Route path="changePassword" element={<ChangePassword />} />
                 </Route>
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.Teacher]} />}>

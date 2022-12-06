@@ -41,6 +41,23 @@ import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 const DepartmentTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -95,17 +112,7 @@ const DepartmentTable = () => {
     message: "",
   });
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const [page, setPage] = React.useState(15);
 
   const closeModal = () => {
     setOpen(false);
@@ -116,21 +123,7 @@ const DepartmentTable = () => {
     setDepartmentIDError(false);
     setDepNameError(false);
   };
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -147,12 +140,29 @@ const DepartmentTable = () => {
       } catch (error) {
         setLoadingDialog({ isOpen: false });
         if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response.`,
+          });
           console.log("no server response");
-        } else if (error.response.status === 204) {
-          console.log(error.response.data.message);
         } else if (error.response.status === 403) {
-          navigate("/login", { state: { from: location }, replace: true });
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -208,6 +218,7 @@ const DepartmentTable = () => {
     return { depName, departmentID };
   }
   const handleSubmit = async (e) => {
+    setLoadingDialog({ isOpen: true });
     e.preventDefault();
     const data = {
       departmentID,
@@ -231,38 +242,45 @@ const DepartmentTable = () => {
           console.log("response;", json);
           depDispatch({ type: "CREATE_DEP", payload: json });
           setOpen(false);
-          setSuccessDialog({ isOpen: true });
+          setSuccessDialog({
+            isOpen: true,
+            message: `Department ${json.depName} Added!`,
+          });
           setIsLoading(false);
+          setLoadingDialog({ isOpen: false });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
           setErrorDialog({
             isOpen: true,
-            message: `${"no server response"}`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
-          console.log(error.response.data.message);
           setErrorDialog({
             isOpen: true,
-            message: `${error.response.message}`,
-          });
-        } else if (error.response.status === 409) {
-          setDepartmentIDError(true);
-          setError(true);
-          setErrorMessage(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.message}`,
+            message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else {
-          console.log(error);
           setErrorDialog({
             isOpen: true,
             message: `${error}`,
           });
+          console.log(error);
         }
       }
     } else {
@@ -290,19 +308,36 @@ const DepartmentTable = () => {
 
       setIsLoading(false);
     } catch (error) {
-      if (!error.response) {
-        console.log("no server response");
-        setIsLoading(false);
+      setIsLoading(false);
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
       } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
-        setIsLoading(false);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
       } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         console.log(error);
-        console.log(error.response);
-        setIsLoading(false);
       }
     }
   };
@@ -312,121 +347,92 @@ const DepartmentTable = () => {
     // depData("senior highschool", "shs"),
     // depData("college", "col"),
   ];
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow>
-        <TableCell>DEPARTMENT ID</TableCell>
-        <TableCell>DEPARTMENT NAME</TableCell>
-        <TableCell align="left">STATUS</TableCell>
-        <TableCell align="left">ACTION</TableCell>
-      </StyledTableHeadRow>
-    );
-  };
 
-  const tableDetails = ({ val }) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.departmentID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* <TableCell align="left">-</TableCell> */}
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {val?.departmentID || "-"}
-        </TableCell>
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val?.depName || "-"}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to change status of  ${val.departmentID.toUpperCase()}`,
-                    message: `${
-                      val.status === true
-                        ? "INACTIVE to ACTIVE"
-                        : " ACTIVE to INACTIVE"
-                    }`,
-                    onConfirm: () => {
-                      toggleStatus({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography>ACTIVE</Typography>
-              </Paper>
-            ) : (
-              <Paper
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                <Cancel />
-                <Typography ml="5px">INACTIVE</Typography>
-              </Paper>
-            )}
-          </ButtonBase>
-        </TableCell>
-        <TableCell align="left">
-          {/* <Box
-            sx={{
-              display: "grid",
-              width: "50%",
-              gridTemplateColumns: " 1fr 1fr 1fr",
-            }}
-          > */}
-          {/* <IconButton sx={{ cursor: "pointer" }}>
-              <Person2OutlinedIcon />
-            </IconButton> */}
+  const columns = [
+    {
+      field: "departmentID",
+      headerName: "Department ID",
+      width: 150,
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
 
-          {/* <UserEditForm user={user} /> */}
-          {/* <DeleteRecord delVal={val} /> */}
-          {/* </Box> */}
+    { field: "depName", headerName: "Department Name", width: 200 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.departmentID.toUpperCase()}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      renderCell: (params) => {
+        return (
           <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to Department ${val.departmentID.toUpperCase()}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      handleDelete({ val });
-                    },
-                  });
-                },
-              });
+            onClick={(event) => {
+              handleCellClick(event, params);
             }}
           >
             <Paper
@@ -444,98 +450,38 @@ const DepartmentTable = () => {
               <Typography ml="5px">Remove</Typography>
             </Paper>
           </ButtonBase>
-        </TableCell>
-      </StyledTableRow>
-    );
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete department ${params.row.depName}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
   };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.secondary[500] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography
-              variant="h3"
-              fontWeight="bold"
-              sx={{ color: colors.whiteOnly[100] }}
-            >
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record </Typography>
-            <Box margin="20px 0">
-              <Typography
-                variant="h2"
-                fontWeight="bold"
-                sx={{ textTransform: "capitalize" }}
-              >
-                {delVal.departmentID}
-              </Typography>
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                textTransform="capitalize"
-              ></Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6" sx={{ color: colors.whiteOnly[100] }}>
-                Confirm
-              </Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6" sx={{ color: colors.whiteOnly[100] }}>
-                CANCEL
-              </Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
-
   return (
     <>
       <SuccessDialogue
@@ -553,7 +499,7 @@ const DepartmentTable = () => {
       <ValidateDialogue
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
-      />{" "}
+      />
       <LoadingDialogue
         loadingDialog={loadingDialog}
         setLoadingDialog={setLoadingDialog}
@@ -739,7 +685,7 @@ const DepartmentTable = () => {
             <Paper
               elevation={3}
               sx={{
-                display: "flex",
+                display: "none",
                 width: { xs: "100%", sm: "320px" },
                 height: "50px",
                 minWidth: "250px",
@@ -782,68 +728,48 @@ const DepartmentTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%" sx={{ mt: 2 }}>
-        <Paper elevation={2}>
-          <TableContainer
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={departments ? departments && departments : 0}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
             sx={{
-              maxHeight: "700px",
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
             }}
-          >
-            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? departments &&
-                    departments
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        return (
-                          val.departmentID.includes(search) ||
-                          val.depName.includes(search)
-                        );
-                      })
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })
-                  : departments &&
-                    departments
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={departments && departments.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  firstName: true,
+                  lastName: true,
+                  middleName: true,
+                  email: true,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
           />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-          paddingBottom="10px"
-        >
-          {isloading ? <Loading /> : <></>}
         </Box>
-      </Box>
+      </Paper>
     </>
   );
 };

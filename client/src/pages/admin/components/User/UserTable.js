@@ -32,6 +32,7 @@ import {
   Tabs,
   Tab,
   TablePagination,
+  Avatar,
 } from "@mui/material";
 import {
   ArrowBackIosNewOutlined,
@@ -48,6 +49,7 @@ import {
   AdminPanelSettings,
   Badge,
   School,
+  Cancel,
 } from "@mui/icons-material";
 import Person2OutlinedIcon from "@mui/icons-material/Person2Outlined";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
@@ -72,6 +74,26 @@ import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
+
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import { useNavigate, useLocation } from "react-router-dom";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -109,6 +131,8 @@ const UserTable = () => {
   const colors = tokens(theme.palette.mode);
 
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { users, userDispatch } = useUsersContext();
   const { employees, empDispatch } = useEmployeesContext();
@@ -169,7 +193,7 @@ const UserTable = () => {
     message: "",
   });
 
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -247,38 +271,42 @@ const UserTable = () => {
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            message: `No server response!`,
+            message: `No server response`,
           });
-          console.log("no server response!");
-          setIsLoading(false);
         } else if (error.response.status === 400) {
-          console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-          setIsLoading(false);
-        } else if (error.response.status === 401) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-          setIsLoading(false);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-          setIsLoading(false);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
-          setErrorDialog({ isOpen: true, message: `${error}` });
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
-          setIsLoading(false);
         }
       }
 
@@ -345,23 +373,42 @@ const UserTable = () => {
           });
         }
       } catch (error) {
-        roles.length = 0;
+        setLoadingDialog({ isOpen: false });
         setIsLoading(false);
         if (!error?.response) {
-          setIsLoading(false);
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
-          setError(true);
-          setErrorMessage(error.response.data.message);
-          setUserNameError(true);
-          setRolesError(true);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setError(true);
-          setErrorMessage(error.response.data.message);
-          setUserNameError(true);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -370,6 +417,476 @@ const UserTable = () => {
       setIsLoading(false);
     }
   };
+  const toggleStatus = async ({ val }) => {
+    setLoadingDialog({ isOpen: true });
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
+    });
+    let newStatus = val.status;
+    val.status === true
+      ? (newStatus = false)
+      : val.status === false
+      ? (newStatus = true)
+      : (newStatus = false);
+    if (val.status === true) newStatus = false;
+
+    try {
+      setIsLoading(true);
+      const response = await axiosPrivate.patch(
+        "/api/users/status",
+        JSON.stringify({ username: val.username, status: newStatus })
+      );
+      if (response.status === 200) {
+        const apiSetEmpLoginHist = await axiosPrivate.get(
+          "/api/users/employees"
+        );
+        if (apiSetEmpLoginHist?.status === 200) {
+          const json = await apiSetEmpLoginHist.data;
+          setEmpUser(json);
+        }
+        const apiSetStudUser = await axiosPrivate.get("/api/users/students");
+        if (apiSetStudUser?.status === 200) {
+          const json = await apiSetStudUser.data;
+          console.log("UserStude GET : ", json);
+          console.log("UserStude GET : ", json.length);
+          setStudUser(json);
+        }
+        setSuccessDialog({
+          isOpen: true,
+          message: `User ${response.data.username} status has been changed!`,
+        });
+      }
+      setLoadingDialog({ isOpen: false });
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        console.log(error);
+      }
+    }
+  };
+  const handleDelete = async ({ val }) => {
+    setLoadingDialog({ isOpen: true });
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
+    });
+    try {
+      setIsLoading(true);
+      const response = await axiosPrivate.delete("/api/users/delete", {
+        data: val,
+      });
+      const json = await response.data;
+      if (response.status === 200) {
+        console.log(response.data.message);
+        userDispatch({ type: "DELETE_USER", payload: json });
+        setSuccessDialog({
+          isOpen: true,
+          message: `User ${json.username} has been Deleted!`,
+        });
+      }
+      setIsLoading(false);
+      setLoadingDialog({ isOpen: false });
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        console.log(error);
+      }
+    }
+  };
+  const columns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "username",
+      headerName: "Username",
+      width: 150,
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 100 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.studID}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete student ${params?.row?.studID}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
+  };
+
+  const empColumns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "username",
+      headerName: "Username",
+      width: 150,
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 100 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.studID}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
 
   const TableTitles = () => {
     return (
@@ -482,7 +999,7 @@ const UserTable = () => {
                     : " ACTIVE to INACTIVE"
                 }`,
                 onConfirm: () => {
-                  // toggleStatus({ val });
+                  toggleStatus({ val });
                 },
               });
             }}
@@ -522,7 +1039,7 @@ const UserTable = () => {
                 title: `Are you sure to delete year ${val.username}`,
                 message: `This action is irreversible!`,
                 onConfirm: () => {
-                  // handleDelete({ val });
+                  handleDelete({ val });
                 },
               });
             }}
@@ -783,7 +1300,7 @@ const UserTable = () => {
           </Box>
           <Box
             sx={{
-              display: "flex",
+              display: "none",
               flexDirection: { xs: "column", sm: "row" },
               justifyContent: "end",
               alignItems: "center",
@@ -792,7 +1309,7 @@ const UserTable = () => {
             <Paper
               elevation={3}
               sx={{
-                display: "flex",
+                display: "none",
                 width: { xs: "100%", sm: "320px" },
                 height: "50px",
                 minWidth: "250px",
@@ -870,134 +1387,230 @@ const UserTable = () => {
           />
         </Tabs>
       </AppBar>
-      <TabPanel sx={{ width: "100%" }} value={value} index={0}>
-        <Box width="100%">
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? search &&
-                    studUser &&
-                    studUser
-                      .filter((fill) => {
-                        return (
-                          fill.userType === "student" &&
-                          (fill.username.includes(search) ||
-                            fill.firstName.includes(search) ||
-                            fill.lastName.includes(search))
-                        );
-                      })
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })
-                  : studUser
-                      .filter((fill) => {
-                        return fill.userType === "student";
-                      })
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={studUser && studUser.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-          <Box
-            display="flex"
-            width="100%"
-            sx={{ flexDirection: "column" }}
-            justifyContent="center"
-            alignItems="center"
-          >
-            {isloading ? <Loading /> : <></>}
-          </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <TabPanel
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
 
-          <Box display="flex" width="100%" marginTop="20px"></Box>
-        </Box>
-      </TabPanel>
-      <TabPanel sx={{ width: "100%" }} value={value} index={1}>
-        <Box width="100%">
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? empUser &&
-                    empUser
-                      .filter((fill) => {
-                        return (
-                          fill.userType === "employee" &&
-                          (fill.username.includes(search) ||
-                            fill.firstName.includes(search) ||
-                            fill.lastName.includes(search))
-                        );
-                      })
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })
-                  : empUser &&
-                    empUser
-                      .filter((fill) => {
-                        return fill.userType === "employee";
-                      })
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={empUser && empUser.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-          <Box
-            display="flex"
-            width="100%"
-            sx={{ flexDirection: "column" }}
-            justifyContent="center"
-            alignItems="center"
+            mt: 2,
+            backgroundColor: "green",
+          }}
+          value={value}
+          index={0}
+        >
+          <Paper
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "700px",
+            }}
           >
-            {isloading ? <Loading /> : <></>}
-          </Box>
+            <Box sx={{ height: "100%", width: "100%" }}>
+              <DataGrid
+                rows={studUser && studUser}
+                getRowId={(row) => row._id}
+                columns={columns}
+                pageSize={page}
+                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                rowsPerPageOptions={[15, 50]}
+                pagination
+                sx={{
+                  "& .MuiDataGrid-cell": {
+                    textTransform: "capitalize",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                  },
+                }}
+                initialState={{
+                  columns: {
+                    columnVisibilityModel: {
+                      createdAt: false,
+                    },
+                  },
+                }}
+                components={{
+                  Toolbar: CustomToolbar,
+                }}
+              />
+            </Box>
+          </Paper>
+          <Box display="none" width="100%">
+            <TableContainer>
+              <Table aria-label="simple table">
+                <TableHead>
+                  <TableTitles />
+                </TableHead>
+                <TableBody>
+                  {search
+                    ? search &&
+                      studUser &&
+                      studUser
+                        .filter((fill) => {
+                          return (
+                            fill.userType === "student" &&
+                            (fill.username.includes(search) ||
+                              fill.firstName.includes(search) ||
+                              fill.lastName.includes(search))
+                          );
+                        })
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((val) => {
+                          return tableDetails({ val });
+                        })
+                    : studUser
+                        .filter((fill) => {
+                          return fill.userType === "student";
+                        })
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((val) => {
+                          return tableDetails({ val });
+                        })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Divider />
+            <TablePagination
+              rowsPerPageOptions={[5, 10]}
+              component="div"
+              count={studUser && studUser.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+            <Box
+              display="flex"
+              width="100%"
+              sx={{ flexDirection: "column" }}
+              justifyContent="center"
+              alignItems="center"
+            >
+              {isloading ? <Loading /> : <></>}
+            </Box>
 
-          <Box display="flex" width="100%" marginTop="20px"></Box>
-        </Box>
-      </TabPanel>
+            <Box display="flex" width="100%" marginTop="20px"></Box>
+          </Box>
+        </TabPanel>
+        <TabPanel sx={{ width: "100%" }} value={value} index={1}>
+          <Paper
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "700px",
+            }}
+          >
+            <Box sx={{ height: "100%", width: "100%" }}>
+              <DataGrid
+                rows={empUser && empUser}
+                getRowId={(row) => row._id}
+                columns={empColumns}
+                pageSize={page}
+                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                rowsPerPageOptions={[15, 50]}
+                pagination
+                sx={{
+                  "& .MuiDataGrid-cell": {
+                    textTransform: "capitalize",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                  },
+                }}
+                initialState={{
+                  columns: {
+                    columnVisibilityModel: {
+                      createdAt: false,
+                    },
+                  },
+                }}
+                components={{
+                  Toolbar: CustomToolbar,
+                }}
+              />
+            </Box>
+          </Paper>
+          <Box display="none" width="100%">
+            <TableContainer>
+              <Table aria-label="simple table">
+                <TableHead>
+                  <TableTitles />
+                </TableHead>
+                <TableBody>
+                  {search
+                    ? empUser &&
+                      empUser
+                        .filter((fill) => {
+                          return (
+                            fill.userType === "employee" &&
+                            (fill.username.includes(search) ||
+                              fill.firstName.includes(search) ||
+                              fill.lastName.includes(search))
+                          );
+                        })
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((val) => {
+                          return tableDetails({ val });
+                        })
+                    : empUser &&
+                      empUser
+                        .filter((fill) => {
+                          return fill.userType === "employee";
+                        })
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((val) => {
+                          return tableDetails({ val });
+                        })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Divider />
+            <TablePagination
+              rowsPerPageOptions={[5, 10]}
+              component="div"
+              count={empUser && empUser.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+            <Box
+              display="flex"
+              width="100%"
+              sx={{ flexDirection: "column" }}
+              justifyContent="center"
+              alignItems="center"
+            >
+              {isloading ? <Loading /> : <></>}
+            </Box>
+
+            <Box display="flex" width="100%" marginTop="20px"></Box>
+          </Box>
+        </TabPanel>
+      </Box>
     </>
   );
 };

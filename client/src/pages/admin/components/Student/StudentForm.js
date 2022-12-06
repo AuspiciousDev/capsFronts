@@ -310,9 +310,7 @@ const StudentForm = () => {
                     placeholder="Optional"
                     value={middleName}
                     onChange={(e) => {
-                      if (isLetters(e.target.value)) {
-                        setMiddleName(e.target.value);
-                      }
+                      setMiddleName(e.target.value);
                     }}
                     inputProps={{ style: { textTransform: "capitalize" } }}
                   />

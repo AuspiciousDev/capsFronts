@@ -4,7 +4,6 @@ import axios from "axios";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Search } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -54,11 +53,35 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import { useNavigate, useLocation } from "react-router-dom";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
+
 const TaskTable = () => {
   const CHARACTER_LIMIT = 6;
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const axiosPrivate = useAxiosPrivate();
 
@@ -114,7 +137,7 @@ const TaskTable = () => {
     message: "",
   });
 
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -337,185 +360,151 @@ const TaskTable = () => {
       }
     }
   };
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          task id
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Task Type
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Subject
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Task Name
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Max Points
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Status
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Action
-        </TableCell>
-      </StyledTableHeadRow>
-    );
-  };
-  const tableDetails = (val) => {
-    return (
-      <StyledTableRow
-        key={val?._id}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {val?.taskID}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val?.taskType}
-        </TableCell>
-        <TableCell sx={{ textTransform: "uppercase" }}>
-          {val?.subjectID}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {val?.taskName}
-        </TableCell>
 
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {val?.maxPoints}
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to change status of  ${val.subjectID.toUpperCase()}`,
-                    message: `${
-                      val.status === true
-                        ? "INACTIVE to ACTIVE"
-                        : " ACTIVE to INACTIVE"
-                    }`,
-                    onConfirm: () => {
-                      toggleStatus({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            ) : (
-              <Paper
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                <Cancel />
-                <Typography ml="5px">INACTIVE</Typography>
-              </Paper>
-            )}
-          </ButtonBase>
-        </TableCell>
-        <TableCell align="left">
-          <Box display="flex" gap={2}>
-            {/* <ButtonBase
-              onClick={() => {
-                setValidateDialog({
-                  isOpen: true,
-                  onConfirm: () => {
-                    console.log(val.levelID);
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: `Are you sure to delete section ${val.sectionID.toUpperCase()}`,
-                      message: `This action is irreversible!`,
-                      onConfirm: () => {
-                        handleDelete({ val });
-                      },
-                    });
-                  },
-                });
-              }}
-            >
-              <Paper
-                sx={{
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  backgroundColor: colors.secondary[500],
-                  color: colors.blackOnly[100],
-                  alignItems: "center",
-                }}
-              >
-                <DriveFileRenameOutline />
-                <Typography ml="5px">Edit</Typography>
-              </Paper>
-            </ButtonBase> */}
+  const columns = [
+    {
+      field: "taskID",
+      headerName: "Task ID",
+      width: 200,
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
+    { field: "taskName", headerName: "Task Name", width: 150 },
+    { field: "levelID", headerName: "Level ID", width: 150 },
+    { field: "sectionID", headerName: "Section ID", width: 150 },
+    { field: "taskType", headerName: "Task Type", width: 130 },
+    { field: "subjectID", headerName: "Subject ID", width: 130 },
+    {
+      field: "maxPoints",
+      headerName: "Max Points",
+      width: 130,
+    },
+
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 130,
+      renderCell: (params) => {
+        return (
+          <>
             <ButtonBase
               onClick={() => {
-                console.log(val.levelID);
                 setValidateDialog({
                   isOpen: true,
                   onConfirm: () => {
                     setConfirmDialog({
                       isOpen: true,
-                      title: `Are you sure to delete section ${val.taskID.toUpperCase()}`,
-                      message: `This action is irreversible!`,
+                      title: `Are you sure to change status of  ${params?.row?.taskID.toUpperCase()}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
                       onConfirm: () => {
-                        handleDelete({ val });
+                        toggleStatus({ val: params?.row });
                       },
                     });
                   },
                 });
               }}
             >
-              <Paper
-                sx={{
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  backgroundColor: colors.whiteOnly[100],
-                  color: colors.blackOnly[100],
-                  alignItems: "center",
-                }}
-              >
-                {/* <SubjectEditForm data={val} /> */}
-                <Delete />
-                <Typography ml="5px">Remove</Typography>
-              </Paper>
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
             </ButtonBase>
-          </Box>
-        </TableCell>
-      </StyledTableRow>
-    );
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 130,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete department ${params.row.depName}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
   };
+
   return (
     <>
       <ConfirmDialogue
@@ -572,31 +561,6 @@ const TaskTable = () => {
               alignItems: "center",
             }}
           >
-            <Paper
-              elevation={3}
-              sx={{
-                display: "flex",
-                width: { xs: "100%", sm: "320px" },
-                height: "50px",
-                minWidth: "250px",
-                alignItems: "center",
-                justifyContent: "center",
-                p: { xs: "0 20px", sm: "0 20px" },
-                mr: { xs: "0", sm: " 10px" },
-              }}
-            >
-              <InputBase
-                sx={{ ml: 1, flex: 1 }}
-                placeholder="Search Task"
-                onChange={(e) => {
-                  setSearch(e.target.value.toLowerCase());
-                }}
-              />
-              <Divider sx={{ height: 30, m: 1 }} orientation="vertical" />
-              <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
-                <Search />
-              </IconButton>
-            </Paper>
             <Link to="/admin/task/add" style={{ textDecoration: "none" }}>
               <Button
                 type="button"
@@ -617,111 +581,46 @@ const TaskTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%" sx={{ mt: 2 }}>
-        <Paper elevation={2}>
-          <TableContainer sx={{ maxHeight: 700 }}>
-            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {tasks &&
-                  tasks
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((data) => {
-                      return tableDetails(data);
-                    })}
-                {/* {search
-                  ? subjects
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((data) => {
-                        return (
-                          data.subjectID
-                            .toLowerCase()
-                            .includes(search.toLowerCase()) ||
-                          data.subjectName
-                            .toLowerCase()
-                            .includes(search.toLowerCase())
-                        );
-                      })
-                      .map((data) => {
-                        return tableDetails(data);
-                      })
-                  : subjects &&
-                    subjects
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((data) => {
-                        return tableDetails(data);
-                      })} */}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={subjects && subjects.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={tasks ? tasks && tasks : 0}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
+            sx={{
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
+            }}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  taskID: false,
+                  createdAt: false,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
           />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-        >
-          {/* <Typography textTransform="uppercase">
-                {console.log(Object.keys(subjects || {}).length)}
-                {Object.keys(subjects || {}).length}
-              </Typography> */}
-          {isLoading ? <Loading /> : <></>}
-          {Object.keys(subjects || {}).length > 0 ? (
-            <></> // <Typography textTransform="uppercase">data</Typography>
-          ) : (
-            <Typography textTransform="uppercase">no data</Typography>
-          )}
-          {/* {console.log(Object.keys(subjects).length)} */}
-          {/* {Object.keys(prop.subjectID).length > 0
-                ? console.log("true")
-                : console.log("false")} */}
-          {/* {subjects.length < 0 ? console.log("true") : console.log("false")} */}
-          {/* {Object.key(subjects).length ? (
-                <Typography textTransform="uppercase">data</Typography>
-              ) : (
-                <Typography textTransform="uppercase">no data</Typography>
-              )} */}
-
-          {/* <Box
-              display="flex"
-              width="100%"
-              justifyContent="center"
-              marginTop="20px"
-              marginBottom="20px"
-            >
-              <Box
-                width="200px"
-                display="grid"
-                gridTemplateColumns="1fr 1fr"
-                justifyItems="center"
-              >
-                <ArrowBackIosNewOutlined color="gray" />
-                <ArrowForwardIosOutlined color="gray" />
-              </Box>
-            </Box> */}
         </Box>
-
-        <Box display="flex" width="100%" marginTop="20px"></Box>
-      </Box>
+      </Paper>
     </>
   );
 };

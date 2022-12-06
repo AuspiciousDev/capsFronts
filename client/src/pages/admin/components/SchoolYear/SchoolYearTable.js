@@ -42,6 +42,7 @@ import { tokens } from "../../../../theme";
 import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
 import { DeleteOutline } from "@mui/icons-material";
 import PropTypes from "prop-types";
+import useAuth from "../../../../hooks/useAuth";
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
@@ -50,6 +51,23 @@ import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useNavigate, useLocation } from "react-router-dom";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 
 const SchoolYearTable = () => {
   const theme = useTheme();
@@ -58,8 +76,10 @@ const SchoolYearTable = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { auth } = useAuth();
   const axiosPrivate = useAxiosPrivate();
 
+  const [getAllData, setAllData] = useState([]);
   const { years, yearDispatch } = useSchoolYearsContext();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -106,84 +126,186 @@ const SchoolYearTable = () => {
     message: "",
   });
 
-  // const [rowCount, setRowCount] = useState(0);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [page, setPage] = React.useState(15);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const columns = [
+    {
+      field: "schoolYearID",
+      headerName: "School Year ID",
+      width: 130,
+    },
+
+    { field: "schoolYear", headerName: "School Year", width: 130 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.value === false ? (
+              <ButtonBase disabled>
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <Bookmark />
+                  <Typography ml="5px">ARCHIVED</Typography>
+                </Paper>
+              </ButtonBase>
+            ) : (
+              <ButtonBase
+                type="button"
+                onClick={() =>
+                  setValidateDialog({
+                    isOpen: true,
+                    onConfirm: () => {
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: `Are you sure to archived Year ${params.row.schoolYear}`,
+                        message: "You cant undo this operation!",
+                        onConfirm: () => {
+                          toggleStatus({ val: params.row });
+                        },
+                      });
+                    },
+                  })
+                }
+              >
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography ml="5px">ACTIVE</Typography>
+                </Paper>
+              </ButtonBase>
+            )}
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete School Year ${params.row.schoolYear}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  // const [Copen, setCOpen] = React.useState(false);
-  // const [selectedValue, setSelectedValue] = React.useState(emails[1]);
-
-  // const handleClickOpen = ({ val }) => {
-  //   setCOpen(true);
-  // };
-
-  // const handleClose = (value) => {
-  //   setCOpen(false);
-  //   setSelectedValue(value);
-  // };
-
-  // const closeConfirm = () => {
-  //   setOpenConfirm(false);
-  //   clearFields();
-  // };
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.primary[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
   useEffect(() => {
     const getData = async () => {
+      let resData;
       try {
         setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
-          const json = await response.data;
-          console.log("School Year GET: ", json);
+          resData = await response.data;
+          console.log("School Year GET: ", resData);
           setIsLoading(false);
-          yearDispatch({ type: "SET_YEARS", payload: json });
+          yearDispatch({ type: "SET_YEARS", payload: resData });
+          setAllData([...resData]);
         }
+
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
         if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            title: `No server response.`,
+          });
           console.log("no server response");
-          setErrorDialog({
-            isOpen: true,
-            message: `${"no server response"}`,
-          });
-        } else if (error.response.status === 204) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.message}`,
-          });
+        } else if (error.response.status === 403) {
           console.log(error.response.data.message);
-        } else {
-          console.log(error);
           setErrorDialog({
             isOpen: true,
-            message: `${error}`,
+            message: `${error.response.data.message}`,
           });
+          navigate("/", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else {
+          setErrorDialog({
+            isOpen: true,
+            title: `${error}`,
+          });
+          console.log(error);
         }
       }
     };
@@ -215,12 +337,13 @@ const SchoolYearTable = () => {
     setError(false);
   };
   const handleSubmit = async (e) => {
-    setIsLoading(true);
+    setLoadingDialog({ isOpen: true });
     e.preventDefault();
     const data = {
       schoolYearID,
       schoolYear,
       description,
+      createdBy: auth.username,
     };
 
     if (!error) {
@@ -239,44 +362,46 @@ const SchoolYearTable = () => {
             isOpen: true,
             message: "Department has been added!",
           });
-          setIsLoading(false);
+          setLoadingDialog({ isOpen: false });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
-          setSchoolYearIDError(true);
-          setSchoolYearError(true);
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-          // setErrorMessage(error.response.data.message);
+          console.log(error.response.data.message);
+          setIsLoading(false);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else if (error.response.status === 409) {
           setSchoolYearIDError(true);
-          setSchoolYearError(true);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          setError(true);
           setErrorMessage(error.response.data.message);
           console.log(error.response.data.message);
-        } else {
-          console.log(error);
+        } else if (error.response.status === 403) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-          setErrorMessage(error.response.data.message);
+          navigate("/login", { state: { from: location }, replace: true });
+        } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
+          console.log(error);
         }
-        setErrorDialog({
-          isOpen: true,
-          message: `${error}`,
-        });
-        console.log(error);
-        setIsLoading(false);
-        setError(true);
       }
     } else {
       setIsLoading(false);
@@ -284,10 +409,12 @@ const SchoolYearTable = () => {
     }
   };
   const handleDelete = async ({ val }) => {
+    setLoadingDialog({ isOpen: true });
     setConfirmDialog({
       ...confirmDialog,
       isOpen: false,
     });
+    let resData;
     try {
       setIsLoading(true);
       const response = await axiosPrivate.delete("/api/schoolyears/delete", {
@@ -315,44 +442,45 @@ const SchoolYearTable = () => {
           message: "School Year has been Deleted!",
         });
       }
-
+      setLoadingDialog({ isOpen: false });
       setIsLoading(false);
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
-        setIsLoading(false);
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
       } else if (error.response.status === 400) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 404) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 403) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
-        setIsLoading(false);
       } else {
         setErrorDialog({
           isOpen: true,
           message: `${error}`,
         });
         console.log(error);
-        setIsLoading(false);
       }
     }
   };
   const toggleStatus = async ({ val }) => {
+    let resData;
     setConfirmDialog({
       ...confirmDialog,
       isOpen: false,
@@ -379,234 +507,38 @@ const SchoolYearTable = () => {
           setIsLoading(false);
           yearDispatch({ type: "SET_YEARS", payload: json });
           setSuccessDialog({ isOpen: true });
+          setAllData([...resData]);
         }
       }
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
       if (!error?.response) {
-        console.log("no server response");
-      } else if (error.response.status === 400) {
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          title: `No server response.`,
         });
+      } else if (error.response.status === 403) {
         console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        console.log(error.response.data.message);
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
       } else {
+        setErrorDialog({
+          isOpen: true,
+          title: `${error}`,
+        });
         console.log(error);
       }
     }
   };
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow
-      // sx={{ backgroundColor: `${colors.primary[100]}` }}
-      >
-        <TableCell>
-          <Typography>ID</Typography>
-        </TableCell>
-        <TableCell>SCHOOL YEAR </TableCell>
-        <TableCell align="left">STATUS</TableCell>
-        <TableCell align="left">ACTION</TableCell>
-      </StyledTableHeadRow>
-    );
-  };
-  const tableDetails = ({ val }) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.schoolYearID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* <TableCell align="left">-</TableCell> */}
-        <TableCell align="left">{val?.schoolYearID}</TableCell>
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val?.schoolYear}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {/* <Button
-            type="button"
-            onClick={() =>
-              setConfirmDialog({
-                isOpen: true,
-                title: "are you sure to delete this record",
-                subTitle: "You cant undo this operation!",
-              })
-            }
-          >
-            asdasd
-          </Button> */}
-          {val?.status === false ? (
-            <ButtonBase disabled>
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <Bookmark />
-                <Typography ml="5px">ARCHIVED</Typography>
-              </Paper>
-            </ButtonBase>
-          ) : (
-            <ButtonBase
-              type="button"
-              onClick={() =>
-                setValidateDialog({
-                  isOpen: true,
-                  onConfirm: () => {
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: `Are you sure to archived Year ${val.schoolYear}`,
-                      message: "You cant undo this operation!",
-                      onConfirm: () => {
-                        toggleStatus({ val });
-                      },
-                    });
-                  },
-                })
-              }
-            >
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            </ButtonBase>
-          )}
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to delete year ${val.schoolYearID}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      handleDelete({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography
-              variant="h3"
-              fontWeight="bold"
-              sx={{ color: colors.whiteOnly[100] }}
-            >
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record </Typography>
-            <Box margin="20px 0">
-              <Typography variant="h3" fontWeight="bold">
-                {delVal.schoolYearID}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6" sx={{ color: colors.whiteOnly[100] }}>
-                Confirm
-              </Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6" sx={{ color: colors.whiteOnly[100] }}>
-                CANCEL
-              </Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
 
   return (
     <>
@@ -830,12 +762,11 @@ const SchoolYearTable = () => {
                 justifyContent: "end",
                 alignItems: "center",
               }}
-              setSearch
             >
               <Paper
                 elevation={3}
                 sx={{
-                  display: "flex",
+                  display: "none",
                   width: { xs: "100%", sm: "320px" },
                   height: "50px",
                   minWidth: "250px",
@@ -892,7 +823,49 @@ const SchoolYearTable = () => {
             </Box>
           </Box>
         </Paper>
-        <Box sx={{ width: "100%", mt: 2 }}>
+        <Paper
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            mt: 2,
+          }}
+        >
+          <Box sx={{ height: "100%", width: "100%" }}>
+            <DataGrid
+              rows={years ? years && years : 0}
+              getRowId={(row) => row._id}
+              columns={columns}
+              pageSize={page}
+              onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+              rowsPerPageOptions={[15, 50]}
+              pagination
+              sx={{
+                "& .MuiDataGrid-cell": {
+                  textTransform: "capitalize",
+                },
+                "& .MuiDataGrid-columnHeaderTitle": {
+                  fontWeight: "bold",
+                },
+              }}
+              initialState={{
+                columns: {
+                  columnVisibilityModel: {
+                    firstName: true,
+                    lastName: true,
+                    middleName: true,
+                    email: true,
+                  },
+                },
+              }}
+              components={{
+                Toolbar: CustomToolbar,
+              }}
+            />
+          </Box>
+        </Paper>
+        {/* <Box sx={{ width: "100%", mt: 2 }}>
           <Paper elevation={2}>
             <TableContainer sx={{ maxHeight: 700 }}>
               <Table aria-label="simple table">
@@ -936,18 +909,7 @@ const SchoolYearTable = () => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </Paper>
-
-          <Box
-            display="flex"
-            width="100%"
-            sx={{ flexDirection: "column" }}
-            justifyContent="center"
-            alignItems="center"
-            paddingBottom="10px"
-          >
-            {isLoading ? <Loading /> : <></>}
-          </Box>
-        </Box>
+        </Box> */}
       </>
     </>
   );

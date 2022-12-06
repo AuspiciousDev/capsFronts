@@ -58,9 +58,31 @@ import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import CancelIcon from "@mui/icons-material/Cancel";
+
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import { useNavigate, useLocation } from "react-router-dom";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
+
 const EmployeeTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const axiosPrivate = useAxiosPrivate();
 
@@ -96,7 +118,7 @@ const EmployeeTable = () => {
     message: "",
   });
 
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -137,11 +159,35 @@ const EmployeeTable = () => {
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        if (!error.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+        setIsLoading(false);
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -195,20 +241,37 @@ const EmployeeTable = () => {
         }
       }
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
       } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          message: `${error.response.data.message}`,
         });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
       } else {
-        console.log(error);
         setErrorDialog({
           isOpen: true,
-          title: `${error}`,
+          message: `${error}`,
         });
+        console.log(error);
       }
     }
   };
@@ -245,37 +308,265 @@ const EmployeeTable = () => {
       setIsLoading(false);
     } catch (error) {
       setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
-        setIsLoading(false);
         setErrorDialog({
           isOpen: true,
-          title: "No server response",
+          message: `No server response`,
         });
       } else if (error.response.status === 400) {
-        console.log(error.response.data.message);
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          message: `${error.response.data.message}`,
         });
-        setIsLoading(false);
+        console.log(error.response.data.message);
       } else if (error.response.status === 404) {
-        console.log(error.response.data.message);
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          message: `${error.response.data.message}`,
         });
-        setIsLoading(false);
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
       } else {
         setErrorDialog({
           isOpen: true,
-          title: `${error}`,
+          message: `${error}`,
         });
         console.log(error);
-        setIsLoading(false);
       }
-      setIsLoading(false);
     }
+  };
+  const columns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "empID",
+      headerName: "Employee ID",
+      width: 150,
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 100 },
+    {
+      field: "empType",
+      headerName: "Type",
+      width: 250,
+      renderCell: (params) => {
+        return params?.value?.map((item, i) => {
+          return (
+            <ul
+              key={item}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                padding: "0",
+                listStyleType: "none",
+              }}
+            >
+              {item === 2001 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      padding: "2px 10px",
+                      backgroundColor: colors.secondary[500],
+                      color: colors.blackOnly[100],
+                      borderRadius: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <AdminPanelSettings />
+                    <Typography ml="5px">Admin</Typography>
+                  </Paper>
+                </li>
+              ) : item === 2002 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      padding: "2px 10px",
+                      backgroundColor: colors.primary[900],
+                      color: colors.whiteOnly[100],
+                      borderRadius: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      ml: "5px",
+                    }}
+                  >
+                    <Badge />
+                    <Typography ml="5px">Teacher</Typography>
+                  </Paper>
+                </li>
+              ) : (
+                <></>
+              )}
+            </ul>
+          );
+        });
+      },
+    },
+
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.empID}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete employee ${params?.row?.username}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
   };
 
   const TableTitles = () => {
@@ -620,7 +911,7 @@ const EmployeeTable = () => {
                 <Paper
                   elevation={3}
                   sx={{
-                    display: "flex",
+                    display: "none",
                     width: { xs: "100%", sm: "320px" },
                     height: "50px",
                     minWidth: "250px",
@@ -665,123 +956,46 @@ const EmployeeTable = () => {
               </Box>
             </Box>
           </Paper>
-          <Box width="100%" sx={{ mt: 2 }}>
-            <Paper elevation={2}>
-              <TableContainer
+
+          <Paper
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "100%",
+              mt: 2,
+            }}
+          >
+            <Box sx={{ height: "100%", width: "100%" }}>
+              <DataGrid
+                rows={employees ? employees && employees : 0}
+                getRowId={(row) => row._id}
+                columns={columns}
+                pageSize={page}
+                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                rowsPerPageOptions={[15, 50]}
+                pagination
                 sx={{
-                  maxHeight: "700px",
+                  "& .MuiDataGrid-cell": {
+                    textTransform: "capitalize",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                  },
                 }}
-              >
-                <Table aria-label="simple table">
-                  <TableHead>
-                    <TableTitles />
-                  </TableHead>
-                  <TableBody>
-                    {
-                      // collection
-                      //   .filter((employee) => {
-                      //     return employee.firstName === "ing";
-                      //   })
-                      //   .map((employee) => {
-                      //     return tableDetails(employee);
-                      //   })
-                      (console.log(search),
-                      search
-                        ? employees
-
-                            .filter((data) => {
-                              return (
-                                data.firstName
-                                  .toLowerCase()
-                                  .includes(search.toLowerCase()) ||
-                                data.empID.includes(search) ||
-                                data.lastName
-                                  .toLowerCase()
-                                  .includes(search.toLowerCase())
-                              );
-                            })
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
-                            .map((data) => {
-                              return tableDetails(data);
-                            })
-                        : employees &&
-                          employees
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
-                            .map((data) => {
-                              return tableDetails(data);
-                            }))
-
-                      // (collection.filter((employee) => {
-                      //   return employee.empID === 21923595932985;
-                      // }),
-                      // (console.log(
-                      //   "🚀 ~ file: EmployeeTable.js ~ line 526 ~ EmployeeTable ~ collection",
-                      //   collection
-                      // ),
-                      // collection &&
-                      //   collection.slice(0, 8).map((employee) => {
-                      //     return tableDetails(employee);
-                      //   })))
-                    }
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Divider />
-              <TablePagination
-                rowsPerPageOptions={[5, 10]}
-                component="div"
-                count={employees && employees.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                initialState={{
+                  columns: {
+                    columnVisibilityModel: {
+                      createdAt: false,
+                    },
+                  },
+                }}
+                components={{
+                  Toolbar: CustomToolbar,
+                }}
               />
-            </Paper>
-            <Box
-              display="flex"
-              width="100%"
-              sx={{ flexDirection: "column" }}
-              justifyContent="center"
-              alignItems="center"
-            >
-              {/* {withData ? (
-                <Typography textTransform="capitalize">data</Typography>
-              ) : (
-                <Typography textTransform="capitalize">no data</Typography>
-              )} */}
-              {isloading ? <Loading /> : <></>}
-              {Object.keys(employees || {}).length > 0 ? (
-                <></> // <Typography textTransform="uppercase">data</Typography>
-              ) : (
-                <Typography textTransform="uppercase">no data</Typography>
-              )}
-              {/* <Box
-                display="flex"
-                width="100%"
-                justifyContent="center"
-                marginTop="20px"
-                marginBottom="20px"
-              >
-                <Box
-                  width="200px"
-                  display="grid"
-                  gridTemplateColumns="1fr 1fr"
-                  justifyItems="center"
-                >
-                  <ArrowBackIosNewOutlined color="gray" />
-                  <ArrowForwardIosOutlined color="gray" />
-                </Box>
-              </Box> */}
             </Box>
-
-            <Box display="flex" width="100%" marginTop="20px"></Box>
-          </Box>
+          </Paper>
         </>
       )}
     </>

@@ -1,24 +1,13 @@
 import React from "react";
 import { useEffect, useState, useRef } from "react";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
-  IconButton,
-  InputBase,
   Paper,
   Typography,
-  TableContainer,
-  Table,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBody,
-  TablePagination,
-  Divider,
   Select,
-  NativeSelect,
   MenuItem,
   FormControl,
   TextField,
@@ -92,6 +81,9 @@ const TaskForms = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { auth, setAuth, persist, setPersist } = useAuth();
 
   const { id, year } = useParams();
@@ -225,12 +217,43 @@ const TaskForms = () => {
           setIsLoading(false);
         }
       } catch (error) {
-        console.log(error);
+        setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
-          console.log("No server response!");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
-          // navigate("/login", { state: { from: location }, replace: true });
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
+          console.log(error);
         }
       }
     };
@@ -282,31 +305,41 @@ const TaskForms = () => {
         }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        setErrorDialog({
-          isOpen: true,
-          message: `${error}`,
-        });
+        setIsLoading(false);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            message: `no server response`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-        } else if (error.response.status === 409) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -355,31 +388,41 @@ const TaskForms = () => {
         }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        setErrorDialog({
-          isOpen: true,
-          message: `${error}`,
-        });
+        setIsLoading(false);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            message: `no server response`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-        } else if (error.response.status === 409) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -506,7 +549,7 @@ const TaskForms = () => {
             flexDirection: "column",
             p: 2,
             justifyContent: { xs: "center", sm: "start" },
-            borderBottom:`2px solid ${colors.primary[950]}`
+            borderBottom: `2px solid ${colors.primary[950]}`,
           }}
         >
           <Typography variant="h4">Select a subject</Typography>
@@ -546,7 +589,6 @@ const TaskForms = () => {
         <Box
           sx={{
             display: "flex",
-            height: "100%",
             width: "100%",
             borderBottom: 1,
             borderColor: "divider",

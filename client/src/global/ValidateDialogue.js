@@ -3,6 +3,9 @@ import { useState } from "react";
 import { FormControl, useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import axios from "../api/axios";
+import ErrorDialogue from "./ErrorDialogue";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import {
   Button,
   Dialog,
@@ -31,6 +34,15 @@ const ValidateDialogue = (props) => {
   const { auth } = useAuth();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
@@ -81,12 +93,39 @@ const ValidateDialogue = (props) => {
         }
       } catch (error) {
         if (!error?.response) {
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
-          setPasswordError(true);
-        } else if (error.response.status === 401) {
-          setPasswordError(true);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -94,104 +133,110 @@ const ValidateDialogue = (props) => {
   };
 
   return (
-    <Dialog
-      sx={{ textAlign: "center" }}
-      open={validateDialog.isOpen}
-      onClose={handleClose}
-    >
-      <Box display="flex" flexDirection="column" alignItems="center">
-        {/* <Typography>Confirm Alert</Typography> */}
+    <>
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <Dialog
+        sx={{ textAlign: "center" }}
+        open={validateDialog.isOpen}
+        onClose={handleClose}
+      >
+        <Box display="flex" flexDirection="column" alignItems="center">
+          {/* <Typography>Confirm Alert</Typography> */}
 
-        <DialogTitle sx={{ margin: "0 30px" }}>
-          <Box display="flex" flexDirection="column" alignItems="center">
-            {/* <Typography>Confirm Alert</Typography> */}
-            <PrivacyTipOutlined
-              sx={{ fontSize: "100px", color: colors.secondary[500] }}
-            />
-            <Typography variant="h3">Confirm Changes!</Typography>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ margin: "0 20px" }}>
-          <Typography variant="h4">{validateDialog.title}</Typography>
-          <Typography variant="h5">{validateDialog.message}</Typography>
-          <form onSubmit={handleSubmit}>
-            <Box display="flex" flexDirection="column" gap={2}>
-              <TextField
-                required
-                autoComplete="off"
-                variant="outlined"
-                disabled
-                // type={showUsername ? "text" : "password"}
-                value={auth.username}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonOutline />
-                    </InputAdornment>
-                  ),
-                }}
+          <DialogTitle sx={{ margin: "0 30px" }}>
+            <Box display="flex" flexDirection="column" alignItems="center">
+              {/* <Typography>Confirm Alert</Typography> */}
+              <PrivacyTipOutlined
+                sx={{ fontSize: "100px", color: colors.secondary[500] }}
               />
-
-              <TextField
-                required
-                type={showPassword ? "text" : "password"}
-                name="password"
-                autoComplete="off"
-                variant="outlined"
-                placeholder="Password"
-                value={password}
-                error={passwordError}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setPasswordError(false);
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockOutlined />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                      >
-                        {showPassword ? (
-                          <VisibilityOutlined />
-                        ) : (
-                          <VisibilityOffOutlined />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                helperText={passwordError ? "Invalid password" : ""}
-              />
-              <DialogActions
-                sx={{
-                  justifyContent: "center",
-                  gap: 2,
-                }}
-              >
-                <Button
-                  fullWidth
-                  color="secondary"
-                  variant="contained"
-                  type="submit"
-                >
-                  Confirm
-                </Button>
-                <Button fullWidth variant="contained" onClick={handleClose2}>
-                  Cancel
-                </Button>
-              </DialogActions>
+              <Typography variant="h3">Confirm Changes!</Typography>
             </Box>
-          </form>
-        </DialogContent>
-      </Box>
-    </Dialog>
+          </DialogTitle>
+          <DialogContent sx={{ margin: "0 20px" }}>
+            <Typography variant="h4">{validateDialog.title}</Typography>
+            <Typography variant="h5">{validateDialog.message}</Typography>
+            <form onSubmit={handleSubmit}>
+              <Box display="flex" flexDirection="column" gap={2}>
+                <TextField
+                  required
+                  autoComplete="off"
+                  variant="outlined"
+                  disabled
+                  // type={showUsername ? "text" : "password"}
+                  value={auth.username}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonOutline />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  required
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  autoComplete="off"
+                  variant="outlined"
+                  placeholder="Password"
+                  value={password}
+                  error={passwordError}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(false);
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockOutlined />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                        >
+                          {showPassword ? (
+                            <VisibilityOutlined />
+                          ) : (
+                            <VisibilityOffOutlined />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  helperText={passwordError ? "Invalid password" : ""}
+                />
+                <DialogActions
+                  sx={{
+                    justifyContent: "center",
+                    gap: 2,
+                  }}
+                >
+                  <Button
+                    fullWidth
+                    color="secondary"
+                    variant="contained"
+                    type="submit"
+                  >
+                    Confirm
+                  </Button>
+                  <Button fullWidth variant="contained" onClick={handleClose2}>
+                    Cancel
+                  </Button>
+                </DialogActions>
+              </Box>
+            </form>
+          </DialogContent>
+        </Box>
+      </Dialog>
+    </>
   );
 };
 

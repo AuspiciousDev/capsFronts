@@ -106,7 +106,6 @@ const Sidebar = () => {
   const [getPath, setPath] = useState("");
 
   useEffect(() => {
-    console.log("Sidebar Auth :", auth);
     const getOverviewDetails = async () => {
       try {
         const apiEmp = await axiosPrivate.get(
@@ -116,17 +115,14 @@ const Sidebar = () => {
           const json = await apiEmp.data;
           // empDispatch({ type: "SET_EMPLOYEES", payload: json });
           setUserProfile(json);
-          console.log("Sidebar DATA: ", json);
         }
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
           const json = await response.data;
-          console.log("School Year GET: ", json);
           yearDispatch({ type: "SET_YEARS", payload: json });
         }
       } catch (error) {
         if (!error?.response) {
-          console.log("no server response");
         } else if (error.response.status === 204) {
           console.log(error.response.data.message);
         } else {
@@ -165,7 +161,6 @@ const Sidebar = () => {
         },
       }}
     >
-      {console.log(userProfile)}
       <ProSidebar
         collapsed={isCollapsed}
         style={{

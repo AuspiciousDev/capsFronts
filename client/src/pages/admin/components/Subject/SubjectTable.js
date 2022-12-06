@@ -55,11 +55,32 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import { useNavigate, useLocation } from "react-router-dom";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 const SubjectTable = () => {
   const CHARACTER_LIMIT = 6;
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const axiosPrivate = useAxiosPrivate();
 
@@ -114,7 +135,7 @@ const SubjectTable = () => {
     message: "",
   });
 
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -143,6 +164,7 @@ const SubjectTable = () => {
     setIsFormOpen(false);
   };
   const handleSubmit = async (e) => {
+    setLoadingDialog({ isOpen: true });
     let noSpaceSubjectID = "";
     e.preventDefault();
     console.log(subjectID, levelID, subjectName);
@@ -172,20 +194,49 @@ const SubjectTable = () => {
           setIsFormOpen(false);
           setOpen(false);
           setIsLoading(false);
+          setSuccessDialog({
+            isOpen: true,
+            message: `Subject ${subjectID} has been added!`,
+          });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setDepartmentIDError(true);
-          setOpen(false);
-          setIsLoading(false);
-          setErrorMessage(error.response.data.message);
-
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -294,6 +345,7 @@ const SubjectTable = () => {
       ...confirmDialog,
       isOpen: false,
     });
+    setLoadingDialog({ isOpen: true });
     try {
       const response = await axiosPrivate.delete("/api/subjects/delete", {
         headers: { "Content-Type": "application/json" },
@@ -305,32 +357,45 @@ const SubjectTable = () => {
         console.log(response.data.message);
         subDispatch({ type: "DELETE_SUBJECT", payload: json });
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
       setIsLoading(false);
       if (!error?.response) {
-        console.log("No server response");
         setErrorDialog({
           isOpen: true,
-          title: `No server response`,
+          message: `No server response`,
         });
       } else if (error.response.status === 400) {
-        console.log(error.response.data.message);
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          message: `${error.response.data.message}`,
         });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
-        setErrorDialog({
-          isOpen: true,
-          title: `${error.response.data.message}`,
-        });
       } else {
-        console.log(error);
         setErrorDialog({
           isOpen: true,
-          title: `${error}`,
+          message: `${error}`,
         });
+        console.log(error);
       }
     }
   };
@@ -339,6 +404,7 @@ const SubjectTable = () => {
       ...confirmDialog,
       isOpen: false,
     });
+    setLoadingDialog({ isOpen: true });
     let newStatus = val.status;
     val.status === true
       ? (newStatus = false)
@@ -360,28 +426,187 @@ const SubjectTable = () => {
           setSuccessDialog({ isOpen: true });
         }
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
         setErrorDialog({
           isOpen: true,
-          title: `no server response`,
+          message: `No server response`,
         });
       } else if (error.response.status === 400) {
         setErrorDialog({
           isOpen: true,
-          title: `${error.response.data.message}`,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
       } else {
-        console.log(error);
         setErrorDialog({
           isOpen: true,
-          title: `${error}`,
+          message: `${error}`,
         });
+        console.log(error);
       }
     }
   };
+
+  const columns = [
+    {
+      field: "subjectID",
+      headerName: "Subject ID",
+      width: 150,
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
+    { field: "subjectName", headerName: "Subject Name", width: 200 },
+    { field: "levelNum", headerName: "Subject Level", width: 200 },
+
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.subjectID.toUpperCase()}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete Subject ${params.row.subjectName}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
+  };
+
   const TableTitles = () => {
     return (
       <StyledTableHeadRow>
@@ -403,6 +628,7 @@ const SubjectTable = () => {
       </StyledTableHeadRow>
     );
   };
+
   const tableDetails = (val) => {
     return (
       <StyledTableRow
@@ -562,84 +788,6 @@ const SubjectTable = () => {
       </StyledTableRow>
     );
   };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.error[100] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h6">Are you sure to delete </Typography>
-            <Box margin="20px 0">
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                sx={{ textTransform: "uppercase" }}
-              >
-                {delVal.subjectID}
-              </Typography>
-              <Typography variant="h4" sx={{ textTransform: "capitalize" }}>
-                {delVal.title}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              color="secondary"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
 
   return (
     <>
@@ -928,7 +1076,7 @@ const SubjectTable = () => {
             <Paper
               elevation={3}
               sx={{
-                display: "flex",
+                display: "none",
                 width: { xs: "100%", sm: "320px" },
                 height: "50px",
                 minWidth: "250px",
@@ -969,105 +1117,45 @@ const SubjectTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%" sx={{ mt: 2 }}>
-        <Paper elevation={2}>
-          <TableContainer sx={{ maxHeight: 700 }}>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? subjects
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((data) => {
-                        return (
-                          data.subjectID
-                            .toLowerCase()
-                            .includes(search.toLowerCase()) ||
-                          data.subjectName
-                            .toLowerCase()
-                            .includes(search.toLowerCase())
-                        );
-                      })
-                      .map((data) => {
-                        return tableDetails(data);
-                      })
-                  : subjects &&
-                    subjects
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((data) => {
-                        return tableDetails(data);
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={subjects && subjects.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={subjects ? subjects && subjects : 0}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
+            sx={{
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
+            }}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  createdAt: false,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
           />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-        >
-          {/* <Typography textTransform="uppercase">
-                {console.log(Object.keys(subjects || {}).length)}
-                {Object.keys(subjects || {}).length}
-              </Typography> */}
-          {isLoading ? <Loading /> : <></>}
-          {Object.keys(subjects || {}).length > 0 ? (
-            <></> // <Typography textTransform="uppercase">data</Typography>
-          ) : (
-            <Typography textTransform="uppercase">no data</Typography>
-          )}
-          {/* {console.log(Object.keys(subjects).length)} */}
-          {/* {Object.keys(prop.subjectID).length > 0
-                ? console.log("true")
-                : console.log("false")} */}
-          {/* {subjects.length < 0 ? console.log("true") : console.log("false")} */}
-          {/* {Object.key(subjects).length ? (
-                <Typography textTransform="uppercase">data</Typography>
-              ) : (
-                <Typography textTransform="uppercase">no data</Typography>
-              )} */}
-
-          {/* <Box
-              display="flex"
-              width="100%"
-              justifyContent="center"
-              marginTop="20px"
-              marginBottom="20px"
-            >
-              <Box
-                width="200px"
-                display="grid"
-                gridTemplateColumns="1fr 1fr"
-                justifyItems="center"
-              >
-                <ArrowBackIosNewOutlined color="gray" />
-                <ArrowForwardIosOutlined color="gray" />
-              </Box>
-            </Box> */}
         </Box>
-
-        <Box display="flex" width="100%" marginTop="20px"></Box>
-      </Box>
+      </Paper>
     </>
   );
 };

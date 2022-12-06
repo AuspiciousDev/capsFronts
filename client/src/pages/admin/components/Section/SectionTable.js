@@ -44,9 +44,33 @@ import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
+
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import { useNavigate, useLocation } from "react-router-dom";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
+
 const SectionTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const axiosPrivate = useAxiosPrivate();
 
@@ -102,7 +126,7 @@ const SectionTable = () => {
     message: "",
   });
 
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -175,11 +199,35 @@ const SectionTable = () => {
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -187,6 +235,147 @@ const SectionTable = () => {
     getData();
   }, [secDispatch, levelDispatch, depDispatch]);
 
+  const columns = [
+    {
+      field: "sectionID",
+      headerName: "Section ID",
+      width: 150,
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
+    { field: "sectionName", headerName: "Section", width: 200 },
+    { field: "levelNum", headerName: "Level", width: 200 },
+    {
+      field: "departmentID",
+      headerName: "Department ID",
+      width: 200,
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
+
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.sectionID.toUpperCase()}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete department ${params.row.depName}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
+  };
   const TableTitles = () => {
     return (
       <StyledTableHeadRow
@@ -335,88 +524,10 @@ const SectionTable = () => {
       </StyledTableRow>
     );
   };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.error[500] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record</Typography>
-            <Box margin="20px 0">
-              <Typography
-                variant="h2"
-                fontWeight="bold"
-                sx={{ textTransform: "capitalize" }}
-              >
-                {delVal.sectionID}
-              </Typography>
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                textTransform="capitalize"
-              ></Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoadingDialog({ isOpen: true });
     const data = {
       sectionID,
       departmentID,
@@ -438,20 +549,43 @@ const SectionTable = () => {
           secDispatch({ type: "CREATE_SEC", payload: json });
           setOpen(false);
           setIsLoading(false);
+          setSuccessDialog({
+            isOpen: true,
+            message: `Section ${json.sectionName} has been added!`,
+          });
+          setLoadingDialog({ isOpen: false });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setSectionIDError(true);
-          setError(true);
-          setErrorMessage(error.response.data.message);
-
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -477,18 +611,18 @@ const SectionTable = () => {
         secDispatch({ type: "DELETE_SEC", payload: json });
         setSuccessDialog({
           isOpen: true,
-          message: "Section has been deleted!",
+          message: `Section ${json.sectionName} has been deleted!`,
         });
       }
 
       setIsLoading(false);
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
-        setIsLoading(false);
         setErrorDialog({
           isOpen: true,
-          message: "no server response",
+          message: `No server response`,
         });
       } else if (error.response.status === 400) {
         setErrorDialog({
@@ -496,26 +630,35 @@ const SectionTable = () => {
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 404) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else {
         setErrorDialog({
           isOpen: true,
           message: `${error}`,
         });
         console.log(error);
-        setIsLoading(false);
       }
-      setIsLoading(false);
     }
   };
   const toggleStatus = async ({ val }) => {
+    setLoadingDialog({ isOpen: true });
     setConfirmDialog({
       ...confirmDialog,
       isOpen: false,
@@ -545,14 +688,46 @@ const SectionTable = () => {
           setIsLoading(false);
           secDispatch({ type: "SET_SECS", payload: json });
           setSuccessDialog({ isOpen: true });
+          setLoadingDialog({ isOpen: false });
         }
       }
     } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
-        console.log("no server response");
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
       } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
       } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         console.log(error);
       }
     }
@@ -797,7 +972,7 @@ const SectionTable = () => {
             <Paper
               elevation={3}
               sx={{
-                display: "flex",
+                display: "none",
                 width: { xs: "100%", sm: "320px" },
                 height: "50px",
                 minWidth: "250px",
@@ -840,149 +1015,48 @@ const SectionTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%" sx={{ mt: 2 }}>
-        <Paper elevation={2}>
-          <TableContainer
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={sections ? sections && sections : 0}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
             sx={{
-              maxheight: "700px",
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
             }}
-          >
-            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? levels &&
-                    sections &&
-                    sections
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        const res = levels
-                          .filter((lvl) => {
-                            return (
-                              val.levelID === lvl.levelID &&
-                              lvl.status === true &&
-                              val.sectionID.includes(search)
-                            );
-                          })
-                          .map((val) => {
-                            return val.levelID;
-                          });
-                        return (
-                          console.log("Level: ", res[0]), res[0] === val.levelID
-                        );
-                      })
-                      .map((val) => {
-                        return (
-                          console.log("Section data: ", val.sectionID),
-                          tableDetails({ val })
-                        );
-                      })
-                  : levels &&
-                    sections &&
-                    sections
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        const res = levels
-                          .filter((lvl) => {
-                            return (
-                              val.levelID === lvl.levelID && lvl.status === true
-                            );
-                          })
-                          .map((val) => {
-                            return val.levelID;
-                          });
-                        return (
-                          console.log("Level: ", res[0]), res[0] === val.levelID
-                        );
-                      })
-                      .map((val) => {
-                        return (
-                          console.log("Section data: ", val.sectionID),
-                          tableDetails({ val })
-                        );
-                      })}
-
-                {/* {departments &&
-                levels &&
-                sections &&
-                sections
-                  .filter((sec) => {
-                    const level = levels
-                      .filter((lvl) => {
-                        const dep = departments
-                          .filter((dep) => {
-                            return (
-                              lvl.departmentID === dep.departmentID &&
-                              dep.status === true
-                            );
-                          })
-                          .map((depVal) => {
-                            return (
-                              console.log(
-                                "Active Department : ",
-                                depVal.departmentID
-                              ),
-                              depVal.departmentID
-                            );
-                          });
-                        return (
-                          console.log("Active returned Dep :", dep),
-                          lvl.departmentID === dep[0] && lvl.status === true
-                        );
-                      })
-                      .map((lvlVal) => {
-                        return (
-                          console.log("Active Level: ", lvlVal.levelID),
-                          lvlVal.levelID
-                        );
-                      });
-                    const res = level
-                      .filter((filter) => {
-                        return filter === sec.levelID && sec.status === true;
-                      })
-                      .map((val) => {
-                        return console.log("Active returned try :", val), val;
-                      });
-                    return res === sec.levelID;
-
-                    // level[1] === sec.levelID && sec.status === true
-                  })
-                  .map((val) => {
-                    return tableDetails({ val });
-                  })} */}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={sections && sections.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  firstName: true,
+                  lastName: true,
+                  middleName: true,
+                  email: true,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
           />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-          paddingBottom="20px"
-        >
-          {isloading ? <Loading /> : <></>}
         </Box>
-      </Box>
+      </Paper>
     </>
   );
 };

@@ -33,7 +33,7 @@ const GradesCurrent = () => {
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
 
-  const { level, year, id } = useParams();
+  const { level, section, year, id } = useParams();
   const [search, setSearch] = useState("");
   const [getGrades, setGrades] = useState([]);
   const [getSubjects, setSubjects] = useState([]);
@@ -357,7 +357,7 @@ const GradesCurrent = () => {
               }}
             >
               <Link
-                to={`/admin/grade/task/add/${year}/${id}`}
+                to={`/admin/grade/record/${level}/${section}/${year}/${id}`}
                 style={{ textDecoration: "none" }}
               >
                 <Button

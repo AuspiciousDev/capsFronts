@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState, useRef } from "react";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -90,6 +90,9 @@ const TaskTable = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { id, year } = useParams();
   const [value, setValue] = React.useState(0);
@@ -301,6 +304,72 @@ const TaskTable = () => {
     taskDispatch,
   ]);
 
+  const handleDelete = async ({ val }) => {
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
+    });
+    try {
+      setLoadingDialog({ isOpen: true });
+      setIsLoading(true);
+      const response = await axiosPrivate.delete("/api/taskScore/delete", {
+        headers: { "Content-Type": "application/json" },
+        data: val,
+        withCredentials: true,
+      });
+      const json = await response.data;
+      if (response.status === 200) {
+        console.log(json);
+        taskScoreDispatch({ type: "DELETE_SCORE", payload: json });
+        setSuccessDialog({
+          isOpen: true,
+          message: `Score ${val.taskScoreID} has been Deleted!`,
+        });
+      }
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        console.log(error);
+      }
+    }
+  };
+
   // console.log("stud Data:", getStudentData);
   const TableTitles = () => {
     return (
@@ -355,16 +424,16 @@ const TaskTable = () => {
 
         <TableCell align="left">
           <ButtonBase
-            onClick={() => {
+            onClick={(e) => {
               setValidateDialog({
                 isOpen: true,
                 onConfirm: () => {
                   setConfirmDialog({
                     isOpen: true,
-                    title: `Are you sure to delete year ${val.schoolYearID}`,
+                    title: `Are you sure to delete Score ${val.taskScoreID}`,
                     message: `This action is irreversible!`,
                     onConfirm: () => {
-                      // handleDelete({ val });
+                      handleDelete({ val });
                     },
                   });
                 },
@@ -404,6 +473,22 @@ const TaskTable = () => {
 
   return (
     <Box className="contents-container">
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
       <LoadingDialogue
         loadingDialog={loadingDialog}
         setLoadingDialog={setLoadingDialog}
@@ -521,7 +606,6 @@ const TaskTable = () => {
       <Box
         sx={{
           display: "flex",
-          height: "100%",
           width: "100%",
           borderBottom: 1,
           borderColor: "divider",

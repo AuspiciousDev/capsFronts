@@ -1,7 +1,7 @@
 import React from "react";
 import Popup from "reactjs-popup";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
@@ -26,6 +26,7 @@ import {
   InputLabel,
   Tooltip,
   TablePagination,
+  Avatar,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
@@ -56,12 +57,32 @@ import {
 } from "@mui/icons-material";
 import CancelIcon from "@mui/icons-material/Cancel";
 
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 const ActiveStudentsTable = () => {
   const CHARACTER_LIMIT = 10;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { students, studDispatch } = useStudentsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
@@ -117,7 +138,7 @@ const ActiveStudentsTable = () => {
     title: "",
     message: "",
   });
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -145,6 +166,7 @@ const ActiveStudentsTable = () => {
     const getData = async () => {
       try {
         setIsLoading(true);
+        setLoadingDialog({ isOpen: true });
         const apiStud = await axiosPrivate.get("/api/students", {});
         if (apiStud?.status === 200) {
           const json = await apiStud.data;
@@ -186,12 +208,44 @@ const ActiveStudentsTable = () => {
           setIsLoading(false);
           yearDispatch({ type: "SET_YEARS", payload: json });
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -246,40 +300,45 @@ const ActiveStudentsTable = () => {
           });
         }
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
       setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
-          message: `No server response!`,
+          message: `No server response`,
         });
-        console.log("no server response!");
-        setIsLoading(false);
       } else if (error.response.status === 400) {
-        console.log(error.response.data.message);
-        setErrorDialog({
-          isOpen: true,
-          message: `${error.response.data.message}`,
-        });
-        setIsLoading(false);
-      } else if (error.response.status === 401) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 404) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else {
-        setErrorDialog({ isOpen: true, message: `${error}` });
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         console.log(error);
-        setIsLoading(false);
       }
     }
   };
@@ -298,6 +357,178 @@ const ActiveStudentsTable = () => {
       border: 0,
     },
   }));
+
+  const columns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "studID",
+      headerName: "Student ID",
+      width: 150,
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 120 },
+    { field: "levelID", headerName: "Level", width: 120 },
+    { field: "sectionID", headerName: "Section", width: 120 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <>
+            <ButtonBase
+              onClick={() => {
+                setValidateDialog({
+                  isOpen: true,
+                  onConfirm: () => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: `Are you sure to change status of  ${params?.row?.studID}`,
+                      message: `${
+                        params?.value === true
+                          ? "INACTIVE to ACTIVE"
+                          : " ACTIVE to INACTIVE"
+                      }`,
+                      onConfirm: () => {
+                        toggleStatus({ val: params?.row });
+                      },
+                    });
+                  },
+                });
+              }}
+            >
+              {params?.value === true ? (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    padding: "2px 10px",
+                    backgroundColor: colors.primary[900],
+                    color: colors.whiteOnly[100],
+                    borderRadius: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckCircle />
+                  <Typography>ACTIVE</Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Cancel />
+                  <Typography ml="5px">INACTIVE</Typography>
+                </Paper>
+              )}
+            </ButtonBase>
+          </>
+        );
+      },
+    },
+    {
+      field: "_id",
+      headerName: "Action",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={(event) => {
+              handleCellClick(event, params);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                color: colors.blackOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Delete />
+              <Typography ml="5px">Remove</Typography>
+            </Paper>
+          </ButtonBase>
+          // <Button
+          //   fullWidth
+          //   variant="contained"
+          //   type="button"
+          //   onClick={(event) => {
+          //     handleCellClick(event, params);
+          //   }}
+          // >
+          //   Delete
+          // </Button>
+        );
+      },
+    },
+  ];
+  const handleCellClick = (event, params) => {
+    event.stopPropagation();
+    setValidateDialog({
+      isOpen: true,
+      onConfirm: () => {
+        setConfirmDialog({
+          isOpen: true,
+          title: `Are you sure to delete Enrolled Student ${params?.row?.studID}`,
+          message: `This action is irreversible!`,
+          onConfirm: () => {
+            handleDelete({ val: params.row });
+          },
+        });
+      },
+    });
+    // alert(`Delete : ${params.row.username}`);
+    // alert(`Delete : ${params.value}`);
+  };
 
   const TableTitles = () => {
     return (
@@ -508,6 +739,7 @@ const ActiveStudentsTable = () => {
       sectionID,
       departmentID,
     };
+    setLoadingDialog({ isOpen: true });
     setIsLoading(true);
     if (!error) {
       try {
@@ -523,13 +755,14 @@ const ActiveStudentsTable = () => {
           setOpen(false);
           setIsLoading(false);
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         setIsLoading(false);
         if (!error?.response) {
-          console.log("no server response");
           setErrorDialog({
             isOpen: true,
-            message: `${"No Server response!"}`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
           setErrorDialog({
@@ -537,22 +770,30 @@ const ActiveStudentsTable = () => {
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setDepartmentIDError(true);
-          setStudentIDError(true);
-          setError(true);
-          setErrorMessage(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 500) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
         } else {
-          console.log(error);
           setErrorDialog({
             isOpen: true,
             message: `${error}`,
           });
+          console.log(error);
         }
       }
     } else {
@@ -585,38 +826,42 @@ const ActiveStudentsTable = () => {
       setIsLoading(false);
     } catch (error) {
       setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
-          message: `No server response!`,
+          message: `No server response`,
         });
-        console.log("no server response!");
-        setIsLoading(false);
       } else if (error.response.status === 400) {
-        console.log(error.response.data.message);
-        setErrorDialog({
-          isOpen: true,
-          message: `${error.response.data.message}`,
-        });
-        setIsLoading(false);
-      } else if (error.response.status === 401) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
       } else if (error.response.status === 404) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
         console.log(error.response.data.message);
-        setIsLoading(false);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else {
-        setErrorDialog({ isOpen: true, message: `${error}` });
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
         console.log(error);
-        setIsLoading(false);
       }
     }
   };
@@ -952,7 +1197,7 @@ const ActiveStudentsTable = () => {
             <Paper
               elevation={3}
               sx={{
-                display: "flex",
+                display: "none",
                 width: { xs: "100%", sm: "320px" },
                 height: "50px",
                 minWidth: "250px",
@@ -995,7 +1240,46 @@ const ActiveStudentsTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%" sx={{ mt: 2 }}>
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={actives ? actives && actives : 0}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
+            sx={{
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
+            }}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  createdAt: false,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
+          />
+        </Box>
+      </Paper>
+      <Box display="none" width="100%" sx={{ mt: 2 }}>
         <Paper elevation={2}>
           <TableContainer
             sx={{
