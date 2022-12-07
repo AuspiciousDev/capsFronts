@@ -189,7 +189,7 @@ const SubjectTable = () => {
 
         if (response.status === 201) {
           const json = await response.data;
-          console.log(json);
+          console.log("Subject GET:", json);
           subDispatch({ type: "CREATE_SUBJECT", payload: json });
           setIsFormOpen(false);
           setOpen(false);
@@ -265,14 +265,16 @@ const SubjectTable = () => {
       try {
         setLoadingDialog({ isOpen: true });
         setIsLoading(true);
+        console.log("Subject GET:");
         const response = await axiosPrivate.get("/api/subjects", {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
         });
+
         if (response.status === 200) {
           const json = await response.data;
-          setIsLoading(false);
           subDispatch({ type: "SET_SUBJECTS", payload: json });
+          console.log("Subject GET:", json);
         }
         const getLevels = await axiosPrivate.get("/api/levels", {
           headers: { "Content-Type": "application/json" },

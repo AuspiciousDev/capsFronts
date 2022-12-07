@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { FormControl, useTheme } from "@mui/material";
-import { tokens } from "../theme";
-import axios from "../api/axios";
+import { tokens } from "../../theme";
+import axios from "../../api/axios";
 import {
   Button,
   Dialog,
@@ -24,7 +24,7 @@ import {
   VisibilityOffOutlined,
   PersonOutline,
 } from "@mui/icons-material";
-import useAuth from "../hooks/useAuth";
+import useAuth from "../../hooks/useAuth";
 const VERIFY_URL = "/auth/verify";
 
 const ValidateDialogue = (props) => {

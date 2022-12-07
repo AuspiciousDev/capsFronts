@@ -8,34 +8,20 @@ import {
   Paper,
   InputBase,
   Divider,
-  Button,
   Typography,
   IconButton,
   ButtonBase,
   TableContainer,
   Table,
   TableRow,
-  FormControl,
-  TextField,
   TableHead,
   TableCell,
   TableBody,
-  InputLabel,
-  Select,
-  Menu,
-  MenuItem,
   TablePagination,
+  Avatar,
 } from "@mui/material";
-import {
-  DriveFileRenameOutline,
-  AccountCircle,
-  DeleteOutline,
-  Person2,
-  Search,
-} from "@mui/icons-material";
-import AddIcon from "@mui/icons-material/Add";
+import { Search } from "@mui/icons-material";
 import TopicOutlinedIcon from "@mui/icons-material/TopicOutlined";
-import { styled } from "@mui/material/styles";
 
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
 import { useGradesContext } from "../../../../hooks/useGradesContext";
@@ -49,10 +35,36 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import DownloadForOfflineOutlinedIcon from "@mui/icons-material/DownloadForOfflineOutlined";
-import { useTheme } from "@mui/material";
+import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
-import GradesForm from "./GradesForm";
-const GradesTable = () => {
+import GradesForm from "./TeachGradesForm";
+
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+
+import ConfirmDialogue from "../../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
+
+const TeachGradesTable = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,10 +73,6 @@ const GradesTable = () => {
 
   const axiosPrivate = useAxiosPrivate();
   const ref = useRef();
-  const [getLevelID, setLevelID] = useState("");
-  const [getSectionID, setSectionID] = useState("");
-  const [getLevelTitle, setLevelTitle] = useState("");
-  const [getSectionTitle, setSectionTitle] = useState("");
   const [getGrades, setGrades] = useState([]);
   const [getData, setData] = useState([]);
   const [search, setSearch] = useState("");
@@ -89,6 +97,32 @@ const GradesTable = () => {
   const closeFilter = () => {
     setIsFilterOpen(false);
   };
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   useEffect(() => {
     const getData = async () => {
       try {
@@ -171,11 +205,48 @@ const GradesTable = () => {
           activeDispatch({ type: "SET_ACTIVES", payload: json });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("No server response!");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
-          // navigate("/login", { state: { from: location }, replace: true });
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
+          console.log(error);
         }
       }
     };
@@ -193,7 +264,7 @@ const GradesTable = () => {
     return { levelID, levelTitle };
   }
 
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -240,13 +311,172 @@ const GradesTable = () => {
     // setError(false);
   };
 
+  const columns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "studID",
+      headerName: "Student ID",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <ButtonBase
+            onClick={() => {
+              setOpen((o) => !o);
+              setID(params?.value);
+            }}
+          >
+            <Paper
+              sx={{
+                padding: "2px 20px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Typography sx={{ fontWeight: "bold", color: "black" }}>
+                {params?.value}
+              </Typography>
+            </Paper>
+          </ButtonBase>
+        );
+      },
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 120 },
+    { field: "levelID", headerName: "Level", width: 120 },
+    { field: "sectionID", headerName: "Section", width: 120 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      headerName: "Records",
+      width: 250,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" gap={2} width="60%">
+            {/* <Box
+          sx={{
+            display: "flex",
+            width: "30%",
+            p: "5px",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "row",
+          }}
+        > */}
+            {/* <ButtonBase
+          sx={{ cursor: "pointer" }}
+          onClick={() => {
+            setIsFormOpen((o) => !o);
+            setData(val);
+            setID(val.studID);
+          }} 
+        >*/}
+            <Link
+              to={`/teacher/grade/record/${params.row.levelID}/${params.row.sectionID}/${params.row.schoolYearID}/${params.row.studID}`}
+              style={{ textDecoration: "none" }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 10px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  color: colors.blackOnly[100],
+                  alignItems: "center",
+                }}
+              >
+                <TopicOutlinedIcon />
+                <Typography ml="10px">Grades</Typography>
+              </Paper>
+              {/* </ButtonBase> */}
+              {/* </Box> */}
+            </Link>
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+
+                alignItems: "center",
+              }}
+            >
+              <Link
+                to={`/teacher/record/task/${params.row.studID}/${params.row.schoolYearID}`}
+                style={{
+                  alignItems: "center",
+                  color: colors.black[100],
+                  textDecoration: "none",
+                }}
+              >
+                <Box
+                  display="flex"
+                  sx={{ alignItems: "center", color: colors.blackOnly[100] }}
+                >
+                  <DownloadForOfflineOutlinedIcon />
+                  <Typography ml="5px">Tasks</Typography>
+                </Box>
+              </Link>
+            </Paper>
+          </Box>
+        );
+      },
+    },
+  ];
+
   const TableTitles = () => {
     return (
       <StyledTableHeadRow>
         <TableCell align="left">Student ID</TableCell>
         <TableCell align="left">Name</TableCell>
         <TableCell align="left">Sex</TableCell>
-        <TableCell align="left">Actions</TableCell>
+        <TableCell align="left">Records</TableCell>
       </StyledTableHeadRow>
     );
   };
@@ -307,13 +537,17 @@ const GradesTable = () => {
                 flexDirection: "row",
               }}
             > */}
-            <ButtonBase
+            {/* <ButtonBase
               sx={{ cursor: "pointer" }}
               onClick={() => {
                 setIsFormOpen((o) => !o);
                 setData(val);
                 setID(val.studID);
-              }}
+              }} 
+            >*/}
+            <Link
+              to={`/teacher/grade/${val.levelID}/${val.schoolYearID}/${val.studID}`}
+              style={{ textDecoration: "none" }}
             >
               <Paper
                 sx={{
@@ -329,9 +563,9 @@ const GradesTable = () => {
                 <TopicOutlinedIcon />
                 <Typography ml="10px">Grades</Typography>
               </Paper>
-            </ButtonBase>
-            {/* </Box> */}
-
+              {/* </ButtonBase> */}
+              {/* </Box> */}
+            </Link>
             <Paper
               sx={{
                 padding: "2px 10px",
@@ -344,7 +578,7 @@ const GradesTable = () => {
               }}
             >
               <Link
-                to={`/generatepdf/${val.studID}`}
+                to={`/teacher/record/task/${val.studID}/${val.schoolYearID}`}
                 style={{
                   alignItems: "center",
                   color: colors.black[100],
@@ -356,7 +590,7 @@ const GradesTable = () => {
                   sx={{ alignItems: "center", color: colors.blackOnly[100] }}
                 >
                   <DownloadForOfflineOutlinedIcon />
-                  <Typography ml="5px">Download</Typography>
+                  <Typography ml="5px">Tasks</Typography>
                 </Box>
               </Link>
             </Paper>
@@ -416,7 +650,6 @@ const GradesTable = () => {
         {/* Student ID */}
         <TableCell
           align="left"
-          onClick={handleCellClick}
           sx={{
             display: { xs: "flex", sm: "none" },
             textTransform: "uppercase",
@@ -530,83 +763,83 @@ const GradesTable = () => {
     );
   };
 
-  const StudGradeTableTitles = () => {
-    return (
-      <TableRow>
-        <TableCell align="left">SUBJECT ID</TableCell>
-        <TableCell align="left">SUBJECT NAME</TableCell>
-        <TableCell align="left">1st </TableCell>
-        <TableCell align="left">2nd </TableCell>
-        <TableCell align="left">3rd </TableCell>
-        <TableCell align="left">4th </TableCell>
-        <TableCell align="left">REMARKS</TableCell>
-      </TableRow>
-    );
-  };
-  const StudGradeTableDetails = ({ val }) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.studID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* Student ID */}
-        <TableCell
-          align="left"
-          onClick={handleCellClick}
-          sx={{ textTransform: "uppercase" }}
-        >
-          {val.subjectID}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {subjects &&
-            subjects
-              .filter((sub) => {
-                return (
-                  sub.subjectID.toLowerCase() === val.subjectID.toLowerCase()
-                );
-              })
-              .map((sub) => {
-                return sub.subjectName;
-              })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter1;
-          })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter2;
-          })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter3;
-          })}
-        </TableCell>
-        <TableCell align="left">
-          {val.allGrades.map((val) => {
-            return val.quarter4;
-          })}
-        </TableCell>
+  // const StudGradeTableTitles = () => {
+  //   return (
+  //     <TableRow>
+  //       <TableCell align="left">SUBJECT ID</TableCell>
+  //       <TableCell align="left">SUBJECT NAME</TableCell>
+  //       <TableCell align="left">1st </TableCell>
+  //       <TableCell align="left">2nd </TableCell>
+  //       <TableCell align="left">3rd </TableCell>
+  //       <TableCell align="left">4th </TableCell>
+  //       <TableCell align="left">REMARKS</TableCell>
+  //     </TableRow>
+  //   );
+  // };
+  // const StudGradeTableDetails = ({ val }) => {
+  //   return (
+  //     <StyledTableRow
+  //       key={val._id}
+  //       data-rowid={val.studID}
+  //       sx={
+  //         {
+  //           // "&:last-child td, &:last-child th": { border: 2 },
+  //           // "& td, & th": { border: 2 },
+  //         }
+  //       }
+  //     >
+  //       {/* Student ID */}
+  //       <TableCell
+  //         align="left"
+  //         onClick={handleCellClick}
+  //         sx={{ textTransform: "uppercase" }}
+  //       >
+  //         {val.subjectID}
+  //       </TableCell>
+  //       <TableCell align="left" sx={{ textTransform: "capitalize" }}>
+  //         {subjects &&
+  //           subjects
+  //             .filter((sub) => {
+  //               return (
+  //                 sub.subjectID.toLowerCase() === val.subjectID.toLowerCase()
+  //               );
+  //             })
+  //             .map((sub) => {
+  //               return sub.subjectName;
+  //             })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter1;
+  //         })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter2;
+  //         })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter3;
+  //         })}
+  //       </TableCell>
+  //       <TableCell align="left">
+  //         {val.allGrades.map((val) => {
+  //           return val.quarter4;
+  //         })}
+  //       </TableCell>
 
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val?.remark ? "passed" : "failed"}
-        </TableCell>
-        {/* Student Name */}
-      </StyledTableRow>
-    );
-  };
+  //       <TableCell align="left" sx={{ textTransform: "capitalize" }}>
+  //         {val?.remark ? "passed" : "failed"}
+  //       </TableCell>
+  //       {/* Student Name */}
+  //     </StyledTableRow>
+  //   );
+  // };
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
       fontWeight: "bold",
-      textTransform: "uppercase",
+      textTransform: "capitalize",
     },
     // hide last border
   }));
@@ -621,9 +854,6 @@ const GradesTable = () => {
     },
   }));
 
-  const handleCellClick = (e) => {
-    console.log(e.target.textContent);
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
   };
@@ -631,6 +861,26 @@ const GradesTable = () => {
   const closeForm = () => {};
   return (
     <>
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div
           className="modal-small-form"
@@ -729,7 +979,6 @@ const GradesTable = () => {
             elevation={2}
             sx={{
               width: "100%",
-              margin: "20px 0 5px 0",
               padding: { xs: "10px", sm: "0 10px" },
             }}
           >
@@ -752,126 +1001,51 @@ const GradesTable = () => {
                   GRADES
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "end",
-                  alignItems: "center",
-                }}
-              >
-                <Paper
-                  elevation={3}
-                  sx={{
-                    display: "flex",
-                    width: { xs: "100%", sm: "320px" },
-                    height: "50px",
-                    minWidth: "250px",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    p: { xs: "0 20px", sm: "0 20px" },
-                    mr: { xs: "0", sm: " 10px" },
-                  }}
-                >
-                  <InputBase
-                    sx={{ ml: 1, flex: 1 }}
-                    placeholder="Search Employee"
-                    onChange={(e) => {
-                      setSearch(e.target.value.toLowerCase());
-                    }}
-                  />
-                  <Divider sx={{ height: 30, m: 1 }} orientation="vertical" />
-                  <IconButton
-                    type="button"
-                    sx={{ p: "10px" }}
-                    aria-label="search"
-                  >
-                    <Search />
-                  </IconButton>
-                </Paper>
-                <Button
-                  type="button"
-                  startIcon={<AddIcon />}
-                  // onClick={setIsFormOpen((e) => !e)}
-                  variant="contained"
-                  sx={{
-                    width: { xs: "100%", sm: "200px" },
-                    height: "50px",
-                    marginLeft: { xs: "0", sm: "20px" },
-                    marginTop: { xs: "20px", sm: "0" },
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="500">
-                    Add
-                  </Typography>
-                </Button>
-              </Box>
             </Box>
           </Paper>
-          <Box width="100%">
-            <Paper elevation={2}>
-              <TableContainer
+          <Paper
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "100%",
+              mt: 2,
+            }}
+          >
+            <Box sx={{ height: "100%", width: "100%" }}>
+              <DataGrid
+                rows={actives ? actives && actives : 0}
+                getRowId={(row) => row._id}
+                columns={columns}
+                pageSize={page}
+                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                rowsPerPageOptions={[15, 50]}
+                pagination
                 sx={{
-                  maxHeight: "700px",
+                  "& .MuiDataGrid-cell": {
+                    textTransform: "capitalize",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                  },
                 }}
-              >
-                <Table aria-label="simple table">
-                  <TableHead>
-                    <TableTitles key={"asdas"} />
-                  </TableHead>
-                  <TableBody>
-                    {getLevelID && getSectionID
-                      ? getLevelID &&
-                        getSectionID &&
-                        actives &&
-                        actives
-                          .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
-                          )
-                          .filter((active) => {
-                            return (
-                              active.levelID.toLowerCase() === getLevelID &&
-                              active.sectionID.toLowerCase() === getSectionID
-                            );
-                          })
-
-                          .map((val) => {
-                            return tableDetails({ val });
-                          })
-                      : actives &&
-                        actives
-                          .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
-                          )
-                          .filter((active) => {
-                            return active.status === true;
-                          })
-
-                          .map((val) => {
-                            return tableDetails({ val });
-                          })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Divider />
-              <TablePagination
-                rowsPerPageOptions={[5, 10]}
-                component="div"
-                count={actives && actives.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                initialState={{
+                  columns: {
+                    columnVisibilityModel: {
+                      createdAt: false,
+                    },
+                  },
+                }}
+                components={{
+                  Toolbar: CustomToolbar,
+                }}
               />
-            </Paper>
-            <Box display="flex" width="100%" marginTop="20px"></Box>
-          </Box>
+            </Box>
+          </Paper>
         </>
       )}
     </>
   );
 };
 
-export default GradesTable;
+export default TeachGradesTable;

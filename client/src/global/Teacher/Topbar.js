@@ -35,6 +35,7 @@ import {
   CalendarMonthOutlined,
   CoPresentOutlined,
   Person,
+  ManageAccountsOutlined,
 } from "@mui/icons-material";
 
 import { styled, alpha } from "@mui/material/styles";
@@ -150,7 +151,26 @@ const Topbar = () => {
           gap={2}
         >
           <IconButton onClick={handleClick}>
-            <SettingsOutlinedIcon sx={{ fontSize: "20pt" }} />
+            <SettingsOutlinedIcon
+              sx={{
+                color: colors.primary[900],
+                fontSize: "20pt",
+                transition: "transform 0.15s ease-in-out",
+                "&:hover": {
+                  transform: "scale3d(1.5, 1.5, 1)",
+                  animation: "rotation 1s linear infinite",
+                  "@keyframes rotation": {
+                    "0%": {
+                      transform: "rotate(0deg)",
+                    },
+                    "100%": {
+                      transform: "rotate(360deg)",
+                    },
+                  },
+                  color: colors.primary[900],
+                },
+              }}
+            />
             {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
           </IconButton>
           <StyledMenu
@@ -162,10 +182,14 @@ const Topbar = () => {
             open={open}
             onClose={handleClose}
           >
-            <MenuItem onClick={colorMode.toggleColorMode} disableRipple>
+            <MenuItem onClick={colorMode.toggleColorMode} disableRipple sx={{}}>
               {theme.palette.mode === "dark" ? (
                 <>
-                  <DarkModeOutlinedIcon sx={{ fontSize: "20pt" }} />
+                  <DarkModeOutlinedIcon
+                    sx={{
+                      fontSize: "20pt",
+                    }}
+                  />
                   Dark Mode
                 </>
               ) : (
@@ -174,6 +198,15 @@ const Topbar = () => {
                   Light Mode
                 </>
               )}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                navigate(`/teacher/changePassword`);
+              }}
+              disableRipple
+            >
+              <ManageAccountsOutlined />
+              Change Password
             </MenuItem>
             <MenuItem
               onClick={() => {
@@ -210,18 +243,38 @@ const Topbar = () => {
         >
           <Box>
             <IconButton onClick={() => setDashOpen((prev) => !prev)}>
-              <MenuOutlined sx={{ fontSize: "20pt" }} />
+              <MenuOutlined
+                sx={{ color: colors.primary[900], fontSize: "20pt" }}
+              />
               {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
             </IconButton>
             {dashOpen && (
               <IconButton onClick={handleClick}>
-                <SettingsOutlinedIcon sx={{ fontSize: "20pt" }} />
+                <SettingsOutlinedIcon
+                  sx={{
+                    color: colors.primary[900],
+                    fontSize: "20pt",
+                    "&:hover": {
+                      transform: "scale3d(1.5, 1.5, 1)",
+                      animation: "rotation 1s linear infinite",
+                      "@keyframes rotation": {
+                        "0%": {
+                          transform: "rotate(0deg)",
+                        },
+                        "100%": {
+                          transform: "rotate(360deg)",
+                        },
+                      },
+                    },
+                  }}
+                />
                 {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
               </IconButton>
             )}
           </Box>
 
           <StyledMenu
+            sx={{ display: { xs: "block", sm: "none" } }}
             id="demo-customized-menu"
             MenuListProps={{
               "aria-labelledby": "demo-customized-button",
@@ -243,7 +296,10 @@ const Topbar = () => {
                 </>
               )}
             </MenuItem>
-
+            <MenuItem onClick={() => {}} disableRipple>
+              <ManageAccountsOutlined />
+              Account
+            </MenuItem>
             <MenuItem
               onClick={() => {
                 signOut();
@@ -258,7 +314,12 @@ const Topbar = () => {
       </Box>
       {dashOpen && (
         <Paper>
-          <Box sx={{ display: {xs: "grid", sm: "none"} , gridTemplateColumns: "1fr 1fr" }}>
+          <Box
+            sx={{
+              display: { xs: "grid", sm: "none" },
+              gridTemplateColumns: "1fr 1fr",
+            }}
+          >
             <StyledBox
               sx={{
                 width: "100%",
@@ -268,19 +329,13 @@ const Topbar = () => {
                 justifyContent: "center",
               }}
             >
-              <Link
-
-              // to={`/student/record/${val?.studID}/${val?.schoolYearID}`}
-              >
+              <Link to="/">
                 <StyledBox2 gap={2}>
                   <DashboardOutlined />
                   <Typography>Dashboard</Typography>
                 </StyledBox2>
               </Link>
-              <Link
-
-              // to={`/student/record/${val?.studID}/${val?.schoolYearID}`}
-              >
+              <Link to={`grade`}>
                 <StyledBox2 gap={2}>
                   <GradeOutlined />
                   <Typography>Grades</Typography>

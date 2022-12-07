@@ -29,14 +29,14 @@ import GradeTaskForms from "./pages/admin/components/Grade/TaskForms";
 import GradeTaskTable from "./pages/admin/components/Grade/TaskTable";
 import Employees from "./pages/admin/Employees";
 import FacultyProfile from "./pages/admin/components/Employee/FacultyProfile";
-import FacultyProfileEdit from "./pages/admin/components/Employee/FacultyProfileEdit";
+import FacultyProfileEdit from "./pages/Teachers/components/Profile/TeachFacultyProfileEdit";
 import Students from "./pages/admin/Students";
 import StudentProfile from "./pages/admin/components/Student/StudentProfile";
 import StudentProfileEdit from "./pages/admin/components/Student/StudentProfileEdit";
 import StudentRecord from "./pages/admin/components/Student/StudentRecord";
 import StudentTasks from "./pages/admin/components/Student/StudentTasks";
 import Maintenance from "./pages/admin/Maintenance";
-import Subjects from "./pages/Teachers/TeachersSubjects";
+import Subjects from "./pages/admin/Subjects";
 import Level from "./pages/admin/Level";
 import Section from "./pages/admin/Section";
 import Department from "./pages/admin/Department";
@@ -54,15 +54,25 @@ import TeacherDashboard from "./pages/Teachers/TeacherDashboard";
 import TeachersEnrolledStudents from "./pages/Teachers/TeachersEnrolledStudents";
 import TeachersGrades from "./pages/Teachers/TeachersGrades";
 import TeachersStudents from "./pages/Teachers/TeachersStudents";
+import TeachStudentProfile from "./pages/Teachers/components/Student/StudentProfile";
 import TeachersSubjects from "./pages/Teachers/TeachersSubjects";
 import TeachersLevel from "./pages/Teachers/TeachersLevel";
 import TeachersSection from "./pages/Teachers/TeachersSection";
+import TeachFacultyProfile from "./pages/Teachers/components/Profile/TeachFacultyProfile";
+import TeachFacultyProfileEdit from "./pages/Teachers/components/Profile/TeachFacultyProfileEdit";
+
+import TeachGradesCurrent from "./pages/Teachers/components/Grade/TeachGradesCurrent";
+import TeachGradesForm from "./pages/Teachers/components/Grade/TeachGradesForm";
+import TeachGradesTable from "./pages/Teachers/components/Grade/TeachGradesTable";
+import TeachTaskForms from "./pages/Teachers/components/Grade/TeachTaskForms";
+import TeachTaskTable from "./pages/Teachers/components/Grade/TeachTaskTable";
 // Students
 import StudentMain from "./pages/Student/StudentMain";
 import StudentDashboard from "./pages/Student/StudentDashboard";
 import StudentGrades from "./pages/Student/StudentGrades";
 import StudentRecords from "./pages/Student/Grades/StudentRecords";
 import StudentTask from "./pages/Student/Grades/StudentTask";
+
 import StudentGenerateActiveYearGrades from "./pages/Student/GeneratePDF/StudentGenerateActiveYearGrades";
 
 import RecordTable from "./pages/admin/components/Record/RecordTable";
@@ -186,6 +196,7 @@ function App() {
                   <Route path="schoolyear" element={<SchoolYear />} />
                   <Route path="enrolled" element={<ActiveStudents />} />
                   <Route path="record" element={<RecordTable />} />
+
                   <Route
                     path="generatepdf/:id"
                     element={<GenerateActiveYearGrades />}
@@ -200,11 +211,35 @@ function App() {
                 <Route path="/teacher" element={<TeacherOutlet />}>
                   <Route index element={<TeacherDashboard />} />
                   <Route path="grade" element={<TeachersGrades />} />
+                  <Route
+                    path="grade/:level/:section/:year/:id"
+                    element={<TeachGradesCurrent />}
+                  />
+
+                  <Route
+                    path="grade/record/:level/:section/:year/:id"
+                    element={<TeachGradesForm />}
+                  />
+                  <Route
+                    path="record/task/:id/:year"
+                    element={<TeachTaskTable />}
+                  />
+                  <Route
+                    path="record/task/add/:id/:year"
+                    element={<TeachTaskForms />}
+                  />
                   <Route path="student" element={<TeachersStudents />} />
+                  <Route path="student/:id" element={<TeachStudentProfile />} />
                   <Route path="active" element={<TeachersEnrolledStudents />} />
                   <Route path="level" element={<TeachersLevel />} />
                   <Route path="section" element={<TeachersSection />} />
                   <Route path="subject" element={<TeachersSubjects />} />
+                  <Route path="faculty/:id" element={<TeachFacultyProfile />} />
+                  <Route
+                    path="faculty/edit/:id"
+                    element={<TeachFacultyProfileEdit />}
+                  />
+                  <Route path="changePassword" element={<ChangePassword />} />
                 </Route>
               </Route>
               {/* <Route element={<RequireAuth allowedRoles={[ROLES.Student]} />}>

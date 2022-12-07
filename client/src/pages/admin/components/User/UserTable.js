@@ -605,7 +605,77 @@ const UserTable = () => {
           params.row.lastName || ""
         }`,
     },
+
     { field: "gender", headerName: "Gender", width: 100 },
+    {
+      field: "email",
+      headerName: "Email",
+      width: 150,
+    },
+    {
+      field: "roles",
+      headerName: "Type",
+      width: 150,
+      renderCell: (params) => {
+        return params?.value?.map((item, i) => {
+          return (
+            <ul style={{ display: "flex", padding: "0", listStyle: "none" }}>
+              {item === 2001 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      padding: "2px 10px",
+                      backgroundColor: colors.secondary[500],
+                      color: colors.blackOnly[100],
+                      borderRadius: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <AdminPanelSettings />
+                    <Typography ml="5px"> Admin</Typography>
+                  </Paper>
+                </li>
+              ) : item === 2002 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      display: "flex",
+                      padding: "2px 10px",
+                      backgroundColor: colors.primary[900],
+                      color: colors.whiteOnly[100],
+                      borderRadius: "20px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Badge />
+                    <Typography ml="5px"> Teacher</Typography>
+                  </Paper>
+                </li>
+              ) : item === 2003 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      display: "flex",
+                      backgroundColor: colors.whiteOnly[100],
+                      color: colors.blackOnly[100],
+                      padding: "2px 10px",
+                      borderRadius: "20px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <School />
+                    <Typography ml="5px"> Student</Typography>
+                  </Paper>
+                </li>
+              ) : (
+                <></>
+              )}
+            </ul>
+          );
+        });
+      },
+    },
     {
       field: "createdAt",
       headerName: "Date Created",
@@ -778,6 +848,71 @@ const UserTable = () => {
         }`,
     },
     { field: "gender", headerName: "Gender", width: 100 },
+    { field: "email", headerName: "Email", width: 150 },
+    {
+      field: "roles",
+      headerName: "Type",
+      width: 150,
+      renderCell: (params) => {
+        return params?.value?.map((item, i) => {
+          return (
+            <ul style={{ display: "flex", padding: "0", listStyle: "none" }}>
+              {item === 2001 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      padding: "2px 10px",
+                      backgroundColor: colors.secondary[500],
+                      color: colors.blackOnly[100],
+                      borderRadius: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <AdminPanelSettings />
+                    <Typography ml="5px"> Admin</Typography>
+                  </Paper>
+                </li>
+              ) : item === 2002 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      display: "flex",
+                      padding: "2px 10px",
+                      backgroundColor: colors.primary[900],
+                      color: colors.whiteOnly[100],
+                      borderRadius: "20px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Badge />
+                    <Typography ml="5px"> Teacher</Typography>
+                  </Paper>
+                </li>
+              ) : item === 2003 ? (
+                <li>
+                  <Paper
+                    sx={{
+                      display: "flex",
+                      backgroundColor: colors.whiteOnly[100],
+                      color: colors.blackOnly[100],
+                      padding: "2px 10px",
+                      borderRadius: "20px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <School />
+                    <Typography ml="5px"> Student</Typography>
+                  </Paper>
+                </li>
+              ) : (
+                <></>
+              )}
+            </ul>
+          );
+        });
+      },
+    },
     {
       field: "createdAt",
       headerName: "Date Created",
@@ -1436,6 +1571,8 @@ const UserTable = () => {
                   columns: {
                     columnVisibilityModel: {
                       createdAt: false,
+                      email: false,
+                      gender: false,
                     },
                   },
                 }}
@@ -1538,6 +1675,8 @@ const UserTable = () => {
                   columns: {
                     columnVisibilityModel: {
                       createdAt: false,
+                      email: false,
+                      gender: false,
                     },
                   },
                 }}

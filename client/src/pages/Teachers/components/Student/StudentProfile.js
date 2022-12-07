@@ -134,7 +134,7 @@ const StudentProfile = () => {
         <TableCell align="left">
           <Box display="flex" gap={2} width="60%">
             <Link
-              to={`/student/record/${val?.studID}/${val?.schoolYearID}`}
+              to={`/teacher/grade/${val?.levelID}/${val?.sectionID}/${val?.schoolYearID}/${val?.studID}`}
               style={{
                 alignItems: "center",
                 color: colors.black[100],
@@ -149,6 +149,7 @@ const StudentProfile = () => {
                   justifyContent: "center",
                   backgroundColor: colors.whiteOnly[100],
                   alignItems: "center",
+                  color: "black",
                 }}
               >
                 <Typography fontWeight="bold"> {val?.schoolYearID}</Typography>
@@ -156,10 +157,15 @@ const StudentProfile = () => {
             </Link>
           </Box>
         </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
+        {/* <TableCell align="left" sx={{ textTransform: "uppercase" }}>
           {val?.studID}
+        </TableCell> */}
+
+        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
+          {format(new Date(val?.createdAt), "MMMM dd, yyyy")}
         </TableCell>
-        <TableCell
+
+        {/* <TableCell
           component="th"
           scope="row"
           sx={{ textTransform: "capitalize" }}
@@ -174,7 +180,7 @@ const StudentProfile = () => {
                   ? stud.firstName + " " + stud.middleName + " " + stud.lastName
                   : stud.firstName + " " + stud.lastName;
               })}
-        </TableCell>
+        </TableCell> */}
         <TableCell align="left">
           {levels &&
             levels
@@ -194,6 +200,54 @@ const StudentProfile = () => {
               .map((sec) => {
                 return sec.sectionName;
               })}
+        </TableCell>
+        <TableCell align="left">
+          <Box display="flex" gap={2} width="60%">
+            <Link
+              to={`/teacher/record/task/${val?.studID}/${val?.schoolYearID}`}
+              style={{
+                alignItems: "center",
+                color: colors.black[100],
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                  color: "black",
+                }}
+              >
+                <Typography>Tasks</Typography>
+              </Paper>
+            </Link>
+            <Link
+              to={`/teacher/grade/${val?.levelID}/${val?.sectionID}/${val?.schoolYearID}/${val?.studID}`}
+              style={{
+                alignItems: "center",
+                color: colors.black[100],
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                  color: "black",
+                }}
+              >
+                <Typography> Grades</Typography>
+              </Paper>
+            </Link>
+          </Box>
         </TableCell>
       </StyledTableRow>
     );
@@ -278,20 +332,17 @@ const StudentProfile = () => {
       ) : val.firstName || val.email ? (
         <Box
           className="deleteScroll"
-          gap={1}
-          mt="20px"
+          gap={1.5}
           display="grid"
-          paddingBottom="20px"
           sx={{
-            height: { xs: "750px", sm: "100%" },
+            height: { xs: "780px", sm: "780px" },
             width: { xs: "100%", sm: "100%" },
             gridTemplateColumns: { xs: "1fr", sm: "1fr 3fr" },
             padding: { xs: "0 20px 20px 20px", sm: "3px 3px" },
-            overflow: "scroll",
           }}
         >
           <Paper
-            elevation={3}
+            elevation={2}
             sx={{
               display: "flex",
               justifyContent: "center",
@@ -380,7 +431,9 @@ const StudentProfile = () => {
             </Box>
           </Paper>
           <Paper sx={{ position: "relative" }} elevation={2}>
-            <Box sx={{ position: "absolute", top: 5, right: 5 }}>
+            <Box
+              sx={{ display: "none", position: "absolute", top: 5, right: 5 }}
+            >
               <IconButton onClick={handleClick}>
                 <MoreVert sx={{ fontSize: "20pt" }} />
                 {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
@@ -396,7 +449,7 @@ const StudentProfile = () => {
               >
                 <MenuItem>
                   <Link
-                    to={`/student/edit/${val?.studID}`}
+                    to={`/teacher/student/edit/${val?.studID}`}
                     style={{
                       alignItems: "center",
                       color: colors.black[100],
@@ -413,7 +466,7 @@ const StudentProfile = () => {
                 sx={{ display: "flex", flexDirection: "column" }}
                 padding="10px 10px 0 10px"
               >
-                <Typography variant="h4">Employee Profile</Typography>
+                <Typography variant="h4">Student Profile</Typography>
                 <Box
                   mt="10px"
                   display="grid"
@@ -612,7 +665,89 @@ const StudentProfile = () => {
               </Box>
             </Box>
           </Paper>
-          <Paper>
+          <Paper sx={{ display: { xs: "none", sm: "block" }, p: 2 }}>
+            <Typography variant="h4">Login History</Typography>
+            <Grid
+              mt="10px"
+              container
+              gap={2}
+              sx={{ width: "350px" }}
+              direction="column"
+              alignItems="center"
+              justify="center"
+            >
+              {loginHistory &&
+                loginHistory
+                  .slice(0, 5)
+                  .filter((fill) => {
+                    return fill.username === id;
+                  })
+                  .map((val, key) => (
+                    <Paper
+                      elevation={1}
+                      sx={{
+                        display: "flex",
+                        padding: "10px 15px",
+                        borderRadius: "20px",
+                        backgroundColor: colors.whiteOnly[100],
+                        width: "100%",
+                      }}
+                    >
+                      <Typography textTransform="capitalize">
+                        {format(
+                          new Date(val.createdAt),
+                          // "kk:mm a  MMM dd, yyyy"
+                          " hh:mm a.  EE, MM-dd-yyyy"
+                        )}
+                        {/* {val.createdAt} */}
+                      </Typography>
+                    </Paper>
+                  ))}
+            </Grid>
+          </Paper>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h4">Enrollment History</Typography>
+            <TableContainer>
+              <Table sx={{ minWidth: "100%" }} aria-label="simple table">
+                <TableHead>
+                  <StyledTableHeadRow>
+                    <TableCell>Year</TableCell>
+                    {/* <TableCell>Student ID</TableCell> */}
+                    {/* <TableCell align="left">Name</TableCell> */}
+                    <TableCell align="left">Date Enrolled</TableCell>
+                    <TableCell align="left">Level</TableCell>
+                    <TableCell align="left">Section</TableCell>
+                    <TableCell align="left">Records</TableCell>
+                  </StyledTableHeadRow>
+                </TableHead>
+                <TableBody>
+                  {actives &&
+                    actives
+                      .filter((fill) => {
+                        return fill.studID === id;
+                      })
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Divider />
+            <TablePagination
+              rowsPerPageOptions={[5, 10]}
+              component="div"
+              count={actives && actives.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Paper>
+          <Paper sx={{ display: { xs: "block", sm: "none" } }}>
             <Box padding="20px">
               <Typography>Login History</Typography>
 
@@ -653,45 +788,6 @@ const StudentProfile = () => {
                       </Paper>
                     ))}
               </Grid>
-            </Box>
-          </Paper>
-          <Paper>
-            <Box padding="20px">
-              <Typography>Enrollment History</Typography>
-              <TableContainer>
-                <Table sx={{ minWidth: "100%" }} aria-label="simple table">
-                  <TableHead>
-                    <StyledTableHeadRow>
-                      <TableCell>Year</TableCell>
-                      <TableCell>Student ID</TableCell>
-                      <TableCell align="left">Name</TableCell>
-                      <TableCell align="left">Level</TableCell>
-                      <TableCell align="left">Section</TableCell>
-                    </StyledTableHeadRow>
-                  </TableHead>
-                  <TableBody>
-                    {actives &&
-                      actives
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Divider />
-              <TablePagination
-                rowsPerPageOptions={[5, 10]}
-                component="div"
-                count={actives && actives.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
             </Box>
           </Paper>
         </Box>

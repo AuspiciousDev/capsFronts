@@ -11,7 +11,7 @@ import {
 import { styled } from "@mui/material/styles";
 import * as React from "react";
 import { useTheme } from "@mui/material";
-import { tokens } from "../theme";
+import { tokens } from "../../theme";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 export const SuccessAlert = (props) => {

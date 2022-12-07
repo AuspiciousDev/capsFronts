@@ -1,7 +1,7 @@
 import React from "react";
 import Popup from "reactjs-popup";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
@@ -26,6 +26,7 @@ import {
   InputLabel,
   Tooltip,
   TablePagination,
+  Avatar,
 } from "@mui/material";
 import { Search, CheckCircle, Cancel, Delete } from "@mui/icons-material";
 import { useEffect, useState } from "react";
@@ -42,18 +43,47 @@ import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
 import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
 import { DeleteOutline } from "@mui/icons-material";
 import CancelIcon from "@mui/icons-material/Cancel";
 
+import { useNavigate, useLocation } from "react-router-dom";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import useAuth from "../../../../hooks/useAuth";
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 const ActiveStudentsTable = () => {
   const CHARACTER_LIMIT = 10;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { auth } = useAuth();
+
+  const [userData, setUserData] = useState([]);
 
   const { students, studDispatch } = useStudentsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
@@ -104,18 +134,13 @@ const ActiveStudentsTable = () => {
     title: "",
     message: "",
   });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const [page, setPage] = React.useState(15);
 
   const [open, setOpen] = useState(false);
   const closeModal = () => {
@@ -132,6 +157,7 @@ const ActiveStudentsTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const apiStud = await axiosPrivate.get("/api/students", {});
         if (apiStud?.status === 200) {
@@ -174,12 +200,58 @@ const ActiveStudentsTable = () => {
           setIsLoading(false);
           yearDispatch({ type: "SET_YEARS", payload: json });
         }
+        const apiTeacher = await axiosPrivate.get(
+          `/api/employees/search/${auth.username}`
+        );
+        if (apiTeacher.status === 200) {
+          const json = await apiTeacher.data;
+          console.log("Teacher Data:", json);
+          setUserData(json);
+        }
+
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -193,6 +265,132 @@ const ActiveStudentsTable = () => {
     activeDispatch,
     yearDispatch,
   ]);
+
+  const columns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            <Avatar
+              alt="profile-user"
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
+              style={{
+                objectFit: "contain",
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+    {
+      field: "studID",
+      headerName: "Student ID",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" gap={2} width="60%">
+            <Link
+              to={`/teacher/student/${params?.value}`}
+              style={{
+                alignItems: "center",
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  fontWeight="bold"
+                  sx={{ color: colors.blackOnly[100] }}
+                >
+                  {" "}
+                  {params?.value}
+                </Typography>
+              </Paper>
+            </Link>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 120 },
+    { field: "levelID", headerName: "Level", width: 120 },
+    { field: "sectionID", headerName: "Section", width: 120 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.value === true ? (
+              <Paper
+                sx={{
+                  display: "flex",
+                  padding: "2px 10px",
+                  backgroundColor: colors.primary[900],
+                  color: colors.whiteOnly[100],
+                  borderRadius: "20px",
+                  alignItems: "center",
+                }}
+              >
+                <CheckCircle />
+                <Typography>ACTIVE</Typography>
+              </Paper>
+            ) : (
+              <Paper
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "2px 10px",
+                  borderRadius: "20px",
+                }}
+              >
+                <Cancel />
+                <Typography ml="5px">INACTIVE</Typography>
+              </Paper>
+            )}
+          </>
+        );
+      },
+    },
+  ];
+
   const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
     " & th": {
       fontWeight: "bold",
@@ -245,7 +443,12 @@ const ActiveStudentsTable = () => {
                   alignItems: "center",
                 }}
               >
-                <Typography fontWeight="bold"> {val?.studID}</Typography>
+                <Typography
+                  fontWeight="bold"
+                  sx={{ color: colors.blackOnly[100] }}
+                >
+                  {val?.studID}
+                </Typography>
               </Paper>
             </Link>
           </Box>
@@ -393,104 +596,7 @@ const ActiveStudentsTable = () => {
       </StyledTableRow>
     );
   };
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <Tooltip title="Delete">
-          <IconButton sx={{ cursor: "pointer" }}>
-            <DeleteOutline sx={{ color: colors.error[100] }} />
-          </IconButton>
-        </Tooltip>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record </Typography>
-            <Box margin="20px 0">
-              <Typography
-                variant="h2"
-                fontWeight="bold"
-                sx={{ textTransform: "capitalize" }}
-              >
-                {delVal.studID}
-              </Typography>
 
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                textTransform="capitalize"
-              >
-                {students &&
-                  students
-                    .filter((stud) => {
-                      return stud.studID === delVal.studID;
-                    })
-                    .map((stud) => {
-                      return stud?.middleName
-                        ? stud.firstName +
-                            " " +
-                            stud.middleName +
-                            " " +
-                            stud.lastName
-                        : stud.firstName + " " + stud.lastName;
-                    })}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              color="secondary"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {
@@ -590,6 +696,14 @@ const ActiveStudentsTable = () => {
       <ErrorDialogue
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
+      />{" "}
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div
@@ -744,12 +858,16 @@ const ActiveStudentsTable = () => {
                           }}
                         >
                           <option aria-label="None" value="" />
-                          {levels &&
+                          {userData &&
+                            levels &&
                             levels
                               .filter((filter) => {
                                 return (
                                   filter.departmentID === departmentID &&
-                                  filter.status === true
+                                  filter.status === true &&
+                                  userData?.LevelLoads?.some(
+                                    (e) => e === filter?.levelID
+                                  )
                                 );
                               })
                               .map((data) => {
@@ -778,13 +896,17 @@ const ActiveStudentsTable = () => {
                           }}
                         >
                           <option aria-label="None" value="" />
-                          {levelID &&
+                          {userData &&
+                            levelID &&
                             sections &&
                             sections
                               .filter((filter) => {
                                 return (
                                   filter.levelID === levelID &&
-                                  filter.status === true
+                                  filter.status === true &&
+                                  userData?.SectionLoads?.some(
+                                    (e) => e === filter?.sectionID
+                                  )
                                 );
                               })
                               .map((data) => {
@@ -944,87 +1066,55 @@ const ActiveStudentsTable = () => {
           </Box>
         </Box>
       </Paper>
-      <Box width="100%">
-        <Paper elevation={2}>
-          <TableContainer
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={
+              actives
+                ? userData &&
+                  actives &&
+                  actives.filter((fill) => {
+                    return userData?.LevelLoads?.some(
+                      (e) => e === fill?.levelID
+                    );
+                  })
+                : 0
+            }
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
             sx={{
-              maxHeight: "700px",
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
             }}
-          >
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? years &&
-                    actives &&
-                    actives
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        const currYear = years
-                          .filter((e) => {
-                            return e.status === true;
-                          })
-                          .map((val) => {
-                            return val.schoolYearID;
-                          });
-                        return (
-                          val.schoolYearID === currYear[0] &&
-                          val.studID.includes(search)
-                        );
-                      })
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })
-                  : years &&
-                    actives &&
-                    actives
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        const currYear = years
-                          .filter((e) => {
-                            return e.status === true;
-                          })
-                          .map((val) => {
-                            return val.schoolYearID;
-                          });
-                        return val.schoolYearID === currYear[0];
-                      })
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={years && years.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  createdAt: false,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
           />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-          paddingBottom="20px"
-        >
-          {isloading ? <Loading /> : <></>}
         </Box>
-      </Box>
+      </Paper>
     </>
   );
 };

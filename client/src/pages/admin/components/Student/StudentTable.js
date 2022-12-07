@@ -382,6 +382,38 @@ const StudentTable = () => {
       field: "studID",
       headerName: "Student ID",
       width: 150,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" gap={2} width="60%">
+            <Link
+              to={`/admin/student/${params?.value}`}
+              style={{
+                alignItems: "center",
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  fontWeight="bold"
+                  sx={{ color: colors.blackOnly[100] }}
+                >
+                  {" "}
+                  {params?.value}
+                </Typography>
+              </Paper>
+            </Link>
+          </Box>
+        );
+      },
     },
     {
       field: "fullName",
@@ -537,166 +569,7 @@ const StudentTable = () => {
       </StyledTableHeadRow>
     );
   };
-  const tableDetails = (val) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.studID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* Profile ID */}
-        <TableCell sx={{ p: "0 0" }} align="center">
-          <Box display="flex" justifyContent="center" alignItems="center">
-            <Avatar
-              alt="profile-user"
-              sx={{ width: "50px", height: "50px" }}
-              src={val?.imgURL}
-              style={{
-                objectFit: "contain",
-                borderRadius: "50%",
-              }}
-            />
-          </Box>
-        </TableCell>
-        {/* Student ID */}
-        <TableCell align="left">
-          <Box display="flex" gap={2} width="60%">
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
 
-                alignItems: "center",
-              }}
-            >
-              <Link
-                to={`/admin/student/${val?.studID}`}
-                style={{
-                  alignItems: "center",
-                  color: colors.black[100],
-                  textDecoration: "none",
-                }}
-              >
-                <Box
-                  display="flex"
-                  sx={{ alignItems: "center", color: colors.blackOnly[100] }}
-                >
-                  <Typography ml="5px"> {val.studID}</Typography>
-                </Box>
-              </Link>
-            </Paper>
-          </Box>
-        </TableCell>
-        {/* Student Name */}
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val.firstName + " " + val.lastName}
-        </TableCell>
-        {/* Student Level */}
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val.gender}
-        </TableCell>
-        {/* <TableCell align="left">{val?.email || "-"}</TableCell> */}
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to change status of  ${val.studID.toUpperCase()}`,
-                    message: `${
-                      val.status === true
-                        ? "INACTIVE to ACTIVE"
-                        : " ACTIVE to INACTIVE"
-                    }`,
-                    onConfirm: () => {
-                      toggleStatus({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            ) : (
-              <Paper
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                <Cancel />
-                <Typography ml="5px">INACTIVE</Typography>
-              </Paper>
-            )}
-          </ButtonBase>
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to delete Student ${val.studID.toUpperCase()}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      handleDelete({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              {/* <SubjectEditForm data={val} /> */}
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
   return (
     <>
       <ConfirmDialogue

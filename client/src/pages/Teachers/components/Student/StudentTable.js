@@ -40,6 +40,7 @@ import Loading from "../../../../global/Loading";
 import StudentForm from "./StudentForm";
 import StudentEditForm from "./StudentEditForm";
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
+import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
 
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
@@ -49,6 +50,26 @@ import ValidateDialogue from "../../../../global/ValidateDialogue";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
+import useAuth from "../../../../hooks/useAuth";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 const StudentTable = () => {
   const STUDID_LIMIT = 10;
   const LRN_LIMIT = 12;
@@ -56,12 +77,19 @@ const StudentTable = () => {
   const colors = tokens(theme.palette.mode);
 
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { auth } = useAuth();
 
+  const [userData, setUserData] = useState([]);
   const { students, studDispatch } = useStudentsContext();
+  const { actives, activeDispatch } = useActiveStudentsContext();
+
   const [search, setSearch] = useState("");
   const [isloading, setIsLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  const [page, setPage] = React.useState(15);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "",
@@ -82,148 +110,77 @@ const StudentTable = () => {
     title: "",
     message: "",
   });
-
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
-  const DeleteRecord = ({ delVal }) => (
-    <Popup
-      trigger={
-        <IconButton sx={{ cursor: "pointer" }}>
-          <DeleteOutline sx={{ color: colors.error[100] }} />
-        </IconButton>
-      }
-      modal
-      nested
-    >
-      {(close) => (
-        <div
-          className="modal-delete"
-          style={{
-            backgroundColor: colors.primary[900],
-            border: `solid 1px ${colors.black[200]}`,
-          }}
-        >
-          <button className="close" onClick={close}>
-            &times;
-          </button>
-          <div
-            className="header"
-            style={{ backgroundColor: colors.primary[800] }}
-          >
-            <Typography variant="h3" fontWeight="bold">
-              DELETE RECORD
-            </Typography>
-          </div>
-          <div className="content">
-            <Typography variant="h5">Are you sure to delete record</Typography>
-            <Box margin="20px 0">
-              <Typography variant="h3" fontWeight="bold">
-                {delVal.studID}
-              </Typography>
-              <Typography variant="h4" sx={{ textTransform: "capitalize" }}>
-                {delVal.middleName
-                  ? delVal.firstName +
-                    " " +
-                    delVal.middleName +
-                    " " +
-                    delVal.lastName
-                  : delVal.firstName + " " + delVal.lastName}
-              </Typography>
-            </Box>
-          </div>
-          <div className="actions">
-            <Button
-              type="button"
-              onClick={() => {
-                handleDelete({ delVal });
-                close();
-              }}
-              variant="contained"
-              sx={{
-                width: "150px",
-                height: "50px",
-                ml: "20px",
-                mb: "10px",
-              }}
-            >
-              <Typography variant="h6">Confirm</Typography>
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                console.log("modal closed ");
-                close();
-              }}
-              variant="contained"
-              sx={{ width: "150px", height: "50px", ml: "20px", mb: "10px" }}
-            >
-              <Typography variant="h6">CANCEL</Typography>
-            </Button>
-          </div>
-        </div>
-      )}
-    </Popup>
-  );
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   useEffect(() => {
     const getUsersDetails = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
-        const response = await axiosPrivate.get("/api/students", {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
-        if (response.status === 200) {
-          const json = await response.data;
-          console.log(json);
-          setIsLoading(false);
-          studDispatch({ type: "SET_STUDENTS", payload: json });
+        const apiTeacher = await axiosPrivate.get(
+          `/api/employees/search/${auth.username}`
+        );
+        if (apiTeacher.status === 200) {
+          const json = await apiTeacher.data;
+          console.log("Teacher Data:", json);
+          setUserData(json);
         }
+        const apiActive = await axiosPrivate.get("/api/enrolled");
+
+        if (apiActive.status === 200) {
+          const json = await apiActive.data;
+          console.log(json);
+          activeDispatch({ type: "SET_ACTIVES", payload: json });
+        }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
           setErrorDialog({
             isOpen: true,
-            message: "no server response",
+            message: `No server response`,
           });
-        } else if (error.response.status === 204) {
-          console.log(error.response.data.message);
+        } else if (error.response.status === 400) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
-          console.log(error);
           setErrorDialog({
             isOpen: true,
             message: `${error}`,
           });
+          console.log(error);
         }
-        setIsLoading(false);
       }
 
       // if (response.statusText === "OK") {
@@ -242,9 +199,6 @@ const StudentTable = () => {
     getUsersDetails();
   }, [studDispatch]);
 
-  const handleAdd = () => {
-    setIsFormOpen(true);
-  };
   const handleDelete = async ({ val }) => {
     setConfirmDialog({
       ...confirmDialog,
@@ -340,113 +294,102 @@ const StudentTable = () => {
       setIsLoading(false);
     }
   };
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow>
-        <TableCell align="center">PROFILE</TableCell>
-        <TableCell align="left">STUDENT ID</TableCell>
-        <TableCell align="left">NAME</TableCell>
-        <TableCell align="left">GENDER</TableCell>
-        {/* <TableCell align="left">EMAIL</TableCell> */}
-        <TableCell align="left">STATUS</TableCell>
-        <TableCell align="left">ACTIONS</TableCell>
-      </StyledTableHeadRow>
-    );
+  const handleAdd = () => {
+    setIsFormOpen(true);
   };
-  const tableDetails = (val) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        data-rowid={val.studID}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* Profile ID */}
-        <TableCell sx={{ p: "0 0" }} align="center">
-          <Box display="flex" justifyContent="center" alignItems="center">
+  const columns = [
+    {
+      field: "imgURL",
+      headerName: "Profile",
+      width: 130,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
             <Avatar
               alt="profile-user"
-              sx={{ width: "50px", height: "50px" }}
-              src={val?.imgURL}
+              sx={{ width: "40px", height: "40px" }}
+              src={params?.value}
               style={{
                 objectFit: "contain",
-                borderRadius: "50%",
               }}
             />
           </Box>
-        </TableCell>
-        {/* Student ID */}
-        <TableCell align="left">
+        );
+      },
+    },
+    {
+      field: "studID",
+      headerName: "Student ID",
+      width: 150,
+      renderCell: (params) => {
+        return (
           <Box display="flex" gap={2} width="60%">
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-
+            <Link
+              to={`/teacher/student/${params?.value}`}
+              style={{
                 alignItems: "center",
+                textDecoration: "none",
               }}
             >
-              <Link
-                to={`/student/${val?.studID}`}
-                style={{
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
                   alignItems: "center",
-                  color: colors.black[100],
-                  textDecoration: "none",
                 }}
               >
-                <Box
-                  display="flex"
-                  sx={{ alignItems: "center", color: colors.blackOnly[100] }}
+                <Typography
+                  fontWeight="bold"
+                  sx={{ color: colors.blackOnly[100] }}
                 >
-                  <Typography ml="5px"> {val.studID}</Typography>
-                </Box>
-              </Link>
-            </Paper>
+                  {" "}
+                  {params?.value}
+                </Typography>
+              </Paper>
+            </Link>
           </Box>
-        </TableCell>
-        {/* Student Name */}
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val.firstName + " " + val.lastName}
-        </TableCell>
-        {/* Student Level */}
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val.gender}
-        </TableCell>
-        {/* <TableCell align="left">{val?.email || "-"}</TableCell> */}
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to change status of  ${val.studID.toUpperCase()}`,
-                    message: `${
-                      val.status === true
-                        ? "INACTIVE to ACTIVE"
-                        : " ACTIVE to INACTIVE"
-                    }`,
-                    onConfirm: () => {
-                      toggleStatus({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
+        );
+      },
+    },
+    {
+      field: "fullName",
+      headerName: "Name",
+      // description: "This column has a value getter and is not sortable.",
+      // sortable: false,
+      width: 200,
+
+      valueGetter: (params) =>
+        `${params.row.firstName || ""} ${params.row.middleName || ""} ${
+          params.row.lastName || ""
+        }`,
+    },
+    { field: "gender", headerName: "Gender", width: 100 },
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 175,
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.value === true ? (
               <Paper
                 sx={{
                   display: "flex",
@@ -458,7 +401,7 @@ const StudentTable = () => {
                 }}
               >
                 <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
+                <Typography>ACTIVE</Typography>
               </Paper>
             ) : (
               <Paper
@@ -473,46 +416,12 @@ const StudentTable = () => {
                 <Typography ml="5px">INACTIVE</Typography>
               </Paper>
             )}
-          </ButtonBase>
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to delete Student ${val.studID.toUpperCase()}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      handleDelete({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              {/* <SubjectEditForm data={val} /> */}
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
+          </>
+        );
+      },
+    },
+  ];
+
   return (
     <>
       <ConfirmDialogue
@@ -573,7 +482,7 @@ const StudentTable = () => {
                 <Paper
                   elevation={3}
                   sx={{
-                    display: "flex",
+                    display: "none",
                     width: { xs: "100%", sm: "320px" },
                     height: "50px",
                     minWidth: "250px",
@@ -618,117 +527,55 @@ const StudentTable = () => {
               </Box>
             </Box>
           </Paper>
-          <Box width="100%">
-            <Paper elevation={2}>
-              <TableContainer
+          <Paper
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "100%",
+              mt: 2,
+            }}
+          >
+            <Box sx={{ height: "100%", width: "100%" }}>
+              <DataGrid
+                rows={
+                  actives
+                    ? userData &&
+                      actives &&
+                      actives.filter((fill) => {
+                        return userData?.LevelLoads?.some(
+                          (e) => e === fill?.levelID
+                        );
+                      })
+                    : 0
+                }
+                getRowId={(row) => row._id}
+                columns={columns}
+                pageSize={page}
+                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                rowsPerPageOptions={[15, 50]}
+                pagination
                 sx={{
-                  maxHeight: { xs: "400px", sm: "700px" },
+                  "& .MuiDataGrid-cell": {
+                    textTransform: "capitalize",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                  },
                 }}
-              >
-                <Table aria-label="simple table">
-                  <TableHead>
-                    <TableTitles />
-                  </TableHead>
-                  <TableBody>
-                    {
-                      // collection
-                      //   .filter((employee) => {
-                      //     return employee.firstName === "ing";
-                      //   })
-                      //   .map((employee) => {
-                      //     return tableDetails(employee);
-                      //   })
-                      search
-                        ? students
-
-                            .filter((data) => {
-                              return (
-                                data.firstName.includes(search) ||
-                                data.studID.includes(search)
-                              );
-                            })
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
-                            .map((data) => {
-                              return tableDetails(data);
-                            })
-                        : students &&
-                          students
-                            .slice(
-                              page * rowsPerPage,
-                              page * rowsPerPage + rowsPerPage
-                            )
-                            .map((data) => {
-                              return tableDetails(data);
-                            })
-
-                      // (collection.filter((employee) => {
-                      //   return employee.empID === 21923595932985;
-                      // }),
-                      // (console.log(
-                      //   "🚀 ~ file: EmployeeTable.js ~ line 526 ~ EmployeeTable ~ collection",
-                      //   collection
-                      // ),
-                      // collection &&
-                      //   collection.slice(0, 8).map((employee) => {
-                      //     return tableDetails(employee);
-                      //   })))
-                    }
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Divider />
-              <TablePagination
-                rowsPerPageOptions={[5, 10]}
-                component="div"
-                count={students && students.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                initialState={{
+                  columns: {
+                    columnVisibilityModel: {
+                      createdAt: false,
+                    },
+                  },
+                }}
+                components={{
+                  Toolbar: CustomToolbar,
+                }}
               />
-            </Paper>
-            <Box
-              display="flex"
-              width="100%"
-              sx={{ flexDirection: "column" }}
-              justifyContent="center"
-              alignItems="center"
-            >
-              {/* {withData ? (
-                <Typography textTransform="capitalize">data</Typography>
-              ) : (
-                <Typography textTransform="capitalize">no data</Typography>
-              )} */}
-              {isloading ? <Loading /> : <></>}
-              {Object.keys(students || {}).length > 0 ? (
-                <></> // <Typography textTransform="uppercase">data</Typography>
-              ) : (
-                <Typography textTransform="uppercase">no data</Typography>
-              )}
-              {/* <Box
-                display="flex"
-                width="100%"
-                justifyContent="center"
-                marginTop="20px"
-                marginBottom="20px"
-              >
-                <Box
-                  width="200px"
-                  display="grid"
-                  gridTemplateColumns="1fr 1fr"
-                  justifyItems="center"
-                >
-                  <ArrowBackIosNewOutlined color="gray" />
-                  <ArrowForwardIosOutlined color="gray" />
-                </Box>
-              </Box> */}
             </Box>
-
-            <Box display="flex" width="100%" marginTop="20px"></Box>
-          </Box>
+          </Paper>
         </>
       )}
     </>

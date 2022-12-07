@@ -25,7 +25,7 @@ import {
   Badge,
   Groups,
   AccountCircle,
-  StairsOutlined
+  StairsOutlined,
 } from "@mui/icons-material";
 import { format } from "date-fns-tz";
 import { useTheme } from "@mui/material";
@@ -40,11 +40,19 @@ import { useLevelsContext } from "../../hooks/useLevelsContext";
 import Charts from "react-apexcharts";
 import Loading from "../../global/Loading";
 import useRefreshToken from "../../hooks/useRefreshToken";
+
+import ErrorDialogue from "../../global/Teacher/ErrorDialogue";
+import ConfirmDialogue from "../../global/Teacher/ConfirmDialogue";
+import ValidateDialogue from "../../global/Teacher/ValidateDialogue";
+import SuccessDialogue from "../../global/Teacher/SuccessDialogue";
+import LoadingDialogue from "../../global/Teacher/LoadingDialogue";
+
+import useAuth from "../../hooks/useAuth";
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
-
+  const { auth } = useAuth();
   const refresh = useRefreshToken();
 
   const fCountVariant = "h3";
@@ -53,12 +61,13 @@ const TeacherDashboard = () => {
 
   const { students, studDispatch } = useStudentsContext();
   const { employees, empDispatch } = useEmployeesContext();
-  const { departments, subDispatch } = useSubjectsContext();
+  const { subjects, subDispatch } = useSubjectsContext();
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
   const { levels, levelDispatch } = useLevelsContext();
   const [isloading, setIsLoading] = useState(false);
   // const [students, setStudents] = useState([]);
+  const [userData, setUserData] = useState([]);
   const [collection, setCollection] = useState([]);
   const [withData, setWithData] = useState(false);
   const [loginHistory, setLoginHistory] = useState([]);
@@ -82,6 +91,32 @@ const TeacherDashboard = () => {
     setPage(0);
   };
 
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
   const StyledPaper = styled(Paper)(({ theme }) => ({
     "&.MuiPaper-root ": {
       color: `${colors.black[100]}`,
@@ -96,11 +131,22 @@ const TeacherDashboard = () => {
     const getOverviewDetails = async () => {
       const controller = new AbortController();
       setIsLoading(true);
+      setLoadingDialog({ isOpen: true });
       try {
+        
         const apiStud = await axiosPrivate.get("/api/students");
         const apiEmp = await axiosPrivate.get("/api/employees");
         const apiSub = await axiosPrivate.get("/api/subjects");
         const apiActive = await axiosPrivate.get("/api/enrolled");
+        
+        const apiTeacher = await axiosPrivate.get(
+          `/api/employees/search/${auth.username}`
+        );
+        if (apiTeacher.status === 200) {
+          const json = await apiTeacher.data;
+          console.log("Teacher Data:", json);
+          setUserData(json);
+        }
         if (apiActive.status === 200) {
           const json = await apiActive.data;
           console.log(json);
@@ -153,14 +199,51 @@ const TeacherDashboard = () => {
           setLoginHistory(json);
         }
         setIsLoading(false);
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response!`,
+          });
+          console.log(!error?.response);
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
-        } else if (error.response.status === 401) {
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
+          console.log(error);
         }
       }
     };
@@ -217,14 +300,28 @@ const TeacherDashboard = () => {
     <StyledPaper elevation={2}>
       {" "}
       {/* <Charts type="line" options={options} series={series} width={380} /> */}
-      <Groups sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <Groups
+        sx={{
+          fontSize: "80px",
+          alignSelf: "center",
+          transition: "transform 0.15s ease-in-out",
+          "&:hover": {
+            transform: "scale3d(1.2, 1.2, 1)",
+            color: colors.primary[900],
+          },
+        }}
+      />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
         margin="20px"
         align="center"
       >
-        {studentsCount}
+        {userData &&
+          actives &&
+          actives.filter((fill) => {
+            return userData?.LevelLoads?.some((e) => e === fill?.levelID);
+          }).length}
       </Typography>
       <Typography align="center" variant={fDescVariant}>
         Total Number of Students
@@ -233,14 +330,28 @@ const TeacherDashboard = () => {
   );
   const totalSubjects = (
     <StyledPaper elevation={2}>
-      <AutoStories sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <AutoStories
+        sx={{
+          fontSize: "80px",
+          alignSelf: "center",
+          transition: "transform 0.15s ease-in-out",
+          "&:hover": {
+            transform: "scale3d(1.2, 1.2, 1)",
+            color: colors.primary[900],
+          },
+        }}
+      />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
         margin="20px"
         align="center"
       >
-        {employeesCount}
+        {userData &&
+          subjects &&
+          subjects.filter((fill) => {
+            return userData?.SubjectLoads?.some((e) => e === fill?.subjectID);
+          }).length}
       </Typography>
       <Typography align="center" variant={fDescVariant}>
         Total Number of Subjects
@@ -249,14 +360,28 @@ const TeacherDashboard = () => {
   );
   const totalLevels = (
     <StyledPaper elevation={2}>
-      <StairsOutlined sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <StairsOutlined
+        sx={{
+          fontSize: "80px",
+          alignSelf: "center",
+          transition: "transform 0.15s ease-in-out",
+          "&:hover": {
+            transform: "scale3d(1.2, 1.2, 1)",
+            color: colors.primary[900],
+          },
+        }}
+      />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
         margin="20px"
         align="center"
       >
-        {subjectsCount}
+        {userData &&
+          levels &&
+          levels.filter((fill) => {
+            return userData?.LevelLoads?.some((e) => e === fill?.levelID);
+          }).length}
       </Typography>
       <Typography align="center" variant={fDescVariant}>
         Total Number of Levels
@@ -265,14 +390,28 @@ const TeacherDashboard = () => {
   );
   const totalSections = (
     <StyledPaper elevation={2}>
-      <Diversity3 sx={{ fontSize: "80px", alignSelf: "center" }} />
+      <Diversity3
+        sx={{
+          fontSize: "80px",
+          alignSelf: "center",
+          transition: "transform 0.15s ease-in-out",
+          "&:hover": {
+            transform: "scale3d(1.2, 1.2, 1)",
+            color: colors.primary[900],
+          },
+        }}
+      />
       <Typography
         variant={fCountVariant}
         fontWeight={fWeight}
         margin="20px"
         align="center"
       >
-        {sectionsCount}
+        {userData &&
+          sections &&
+          sections.filter((fill) => {
+            return userData?.SectionLoads?.some((e) => e === fill?.sectionID);
+          }).length}
       </Typography>
       <Typography align="center" variant={fDescVariant}>
         Total Number of Sections
@@ -298,15 +437,39 @@ const TeacherDashboard = () => {
 
   return (
     <div className="contents-container">
-      {" "}
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
+      <SuccessDialogue
+        successDialog={successDialog}
+        setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <Box
-        sx={{ width: "100%", height: { xs: "800px", sm: "100%" }, mt: "20px" }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          // height: { xs: "800px", sm: "100%" },
+        }}
       >
         <Paper
           elevation={2}
           sx={{
             width: "100%",
-            margin: "0 0 10px 0",
             padding: { xs: "10px", sm: "0 10px" },
           }}
         >
@@ -331,7 +494,7 @@ const TeacherDashboard = () => {
             </Box>
           </Box>
         </Paper>
-        <Box width="100%" mt={1} marginBottom={2}>
+        <Box width="100%" mt={2} marginBottom={2}>
           <Box
             sx={{
               display: "grid",
@@ -346,57 +509,61 @@ const TeacherDashboard = () => {
           </Box>
         </Box>
 
-        <Box height="550px" sx={{ paddingBottom: "10px" }}>
-          {/* <Typography variant="h4">Recent Students</Typography>
+        {/* <Typography variant="h4">Recent Students</Typography>
   <Typography>Showing 10 entries</Typography> */}
 
-          <Box
-            height="520px"
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "7fr" },
-            }}
-          >
-            <Paper elevation={2} sx={{ padding: "20px" }}>
-              <Box>
-                <Typography variant="h4">Recent Students</Typography>
-                {/* <Typography>Showing 10 entries</Typography> */}
-                <TableContainer>
-                  <Table sx={{ minWidth: "100%" }} aria-label="simple table">
-                    <TableHead>
-                      <StyledTableHeadRow>
-                        <TableCell>Student ID</TableCell>
-                        <TableCell align="left">Name</TableCell>
-                        <TableCell align="left">Level</TableCell>
-                        <TableCell align="left">Section</TableCell>
-                      </StyledTableHeadRow>
-                    </TableHead>
-                    <TableBody>
-                      {actives &&
-                        actives
-                          .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
-                          )
-                          .map((val) => {
-                            return tableDetails({ val });
-                          })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Divider />
-                <TablePagination
-                  rowsPerPageOptions={[5, 10]}
-                  component="div"
-                  count={actives && actives.length}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-              </Box>
-            </Paper>
-          </Box>
+        <Box
+          sx={{
+            height: "100%",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "7fr" },
+          }}
+        >
+          <Paper elevation={2} sx={{ padding: "20px" }}>
+            <Box>
+              <Typography variant="h4">Recent Students</Typography>
+              {/* <Typography>Showing 10 entries</Typography> */}
+              <TableContainer>
+                <Table sx={{ minWidth: "100%" }} aria-label="simple table">
+                  <TableHead>
+                    <StyledTableHeadRow>
+                      <TableCell>Student ID</TableCell>
+                      <TableCell align="left">Name</TableCell>
+                      <TableCell align="left">Level</TableCell>
+                      <TableCell align="left">Section</TableCell>
+                    </StyledTableHeadRow>
+                  </TableHead>
+                  <TableBody>
+                    {userData &&
+                      actives &&
+                      actives
+                        .filter((fill) => {
+                          return userData?.LevelLoads?.some(
+                            (e) => e === fill?.levelID
+                          );
+                        })
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((val) => {
+                          return tableDetails({ val });
+                        })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Divider />
+              <TablePagination
+                rowsPerPageOptions={[5, 10]}
+                component="div"
+                count={actives && actives.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </Box>
+          </Paper>
         </Box>
       </Box>
     </div>

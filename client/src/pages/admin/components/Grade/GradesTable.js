@@ -350,7 +350,20 @@ const GradesTable = () => {
               setID(params?.value);
             }}
           >
-            <Typography sx={{ fontWeight: "bold" }}>{params?.value}</Typography>
+            <Paper
+              sx={{
+                padding: "2px 20px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+                alignItems: "center",
+              }}
+            >
+              <Typography sx={{ fontWeight: "bold", color: "black" }}>
+                {params?.value}
+              </Typography>
+            </Paper>
           </ButtonBase>
         );
       },

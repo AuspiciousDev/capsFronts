@@ -11,7 +11,6 @@ import {
   Box,
 } from "@mui/material";
 const LoadingDialogue = (props) => {
-  
   const { loadingDialog, setLoadingDialog } = props;
   const handleClose = (event, reason) => {
     if (reason && reason === "backdropClick")
@@ -22,14 +21,22 @@ const LoadingDialogue = (props) => {
       sx={{ textAlign: "center" }}
       open={loadingDialog.isOpen}
       onClose={handleClose}
+      PaperProps={{
+        style: {
+          backgroundColor: "transparent",
+          boxShadow: "none",
+        },
+      }}
     >
-      <DialogContent>
-        <div className="lds-ellipsis">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
+      <DialogContent sx={{ p: 5 }}>
+        {/* <div className="lds-ellipsis">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div> */}{" "}
+        {/* <div class="lds-hourglass"></div> */}
+        <span className="loader"></span>
       </DialogContent>
     </Dialog>
   );

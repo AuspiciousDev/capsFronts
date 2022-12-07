@@ -1,5 +1,5 @@
 import React from "react";
-import GradesTable from "./components/Grade/GradesTable";
+import GradesTable from "./components/Grade/TeachGradesTable";
 const TeachersGrades = () => {
   return (
     <div className="contents-container">

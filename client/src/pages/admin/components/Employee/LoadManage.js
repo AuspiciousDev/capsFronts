@@ -323,6 +323,7 @@ const LoadManage = () => {
           },
         });
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
       setLoadingDialog({ isOpen: false });
       if (!error?.response) {
@@ -397,12 +398,12 @@ const LoadManage = () => {
             }}
             gap={2}
           >
-            <Link
+            {/* <Link
               to="/admin/grade"
               style={{ textDecoration: "none", color: colors.black[100] }}
             >
               <ArrowBackIosNewOutlined sx={{ fontSize: "40px" }} />
-            </Link>
+            </Link> */}
             <Box
               sx={{
                 display: "flex",

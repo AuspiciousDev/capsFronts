@@ -389,6 +389,38 @@ const ActiveStudentsTable = () => {
       field: "studID",
       headerName: "Student ID",
       width: 150,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" gap={2} width="60%">
+            <Link
+              to={`/admin/student/${params?.value}`}
+              style={{
+                alignItems: "center",
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  fontWeight="bold"
+                  sx={{ color: colors.blackOnly[100] }}
+                >
+                  {" "}
+                  {params?.value}
+                </Typography>
+              </Paper>
+            </Link>
+          </Box>
+        );
+      },
     },
     {
       field: "fullName",

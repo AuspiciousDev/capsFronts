@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useTheme } from "@mui/material";
-import { tokens } from "../theme";
+import { tokens } from "../../theme";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 // import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 const ErrorDialogue = (props) => {

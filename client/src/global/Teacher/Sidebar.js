@@ -7,9 +7,8 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import deped from "../../images/Logo-DepEd-1.png";
 import profilePic from "../../images/profile2.png";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { useNavigate } from "react-router-dom";
 import { Logout } from "@mui/icons-material";
-
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import {
@@ -46,13 +45,16 @@ import "react-pro-sidebar/dist/css/styles.css";
 import { useEmployeesContext } from "../../hooks/useEmployeesContext";
 import { useSchoolYearsContext } from "../../hooks/useSchoolYearsContext";
 import useMediaQuery from "@mui/material/useMediaQuery";
+
+import ErrorDialogue from "./ErrorDialogue";
+import LoadingDialogue from "./LoadingDialogue";
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  console.log(to);
-  console.log("Sub1:", window.location.pathname);
-  console.log("Sub2:", window.location.pathname.substring(9));
-  console.log("Sub3:", window.location.pathname.slice(0, 8));
+  // console.log(to);
+  // console.log("Sub1:", window.location.pathname);
+  // console.log("Sub2:", window.location.pathname.substring(9));
+  // console.log("Sub3:", window.location.pathname.slice(8, 15));
   return (
     // <MenuItem
     // active={selected === title}
@@ -71,7 +73,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
     <MenuItem
       active={
         window.location.pathname === "/teacher"
-          ? window.location.pathname.slice(0, 1)  === to
+          ? window.location.pathname.slice(0, 1) === to
           : window.location.pathname.substring(9) === to
       }
       style={{
@@ -91,6 +93,8 @@ const Sidebar = () => {
   const matches = useMediaQuery("(min-width:1200px)");
   const { auth } = useAuth();
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { employees, empDispatch } = useEmployeesContext();
   const { years, yearDispatch } = useSchoolYearsContext();
 
@@ -105,6 +109,16 @@ const Sidebar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   useEffect(() => {
     console.log(auth);
     const getOverviewDetails = async () => {
@@ -121,11 +135,47 @@ const Sidebar = () => {
           yearDispatch({ type: "SET_YEARS", payload: json });
         }
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
         if (!error?.response) {
-          console.log("no server response");
-        } else if (error.response.status === 204) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -160,6 +210,14 @@ const Sidebar = () => {
         },
       }}
     >
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />{" "}
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
+      />
       <ProSidebar
         collapsed={isCollapsed}
         style={{
@@ -252,21 +310,23 @@ const Sidebar = () => {
                 />
 
                 <Box ml="10px">
-                  <Typography
-                    variant="h5"
-                    width="180px"
-                    color={colors.black[50]}
-                    sx={{ textTransform: "capitalize" }}
-                  >
-                    {employees &&
-                      employees
-                        .filter((data) => {
-                          return data.empID === auth.username;
-                        })
-                        .map((val) => {
-                          return val.firstName + " " + val.lastName;
-                        })}
-                  </Typography>
+                  <Link to={`/teacher/faculty/${auth.username}`}>
+                    <Typography
+                      variant="h5"
+                      width="180px"
+                      color={colors.black[50]}
+                      sx={{ textTransform: "capitalize" }}
+                    >
+                      {employees &&
+                        employees
+                          .filter((data) => {
+                            return data.empID === auth.username;
+                          })
+                          .map((val) => {
+                            return val.firstName + " " + val.lastName;
+                          })}
+                    </Typography>
+                  </Link>
                   <Typography color={colors.primary[900]} variant="subtitle2">
                     {auth.roles == 2002 ? "Teacher" : ""}
                     {auth.roles == 2001 ? "Admin" : ""}

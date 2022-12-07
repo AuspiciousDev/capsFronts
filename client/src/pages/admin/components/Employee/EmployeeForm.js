@@ -343,7 +343,7 @@ const EmployeeForm = () => {
                     <MenuItem value={2001}>System Administrator</MenuItem>
                     <MenuItem value={2002}>Teacher</MenuItem>
                   </TextField>
-                  <TextField
+                  {/* <TextField
                     disabled
                     required
                     autoComplete="off"
@@ -356,7 +356,7 @@ const EmployeeForm = () => {
                       setEmail(e.target.value);
                       setEmailError(false);
                     }}
-                  />
+                  /> */}
                 </Box>
               </Box>
               <Typography variant="h4" sx={{ margin: "25px 0 10px 0" }}>

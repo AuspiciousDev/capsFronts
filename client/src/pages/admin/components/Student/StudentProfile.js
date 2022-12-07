@@ -134,7 +134,7 @@ const StudentProfile = () => {
         <TableCell align="left">
           <Box display="flex" gap={2} width="60%">
             <Link
-              to={`/admin/student/grade/${val?.studID}/${val?.schoolYearID}`}
+              to={`/admin/grade/${val?.levelID}/${val?.sectionID}/${val?.schoolYearID}/${val?.studID}`}
               style={{
                 alignItems: "center",
                 color: colors.black[100],
@@ -149,6 +149,7 @@ const StudentProfile = () => {
                   justifyContent: "center",
                   backgroundColor: colors.whiteOnly[100],
                   alignItems: "center",
+                  color: "black",
                 }}
               >
                 <Typography fontWeight="bold"> {val?.schoolYearID}</Typography>
@@ -203,7 +204,7 @@ const StudentProfile = () => {
         <TableCell align="left">
           <Box display="flex" gap={2} width="60%">
             <Link
-              to={`/admin/student/record/tasks/${val?.studID}/${val?.schoolYearID}`}
+              to={`/admin/record/task/${val?.studID}/${val?.schoolYearID}`}
               style={{
                 alignItems: "center",
                 color: colors.black[100],
@@ -218,13 +219,14 @@ const StudentProfile = () => {
                   justifyContent: "center",
                   backgroundColor: colors.whiteOnly[100],
                   alignItems: "center",
+                  color: "black",
                 }}
               >
                 <Typography>Tasks</Typography>
               </Paper>
             </Link>
             <Link
-              to={`/admin/student/record/grade/${val?.studID}/${val?.schoolYearID}`}
+              to={`/admin/grade/${val?.levelID}/${val?.sectionID}/${val?.schoolYearID}/${val?.studID}`}
               style={{
                 alignItems: "center",
                 color: colors.black[100],
@@ -239,6 +241,7 @@ const StudentProfile = () => {
                   justifyContent: "center",
                   backgroundColor: colors.whiteOnly[100],
                   alignItems: "center",
+                  color: "black",
                 }}
               >
                 <Typography> Grades</Typography>

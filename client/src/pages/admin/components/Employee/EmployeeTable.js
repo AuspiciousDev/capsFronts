@@ -372,6 +372,39 @@ const EmployeeTable = () => {
       field: "empID",
       headerName: "Employee ID",
       width: 150,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" gap={2} width="60%">
+            <Paper
+              sx={{
+                padding: "2px 10px",
+                borderRadius: "20px",
+                display: "flex",
+                justifyContent: "center",
+                backgroundColor: colors.whiteOnly[100],
+
+                alignItems: "center",
+              }}
+            >
+              <Link
+                to={`/admin/faculty/${params?.value}`}
+                style={{
+                  alignItems: "center",
+                  color: colors.black[100],
+                  textDecoration: "none",
+                }}
+              >
+                <Box
+                  display="flex"
+                  sx={{ alignItems: "center", color: colors.blackOnly[100] }}
+                >
+                  <Typography ml="5px">{params?.value}</Typography>
+                </Box>
+              </Link>
+            </Paper>
+          </Box>
+        );
+      },
     },
     {
       field: "fullName",
