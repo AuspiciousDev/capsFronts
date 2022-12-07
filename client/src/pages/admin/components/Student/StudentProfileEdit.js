@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
 import {
   Box,
@@ -41,6 +41,7 @@ import ValidateDialogue from "../../../../global/ValidateDialogue";
 const StudentProfileEdit = (props) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const MOBILE_LIMIT = 11;
   const isLetters = (str) => /^[A-Za-z]*$/.test(str);
   const theme = useTheme();
@@ -189,21 +190,42 @@ const StudentProfileEdit = (props) => {
         });
       }
     } catch (error) {
-      setLoadingDialog({
-        isOpen: false,
-      });
-      if (!error.response) {
-        console.log("no server response");
-      } else if (error.response.status === 204) {
+      setLoadingDialog({ isOpen: false });
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
+      } else if (error.response.status === 400) {
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
-        navigate(-1);
         console.log(error.response.data.message);
-      } else if (error.response.status === 400) {
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
         console.log(error.response.data.message);
-        setIsLoading(false);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else {
         setErrorDialog({
           isOpen: true,
@@ -506,7 +528,7 @@ const StudentProfileEdit = (props) => {
                     accept="image/*"
                     id="profilePhoto"
                     type="file"
-                    class="hidden"
+                    className="hidden"
                     onChange={(e) => {
                       setImageUpload(e.target.files[0]);
                       setImgFile(URL.createObjectURL(e.target.files[0]));

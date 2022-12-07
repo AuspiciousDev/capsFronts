@@ -198,7 +198,6 @@ const Sidebar = () => {
                 alignItems="center"
                 m="10px 0"
               >
-                
                 <Avatar
                   alt="profile-user"
                   sx={{ width: "50px", height: "50px" }}
@@ -217,7 +216,6 @@ const Sidebar = () => {
                     borderRadius: "50%",
                   }}
                 />
-
               </Box>
             )}
             {!isCollapsed && (
@@ -248,21 +246,23 @@ const Sidebar = () => {
                 />
 
                 <Box ml="10px">
-                  <Typography
-                    variant="h5"
-                    width="180px"
-                    color={colors.black[50]}
-                    sx={{ textTransform: "capitalize" }}
-                  >
-                    {students &&
-                      students
-                        .filter((data) => {
-                          return data.studID === auth.username;
-                        })
-                        .map((val) => {
-                          return val.firstName + " " + val.lastName;
-                        })}
-                  </Typography>
+                  <Link to={`/student/${auth.username}`}>
+                    <Typography
+                      variant="h5"
+                      width="180px"
+                      color={colors.black[50]}
+                      sx={{ textTransform: "capitalize" }}
+                    >
+                      {students &&
+                        students
+                          .filter((data) => {
+                            return data.studID === auth.username;
+                          })
+                          .map((val) => {
+                            return val.firstName + " " + val.lastName;
+                          })}
+                    </Typography>
+                  </Link>
                   <Typography color={colors.primary[900]} variant="subtitle2">
                     {auth.roles == 2003 ? "Student" : "User"}
                   </Typography>

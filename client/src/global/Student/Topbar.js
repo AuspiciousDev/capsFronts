@@ -33,6 +33,7 @@ import {
   CalendarMonthOutlined,
   CoPresentOutlined,
   Person,
+  ManageAccountsOutlined,
 } from "@mui/icons-material";
 
 import { styled, alpha } from "@mui/material/styles";
@@ -148,7 +149,24 @@ const Topbar = () => {
           gap={2}
         >
           <IconButton onClick={handleClick}>
-            <SettingsOutlinedIcon sx={{ fontSize: "20pt" }} />
+            <SettingsOutlinedIcon
+              sx={{
+                color: colors.primary[900],
+                fontSize: "20pt",
+                "&:hover": {
+                  transform: "scale3d(1.5, 1.5, 1)",
+                  animation: "rotation 1s linear infinite",
+                  "@keyframes rotation": {
+                    "0%": {
+                      transform: "rotate(0deg)",
+                    },
+                    "100%": {
+                      transform: "rotate(360deg)",
+                    },
+                  },
+                },
+              }}
+            />
             {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
           </IconButton>
           <StyledMenu
@@ -172,6 +190,15 @@ const Topbar = () => {
                   Light Mode
                 </>
               )}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                navigate(`/student/changePassword`);
+              }}
+              disableRipple
+            >
+              <ManageAccountsOutlined />
+              Change Password
             </MenuItem>
             <MenuItem
               onClick={() => {
@@ -208,12 +235,31 @@ const Topbar = () => {
         >
           <Box>
             <IconButton onClick={() => setDashOpen((prev) => !prev)}>
-              <MenuOutlined sx={{ fontSize: "20pt" }} />
+              <MenuOutlined
+                sx={{ color: colors.primary[900], fontSize: "20pt" }}
+              />
               {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
             </IconButton>
             {dashOpen && (
               <IconButton onClick={handleClick}>
-                <SettingsOutlinedIcon sx={{ fontSize: "20pt" }} />
+                <SettingsOutlinedIcon
+                  sx={{
+                    color: colors.primary[900],
+                    fontSize: "20pt",
+                    "&:hover": {
+                      transform: "scale3d(1.5, 1.5, 1)",
+                      animation: "rotation 1s linear infinite",
+                      "@keyframes rotation": {
+                        "0%": {
+                          transform: "rotate(0deg)",
+                        },
+                        "100%": {
+                          transform: "rotate(360deg)",
+                        },
+                      },
+                    },
+                  }}
+                />
                 {/* <PersonOutlinedIcon sx={{ fontSize: "20pt" }} /> */}
               </IconButton>
             )}
@@ -241,7 +287,15 @@ const Topbar = () => {
                 </>
               )}
             </MenuItem>
-
+            <MenuItem
+              onClick={() => {
+                navigate(`/student/changePassword`);
+              }}
+              disableRipple
+            >
+              <ManageAccountsOutlined />
+              Change Password
+            </MenuItem>
             <MenuItem
               onClick={() => {
                 signOut();
@@ -256,7 +310,12 @@ const Topbar = () => {
       </Box>
       {dashOpen && (
         <Paper>
-          <Box sx={{ display: {xs: "grid", sm: "none"} , gridTemplateColumns: "1fr 1fr" }}>
+          <Box
+            sx={{
+              display: { xs: "grid", sm: "none" },
+              gridTemplateColumns: "1fr 1fr",
+            }}
+          >
             <StyledBox
               sx={{
                 width: "100%",

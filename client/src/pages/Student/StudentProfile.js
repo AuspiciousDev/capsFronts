@@ -23,26 +23,26 @@ import {
 } from "@mui/material";
 import { School, AdminPanelSettings, Badge } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
-import LoadingDialogue from "../../../global/LoadingDialogue";
-import ConfirmDialogue from "../../../global/ConfirmDialogue";
-import SuccessDialogue from "../../../global/SuccessDialogue";
-import ErrorDialogue from "../../../global/ErrorDialogue";
-import ValidateDialogue from "../../../global/ValidateDialogue";
-import Loading from "../../../global/Loading";
+import LoadingDialogue from "../../global/LoadingDialogue";
+import ConfirmDialogue from "../../global/ConfirmDialogue";
+import SuccessDialogue from "../../global/SuccessDialogue";
+import ErrorDialogue from "../../global/ErrorDialogue";
+import ValidateDialogue from "../../global/ValidateDialogue";
+import Loading from "../../global/Loading";
 
-import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { format } from "date-fns-tz";
 import { MoreVert, ModeEditOutline } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material";
-import { tokens } from "../../../theme";
-import NotFound404 from "../../../NotFound404";
-import { useStudentsContext } from "../../../hooks/useStudentsContext";
-import { useEmployeesContext } from "../../../hooks/useEmployeesContext";
-import { useSubjectsContext } from "../../../hooks/useSubjectsContext";
-import { useSectionsContext } from "../../../hooks/useSectionContext";
-import { useActiveStudentsContext } from "../../../hooks/useActiveStudentContext";
-import { useLevelsContext } from "../../../hooks/useLevelsContext";
+import { tokens } from "../../theme";
+import NotFound404 from "../../pages/NotFound404";
+import { useStudentsContext } from "../../hooks/useStudentsContext";
+import { useEmployeesContext } from "../../hooks/useEmployeesContext";
+import { useSubjectsContext } from "../../hooks/useSubjectsContext";
+import { useSectionsContext } from "../../hooks/useSectionContext";
+import { useActiveStudentsContext } from "../../hooks/useActiveStudentContext";
+import { useLevelsContext } from "../../hooks/useLevelsContext";
 
 const StudentProfile = () => {
   const { id } = useParams();
@@ -134,7 +134,7 @@ const StudentProfile = () => {
         <TableCell align="left">
           <Box display="flex" gap={2} width="60%">
             <Link
-              to={`/student/record/${val?.studID}/${val?.schoolYearID}`}
+              to={`/student/grade/${val?.levelID}/${val?.sectionID}/${val?.schoolYearID}/${val?.studID}`}
               style={{
                 alignItems: "center",
                 color: colors.black[100],
@@ -149,6 +149,7 @@ const StudentProfile = () => {
                   justifyContent: "center",
                   backgroundColor: colors.whiteOnly[100],
                   alignItems: "center",
+                  color: "black",
                 }}
               >
                 <Typography fontWeight="bold"> {val?.schoolYearID}</Typography>
@@ -156,10 +157,15 @@ const StudentProfile = () => {
             </Link>
           </Box>
         </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
+        {/* <TableCell align="left" sx={{ textTransform: "uppercase" }}>
           {val?.studID}
+        </TableCell> */}
+
+        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
+          {format(new Date(val?.createdAt), "MMMM dd, yyyy")}
         </TableCell>
-        <TableCell
+
+        {/* <TableCell
           component="th"
           scope="row"
           sx={{ textTransform: "capitalize" }}
@@ -174,7 +180,7 @@ const StudentProfile = () => {
                   ? stud.firstName + " " + stud.middleName + " " + stud.lastName
                   : stud.firstName + " " + stud.lastName;
               })}
-        </TableCell>
+        </TableCell> */}
         <TableCell align="left">
           {levels &&
             levels
@@ -194,6 +200,54 @@ const StudentProfile = () => {
               .map((sec) => {
                 return sec.sectionName;
               })}
+        </TableCell>
+        <TableCell align="left">
+          <Box display="flex" gap={2} width="60%">
+            <Link
+              to={`/student/record/task/${val?.studID}/${val?.schoolYearID}`}
+              style={{
+                alignItems: "center",
+                color: colors.black[100],
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                  color: "black",
+                }}
+              >
+                <Typography>Tasks</Typography>
+              </Paper>
+            </Link>
+            <Link
+              to={`/student/grade/${val?.levelID}/${val?.sectionID}/${val?.schoolYearID}/${val?.studID}`}
+              style={{
+                alignItems: "center",
+                color: colors.black[100],
+                textDecoration: "none",
+              }}
+            >
+              <Paper
+                sx={{
+                  padding: "2px 20px",
+                  borderRadius: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  backgroundColor: colors.whiteOnly[100],
+                  alignItems: "center",
+                  color: "black",
+                }}
+              >
+                <Typography> Grades</Typography>
+              </Paper>
+            </Link>
+          </Box>
         </TableCell>
       </StyledTableRow>
     );
@@ -278,20 +332,17 @@ const StudentProfile = () => {
       ) : val.firstName || val.email ? (
         <Box
           className="deleteScroll"
-          gap={1}
-          mt="20px"
+          gap={1.5}
           display="grid"
-          paddingBottom="20px"
           sx={{
-            height: { xs: "750px", sm: "100%" },
+            height: { xs: "780px", sm: "780px" },
             width: { xs: "100%", sm: "100%" },
             gridTemplateColumns: { xs: "1fr", sm: "1fr 3fr" },
             padding: { xs: "0 20px 20px 20px", sm: "3px 3px" },
-            overflow: "scroll",
           }}
         >
           <Paper
-            elevation={3}
+            elevation={2}
             sx={{
               display: "flex",
               justifyContent: "center",
@@ -396,7 +447,7 @@ const StudentProfile = () => {
               >
                 <MenuItem>
                   <Link
-                    to={`/student/edit/${val?.studID}`}
+                    to={`/student/student/edit/${val?.studID}`}
                     style={{
                       alignItems: "center",
                       color: colors.black[100],
@@ -413,7 +464,7 @@ const StudentProfile = () => {
                 sx={{ display: "flex", flexDirection: "column" }}
                 padding="10px 10px 0 10px"
               >
-                <Typography variant="h4">Employee Profile</Typography>
+                <Typography variant="h4">Student Profile</Typography>
                 <Box
                   mt="10px"
                   display="grid"
@@ -612,7 +663,89 @@ const StudentProfile = () => {
               </Box>
             </Box>
           </Paper>
-          <Paper>
+          <Paper sx={{ display: { xs: "none", sm: "block" }, p: 2 }}>
+            <Typography variant="h4">Login History</Typography>
+            <Grid
+              mt="10px"
+              container
+              gap={2}
+              sx={{ width: "350px" }}
+              direction="column"
+              alignItems="center"
+              justify="center"
+            >
+              {loginHistory &&
+                loginHistory
+                  .slice(0, 5)
+                  .filter((fill) => {
+                    return fill.username === id;
+                  })
+                  .map((val, key) => (
+                    <Paper
+                      elevation={1}
+                      sx={{
+                        display: "flex",
+                        padding: "10px 15px",
+                        borderRadius: "20px",
+                        backgroundColor: colors.whiteOnly[100],
+                        width: "100%",
+                      }}
+                    >
+                      <Typography textTransform="capitalize">
+                        {format(
+                          new Date(val.createdAt),
+                          // "kk:mm a  MMM dd, yyyy"
+                          " hh:mm a.  EE, MM-dd-yyyy"
+                        )}
+                        {/* {val.createdAt} */}
+                      </Typography>
+                    </Paper>
+                  ))}
+            </Grid>
+          </Paper>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h4">Enrollment History</Typography>
+            <TableContainer>
+              <Table sx={{ minWidth: "100%" }} aria-label="simple table">
+                <TableHead>
+                  <StyledTableHeadRow>
+                    <TableCell>Year</TableCell>
+                    {/* <TableCell>Student ID</TableCell> */}
+                    {/* <TableCell align="left">Name</TableCell> */}
+                    <TableCell align="left">Date Enrolled</TableCell>
+                    <TableCell align="left">Level</TableCell>
+                    <TableCell align="left">Section</TableCell>
+                    <TableCell align="left">Records</TableCell>
+                  </StyledTableHeadRow>
+                </TableHead>
+                <TableBody>
+                  {actives &&
+                    actives
+                      .filter((fill) => {
+                        return fill.studID === id;
+                      })
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((val) => {
+                        return tableDetails({ val });
+                      })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Divider />
+            <TablePagination
+              rowsPerPageOptions={[5, 10]}
+              component="div"
+              count={actives && actives.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Paper>
+          <Paper sx={{ display: { xs: "block", sm: "none" } }}>
             <Box padding="20px">
               <Typography>Login History</Typography>
 
@@ -653,45 +786,6 @@ const StudentProfile = () => {
                       </Paper>
                     ))}
               </Grid>
-            </Box>
-          </Paper>
-          <Paper>
-            <Box padding="20px">
-              <Typography>Enrollment History</Typography>
-              <TableContainer>
-                <Table sx={{ minWidth: "100%" }} aria-label="simple table">
-                  <TableHead>
-                    <StyledTableHeadRow>
-                      <TableCell>Year</TableCell>
-                      <TableCell>Student ID</TableCell>
-                      <TableCell align="left">Name</TableCell>
-                      <TableCell align="left">Level</TableCell>
-                      <TableCell align="left">Section</TableCell>
-                    </StyledTableHeadRow>
-                  </TableHead>
-                  <TableBody>
-                    {actives &&
-                      actives
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Divider />
-              <TablePagination
-                rowsPerPageOptions={[5, 10]}
-                component="div"
-                count={actives && actives.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
             </Box>
           </Paper>
         </Box>

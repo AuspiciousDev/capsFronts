@@ -507,7 +507,7 @@ const FacultyProfileEdit = (props) => {
                     accept="image/*"
                     id="profilePhoto"
                     type="file"
-                    class="hidden"
+                    className="hidden"
                     onChange={(e) => {
                       setImageUpload(e.target.files[0]);
                       setImgFile(URL.createObjectURL(e.target.files[0]));

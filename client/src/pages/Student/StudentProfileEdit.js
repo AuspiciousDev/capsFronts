@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useStudentsContext } from "../../../../hooks/useStudentsContext";
+import { useStudentsContext } from "../../hooks/useStudentsContext";
 import {
   Box,
   Paper,
@@ -21,22 +21,22 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DesktopDatePicker } from "@mui/x-date-pickers";
 
 import { School } from "@mui/icons-material";
-import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { format } from "date-fns-tz";
 import { ModeEditOutlineOutlined } from "@mui/icons-material";
-import axios from "../../../../api/axios";
+import axios from "../../api/axios";
 import { useTheme } from "@mui/material";
-import { tokens } from "../../../../theme";
+import { tokens } from "../../theme";
 
-import { storage } from "../../../firebase";
+import { storage } from "../../pages/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
 
-import ConfirmDialogue from "../../../../global/ConfirmDialogue";
-import SuccessDialogue from "../../../../global/SuccessDialogue";
-import ErrorDialogue from "../../../../global/ErrorDialogue";
-import LoadingDialogue from "../../../../global/LoadingDialogue";
-import ValidateDialogue from "../../../../global/ValidateDialogue";
+import ConfirmDialogue from "../../global/ConfirmDialogue";
+import SuccessDialogue from "../../global/SuccessDialogue";
+import ErrorDialogue from "../../global/ErrorDialogue";
+import LoadingDialogue from "../../global/LoadingDialogue";
+import ValidateDialogue from "../../global/ValidateDialogue";
 
 const StudentProfileEdit = (props) => {
   const { id } = useParams();
@@ -506,7 +506,7 @@ const StudentProfileEdit = (props) => {
                     accept="image/*"
                     id="profilePhoto"
                     type="file"
-                    class="hidden"
+                    className="hidden"
                     onChange={(e) => {
                       setImageUpload(e.target.files[0]);
                       setImgFile(URL.createObjectURL(e.target.files[0]));

@@ -311,7 +311,6 @@ const StudentTask = () => {
         <TableCell>Subject</TableCell>
         <TableCell>Title</TableCell>
         <TableCell align="left">Points</TableCell>
-        <TableCell align="left">Actions</TableCell>
       </StyledTableHeadRow>
     );
   };
@@ -351,41 +350,6 @@ const StudentTask = () => {
           sx={{ textTransform: "capitalize" }}
         >
           {val?.taskScore} {"/"} {val?.maxPoints}
-        </TableCell>
-
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to delete year ${val.schoolYearID}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      // handleDelete({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
         </TableCell>
       </StyledTableRow>
     );
@@ -431,7 +395,7 @@ const StudentTask = () => {
             gap={2}
           >
             <Link
-              to="/grade"
+              to="/student/grade"
               style={{ textDecoration: "none", color: colors.black[100] }}
             >
               <ArrowBackIosNewOutlined sx={{ fontSize: "40px" }} />
@@ -486,42 +450,11 @@ const StudentTask = () => {
               </Typography>
             </Box>
           </Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              justifyContent: "end",
-              alignItems: "center",
-            }}
-          >
-            <Link
-              to={`/admin/record/task/add/${id}/${year}`}
-              style={{ textDecoration: "none" }}
-            >
-              <Button
-                type="button"
-                startIcon={<Add />}
-                // onClick={setIsFormOpen((e) => !e)}
-                variant="contained"
-                sx={{
-                  width: { xs: "100%", sm: "200px" },
-                  height: "50px",
-                  marginLeft: { xs: "0", sm: "20px" },
-                  marginTop: { xs: "20px", sm: "0" },
-                }}
-              >
-                <Typography variant="h6" fontWeight="500">
-                  Add Task
-                </Typography>
-              </Button>
-            </Link>
-          </Box>
         </Box>
       </Paper>
       <Box
         sx={{
           display: "flex",
-          height: "100%",
           width: "100%",
           borderBottom: 1,
           borderColor: "divider",

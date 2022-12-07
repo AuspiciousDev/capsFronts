@@ -33,6 +33,7 @@ import {
   Delete,
   Search,
   Add,
+  Cancel,
 } from "@mui/icons-material";
 import useAuth from "../../hooks/useAuth";
 
@@ -58,6 +59,23 @@ import ErrorDialogue from "../../global/ErrorDialogue";
 import ValidateDialogue from "../../global/ValidateDialogue";
 import LoadingDialogue from "../../global/LoadingDialogue";
 
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { useLocation } from "react-router-dom";
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbar
+      // printOptions={{
+      //   fields: ["schoolYearID", "fullName", "userType", "createdAt"],
+      // }}
+      // csvOptions={{ fields: ["username", "firstName"] }}
+      />
+      {/* <GridToolbarExport */}
+
+      {/* /> */}
+    </GridToolbarContainer>
+  );
+}
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -93,6 +111,8 @@ const StudentDashboard = () => {
   const colors = tokens(theme.palette.mode);
   const axiosPrivate = useAxiosPrivate();
   const { auth, setAuth, persist, setPersist } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { id, year } = useParams();
   const [value, setValue] = React.useState(0);
@@ -139,6 +159,7 @@ const StudentDashboard = () => {
     title: "",
     message: "",
   });
+  console.log("AUTH :", auth.username);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -316,6 +337,35 @@ const StudentDashboard = () => {
     taskDispatch,
   ]);
 
+  const columns = [
+    {
+      field: "taskID",
+      headerName: "Task ID",
+      width: 200,
+
+      valueFormatter: (params) => params?.value.toUpperCase(),
+    },
+    { field: "taskName", headerName: "Task Name", width: 200,  },
+    { field: "levelID", headerName: "Level ID", width: 150 },
+    { field: "sectionID", headerName: "Section ID", width: 150 },
+    { field: "taskType", headerName: "Task Type", width: 130 },
+    { field: "subjectID", headerName: "Subject ID", width: 130 },
+    {
+      field: "points",
+      headerName: "Points",
+      width: 130,
+      valueGetter: (params) =>
+        `${params.row.taskScore || "0"} / ${params.row.maxPoints}`,
+    },
+
+    {
+      field: "createdAt",
+      headerName: "Date Created",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
+    },
+  ];
   // console.log("stud Data:", getStudentData);
   const TableTitles = () => {
     return (
@@ -369,7 +419,7 @@ const StudentDashboard = () => {
       </StyledTableRow>
     );
   };
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleChangePage = (event, newPage) => {
@@ -407,7 +457,6 @@ const StudentDashboard = () => {
         elevation={2}
         sx={{
           width: "100%",
-          margin: 2,
           padding: { xs: "10px", sm: "0 10px" },
         }}
       >
@@ -415,6 +464,7 @@ const StudentDashboard = () => {
           sx={{
             width: "100%",
             display: "grid",
+
             gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
           }}
         >
@@ -433,45 +483,54 @@ const StudentDashboard = () => {
         </Box>
       </Paper>
       <Paper
-        elevation={2}
         sx={{
+          display: "flex",
+          flexDirection: "column",
           width: "100%",
-          margin: "0 0 10px 0",
+          height: "100%",
+          mt: 2,
         }}
       >
-        <TableContainer>
-          <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
-            <TableHead>
-              <TableTitles />
-            </TableHead>
-            <TableBody>
-              {taskScore &&
-                taskScore
-                  .filter((fill) => {
-                    return fill?.studID === getStudentData.studID;
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={
+              taskScore
+                ? auth &&
+                  taskScore &&
+                  taskScore.filter((fill) => {
+                    return fill.studID === auth.username;
                   })
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((val) => {
-                    return tableDetails(val);
-                  })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Divider />
-        <TablePagination
-          rowsPerPageOptions={[5, 10]}
-          component="div"
-          count={
-            taskScore &&
-            taskScore.filter((fill) => {
-              return fill.studID === getStudentData.studID;
-            }).length
-          }
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+                : 0
+            }
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
+            sx={{
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
+            }}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  taskID: false,
+                  createdAt: true,
+                  levelID: false,
+                  sectionID: false,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
+          />
+        </Box>
       </Paper>
       {/* <Paper
         elevation={2}

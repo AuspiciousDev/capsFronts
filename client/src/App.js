@@ -73,6 +73,8 @@ import StudentGrades from "./pages/Student/StudentGrades";
 import StudentRecords from "./pages/Student/Grades/StudentRecords";
 import StudentTask from "./pages/Student/Grades/StudentTask";
 
+import StudStudentProfile from "./pages/Student/StudentProfile";
+import StudStudentProfileEdit from "./pages/Student/StudentProfileEdit";
 import StudentGenerateActiveYearGrades from "./pages/Student/GeneratePDF/StudentGenerateActiveYearGrades";
 
 import RecordTable from "./pages/admin/components/Record/RecordTable";
@@ -263,6 +265,12 @@ function App() {
                     path="grade/record/generatepdf/:id/:year"
                     element={<StudentGenerateActiveYearGrades />}
                   />
+                  <Route path="/student/:id" element={<StudStudentProfile />} />
+                  <Route
+                    path="student/edit/:id"
+                    element={<StudStudentProfileEdit />}
+                  />
+                  <Route path="changePassword" element={<ChangePassword />} />
                 </Route>
               </Route>
             </Route>
