@@ -56,7 +56,6 @@ const StudentProfileEdit = (props) => {
   const [changeIMG, setChangeIMG] = useState(false);
 
   const [studID, setStudID] = useState("");
-  const [LRN, setLRN] = useState("");
   const [empType, setEmpType] = useState({ types: [] });
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -242,7 +241,6 @@ const StudentProfileEdit = (props) => {
   };
   const clearFields = () => {
     setStudID("");
-    setLRN("");
     setFirstName("");
     setMiddleName("");
     setLastName("");
@@ -324,7 +322,6 @@ const StudentProfileEdit = (props) => {
   useEffect(() => {
     console.log(val);
     console.log(val.gender);
-    setLRN(val.LRN);
     setFirstName(val.firstName);
     setMiddleName(val.middleName);
     setLastName(val.lastName);
@@ -350,7 +347,6 @@ const StudentProfileEdit = (props) => {
 
     const employee = {
       studID: id,
-      LRN,
       firstName,
       middleName,
       lastName,
@@ -593,16 +589,6 @@ const StudentProfileEdit = (props) => {
                       margin: "20px 0",
                     }}
                   >
-                    <TextField
-                      required
-                      autoComplete="off"
-                      variant="outlined"
-                      label="LRN"
-                      value={LRN}
-                      onChange={(e) => {
-                        setLRN(e.target.value);
-                      }}
-                    />
 
                     <TextField
                       required

@@ -16,20 +16,28 @@ import { DesktopDatePicker } from "@mui/x-date-pickers";
 import StudentTable from "./StudentTable";
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import SuccessDialogue from "../../../../global/SuccessDialogue";
 
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 
+import ConfirmDialogue from "../../../../global/ConfirmDialogue";
+import SuccessDialogue from "../../../../global/SuccessDialogue";
+import ErrorDialogue from "../../../../global/ErrorDialogue";
+import ValidateDialogue from "../../../../global/ValidateDialogue";
+import LoadingDialogue from "../../../../global/LoadingDialogue";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import { format } from "date-fns-tz";
 const StudentForm = () => {
   const CHARACTER_LIMIT = 10;
   const STUDID_LIMIT = 10;
-  const LRN_LIMIT = 12;
   const isLetters = (str) => /^[A-Za-z]*$/.test(str);
   const axiosPrivate = useAxiosPrivate();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const { subjects, studDispatch } = useStudentsContext();
   const [isFormOpen, setIsFormOpen] = useState(true);
 
@@ -41,7 +49,6 @@ const StudentForm = () => {
   const [dateOfBirth, setDateOfBirth] = useState("12/31/1991");
   const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
-  const [LRN, setLRN] = useState("");
 
   const [studIDError, setStudIDError] = useState(false);
   const [firstNameError, setFirstNameError] = useState(false);
@@ -49,13 +56,32 @@ const StudentForm = () => {
   const [dateOfBirthError, setDateOfBirthError] = useState(false);
   const [genderError, setGenderError] = useState(false);
   const [emailError, setEmailError] = useState(false);
-  const [LRNError, setLRNError] = useState(false);
   const [formError, setFormError] = useState(false);
 
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
   const [successDialog, setSuccessDialog] = useState({
     isOpen: false,
     title: "",
     subTitle: "",
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [validateDialog, setValidateDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
   });
 
   const handleDate = (newValue) => {
@@ -64,10 +90,9 @@ const StudentForm = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoadingDialog({ isOpen: true });
     const student = {
       studID,
-      LRN,
       firstName,
       middleName,
       lastName,
@@ -79,7 +104,6 @@ const StudentForm = () => {
 
     console.log(student);
     !studID ? setStudIDError(true) : setStudIDError(false);
-    !LRN ? setLRNError(true) : setLRNError(false);
     !firstName ? setFirstNameError(true) : setFirstNameError(false);
     !lastName ? setLastNameError(true) : setLastNameError(false);
     !dateOfBirth ? setDateOfBirthError(true) : setDateOfBirthError(false);
@@ -88,7 +112,6 @@ const StudentForm = () => {
 
     if (
       !studIDError &&
-      !LRNError &&
       !firstNameError &&
       !lastNameError &&
       !dateOfBirthError &&
@@ -111,19 +134,50 @@ const StudentForm = () => {
           });
           clearFields();
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
-          console.log("no server response");
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else if (error.response.status === 403) {
-          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
         } else if (error.response.status === 409) {
-          setStudIDError(true);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
-          console.log(error);
-          console.log(error.response);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
         }
       }
     } else {
@@ -139,16 +193,31 @@ const StudentForm = () => {
     setDateOfBirth("12/31/1991");
     setGender("");
     setEmail("");
-    setLRN("");
   };
   const clearForm = () => {
     setIsFormOpen(false);
   };
   return (
     <>
+      <ConfirmDialogue
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+      />
       <SuccessDialogue
         successDialog={successDialog}
         setSuccessDialog={setSuccessDialog}
+      />
+      <ErrorDialogue
+        errorDialog={errorDialog}
+        setErrorDialog={setErrorDialog}
+      />
+      <ValidateDialogue
+        validateDialog={validateDialog}
+        setValidateDialog={setValidateDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       {!isFormOpen ? (
         <StudentTable />
@@ -208,31 +277,7 @@ const StudentForm = () => {
                   inputProps={{ maxLength: STUDID_LIMIT }}
                   // helperText={`*Input 10 characters only ${studID.length} / ${CHARACTER_LIMIT}`}
                 />
-                <TextField
-                  required
-                  autoComplete="off"
-                  variant="outlined"
-                  label="LRN"
-                  placeholder="12 Digit Student LRN"
-                  value={LRN}
-                  onChange={(e) => {
-                    setLRN(e.target.value);
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ color: colors.black[400] }}
-                        >
-                          {LRN.length}/{LRN_LIMIT}
-                        </Typography>
-                      </InputAdornment>
-                    ),
-                  }}
-                  inputProps={{ maxLength: LRN_LIMIT }}
-                  // helperText={`*Input 12 characters only ${studID.length} / ${LRN_LIMIT}`}
-                />
+
                 <TextField
                   required
                   type="email"

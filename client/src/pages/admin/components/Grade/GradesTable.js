@@ -90,7 +90,7 @@ const GradesTable = () => {
   const { departments, depDispatch } = useDepartmentsContext();
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
-
+  const [currYear, setCurrYear] = useState([]);
   const [isloading, setIsLoading] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -127,7 +127,7 @@ const GradesTable = () => {
     const getData = async () => {
       try {
         setIsLoading(true);
-
+        setLoadingDialog({ isOpen: true });
         const apiGrade = await axiosPrivate.get("/api/grades", {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
@@ -204,8 +204,17 @@ const GradesTable = () => {
           setIsLoading(false);
           activeDispatch({ type: "SET_ACTIVES", payload: json });
         }
+        const getYear = await axiosPrivate.get(
+          "/api/schoolyears/status/active"
+        );
+        if (getYear.status === 200) {
+          const json = await getYear.data;
+          setCurrYear(json);
+        }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
@@ -246,7 +255,6 @@ const GradesTable = () => {
             isOpen: true,
             message: `${error}`,
           });
-          console.log(error);
         }
       }
     };
@@ -341,7 +349,7 @@ const GradesTable = () => {
     {
       field: "studID",
       headerName: "Student ID",
-      width: 150,
+      width: 180,
       renderCell: (params) => {
         return (
           <ButtonBase
@@ -854,11 +862,6 @@ const GradesTable = () => {
     },
   }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  };
-  const StudentGradeForm = ({ val }) => {};
-  const closeForm = () => {};
   return (
     <>
       <ConfirmDialogue
@@ -1014,7 +1017,18 @@ const GradesTable = () => {
           >
             <Box sx={{ height: "100%", width: "100%" }}>
               <DataGrid
-                rows={actives ? actives && actives : 0}
+                rows={
+                  actives
+                    ? currYear &&
+                      actives &&
+                      actives.filter((fill) => {
+                        return (
+                          fill.status === true &&
+                          currYear.schoolYearID === fill.schoolYearID
+                        );
+                      })
+                    : 0
+                }
                 getRowId={(row) => row._id}
                 columns={columns}
                 pageSize={page}

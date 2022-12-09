@@ -134,9 +134,10 @@ const Topbar = () => {
         display={{ xs: "none", sm: "flex" }}
         width="100%"
         backgroundColor={colors.Sidebar[100]}
-        p={{ xs: "7.5px 10px", sm: "7.5px 20px" }}
         sx={{
-          boxShadow: "rgba(0, 0, 0, 0.15) 1px 1px 2.6px",
+          boxShadow: "rgba(1, 87, 155, 0.15) 2px 2px 3.6px",
+          p: { xs: "7.5px 10px", sm: "7.5px 20px" },
+          borderBottom: `1px solid ${colors.primary[500]}`,
         }}
         justifyContent="space-between"
         alignItems="center"
@@ -207,7 +208,7 @@ const Topbar = () => {
               disableRipple
             >
               <ManageAccountsOutlined />
-              Change Password 
+              Change Password
             </MenuItem>
             <MenuItem
               onClick={() => {

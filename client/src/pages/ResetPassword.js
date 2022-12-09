@@ -112,6 +112,8 @@ const ResetPassword = () => {
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          setPasswordError(true);
+          setConfPasswordError(true);
 
           console.log(error.response.data.message);
         } else if (error.response.status === 409) {

@@ -12,15 +12,11 @@ import {
 } from "@mui/material";
 const LoadingDialogue = (props) => {
   const { loadingDialog, setLoadingDialog } = props;
-  const handleClose = (event, reason) => {
-    if (reason && reason === "backdropClick")
-      return setLoadingDialog({ ...loadingDialog, isOpen: false });
-  };
+
   return (
     <Dialog
       sx={{ textAlign: "center" }}
       open={loadingDialog.isOpen}
-      onClose={handleClose}
       PaperProps={{
         style: {
           backgroundColor: "transparent",

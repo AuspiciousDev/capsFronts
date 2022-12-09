@@ -8,22 +8,13 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import deped from "../images/Logo-DepEd-1.png";
 import profilePic from "../images/profile2.png";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { useNavigate } from "react-router-dom";
 
 import { useState, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
-import {
-  ProSidebar,
-  Menu,
-  MenuItem,
-  SubMenu,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-} from "react-pro-sidebar";
+import { ProSidebar, Menu, MenuItem, SidebarHeader } from "react-pro-sidebar";
 
 import { Avatar, Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
@@ -53,8 +44,17 @@ import { useEmployeesContext } from "../hooks/useEmployeesContext";
 import { useSchoolYearsContext } from "../hooks/useSchoolYearsContext";
 import useMediaQuery from "@mui/material/useMediaQuery";
 const Item = ({ title, to, icon, selected, setSelected }) => {
+  const location = useLocation();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  // var subLocation = location.pathname.replace("/admin", "");
+  var subLocation = location.pathname;
+  // console.log("Sidebar       : ", to);
+  // console.log("Page          : ", subLocation);
+  // console.log("Pageslice     : ", subLocation.slice(0, 1));
+  // console.log("Pagesub       : ", subLocation.substring(7));
+  // console.log("Title         : ", title);
   return (
     // <MenuItem
     // active={selected === title}
@@ -69,11 +69,12 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
     //   <Typography>{title}</Typography>
     //   <Link to={to} />
     // </MenuItem>
+
     <MenuItem
       active={
-        window.location.pathname === "/admin"
-          ? window.location.pathname.slice(0, 1) === to
-          : window.location.pathname.substring(7) === to
+        subLocation === "/admin"
+          ? subLocation.slice(0, 1) === to
+          : subLocation.substring(7) === to
       }
       style={{
         color: colors.black[100],
@@ -106,7 +107,6 @@ const Sidebar = () => {
   const [getPath, setPath] = useState("");
 
   useEffect(() => {
-    console.log("Sidebar Auth :", auth);
     const getOverviewDetails = async () => {
       try {
         const apiEmp = await axiosPrivate.get(
@@ -114,9 +114,8 @@ const Sidebar = () => {
         );
         if (apiEmp?.status === 200) {
           const json = await apiEmp.data;
-          // empDispatch({ type: "SET_EMPLOYEES", payload: json });
+          empDispatch({ type: "SET_EMPLOYEES", payload: json });
           setUserProfile(json);
-          console.log("Sidebar DATA: ", json);
         }
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
@@ -165,7 +164,6 @@ const Sidebar = () => {
         },
       }}
     >
-      {console.log(userProfile)}
       <ProSidebar
         collapsed={isCollapsed}
         style={{
@@ -210,7 +208,17 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="50px"
                   height="50px"
-                  src={userProfile.imgURL}
+                  src={
+                    // userProfile.imgURL
+                    employees &&
+                    employees
+                      .filter((fill) => {
+                        return fill.empID === auth.username;
+                      })
+                      .map((val) => {
+                        return val.imgURL;
+                      })
+                  }
                   style={{
                     objectFit: "contain",
                     borderRadius: "50%",
@@ -238,16 +246,16 @@ const Sidebar = () => {
 
                 <Box ml="10px">
                   {" "}
-                  <Link to={`/admin/faculty/${auth.username}`}>
-                    <Typography
-                      variant="h5"
-                      width="180px"
-                      color={colors.black[50]}
-                      sx={{ textTransform: "capitalize" }}
-                    >
-                      {userProfile &&
-                        userProfile.firstName + " " + userProfile.lastName}
-                      {/* {(employees &&
+                  {/* <Link to={`/admin/faculty/${auth.username}`}> */}
+                  <Typography
+                    variant="h5"
+                    width="180px"
+                    color={colors.black[50]}
+                    sx={{ textTransform: "capitalize" }}
+                  >
+                    {userProfile &&
+                      userProfile.firstName + " " + userProfile.lastName}
+                    {/* {(employees &&
                       employees
                         .filter((data) => {
                           return data.empID === auth.username;
@@ -256,8 +264,8 @@ const Sidebar = () => {
                           return val.firstName + " " + val.lastName;
                         })) ||
                       auth.username} */}
-                    </Typography>{" "}
-                  </Link>
+                  </Typography>{" "}
+                  {/* </Link> */}
                   <Typography color={colors.primary[900]} variant="subtitle2">
                     {auth.roles == 2001 ? "Admin" : ""}
                     {auth.roles == 2002 ? "Teacher" : ""}

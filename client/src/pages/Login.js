@@ -18,7 +18,6 @@ import {
   VisibilityOffOutlined,
   PersonOutline,
 } from "@mui/icons-material";
-import background from "../images/bluevector.jpg";
 import "../App.css";
 
 import { useTheme } from "@mui/material";
@@ -28,7 +27,7 @@ import Topbar from "../global/Home/Topbar";
 
 import ErrorDialogue from "../global/ErrorDialogue";
 import LoadingDialogue from "../global/LoadingDialogue";
-import deped from "../images/bsu1.jpg";
+import deped from "../images/school1.jpg";
 const LOGIN_URL = "/auth";
 const Login = () => {
   const theme = useTheme();

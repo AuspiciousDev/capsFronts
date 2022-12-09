@@ -4,6 +4,7 @@ import { FormControl, useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import axios from "../api/axios";
 import ErrorDialogue from "./ErrorDialogue";
+import LoadingDialogue from "./LoadingDialogue";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import {
@@ -44,6 +45,12 @@ const ValidateDialogue = (props) => {
     message: "",
   });
 
+  const [loadingDialog, setLoadingDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
 
@@ -74,7 +81,7 @@ const ValidateDialogue = (props) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoadingDialog({ isOpen: true });
     if (!passwordError) {
       try {
         const response = await axios.post(
@@ -91,13 +98,22 @@ const ValidateDialogue = (props) => {
           setValidateDialog({ isOpen: false });
           setPassword("");
         }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
             message: `No server response`,
           });
         } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 401) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
@@ -115,6 +131,12 @@ const ValidateDialogue = (props) => {
             message: `${error.response.data.message}`,
           });
           navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 500) {
           setErrorDialog({
             isOpen: true,
@@ -126,7 +148,6 @@ const ValidateDialogue = (props) => {
             isOpen: true,
             message: `${error}`,
           });
-          console.log(error);
         }
       }
     }
@@ -137,6 +158,10 @@ const ValidateDialogue = (props) => {
       <ErrorDialogue
         errorDialog={errorDialog}
         setErrorDialog={setErrorDialog}
+      />
+      <LoadingDialogue
+        loadingDialog={loadingDialog}
+        setLoadingDialog={setLoadingDialog}
       />
       <Dialog
         sx={{ textAlign: "center" }}

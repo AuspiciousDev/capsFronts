@@ -2,8 +2,9 @@ import React from "react";
 import "./Home.css";
 import { Box, colors, Paper, Typography, useTheme } from "@mui/material";
 import Topbar from "../global/Home/Topbar";
-import deped from "../images/bsu1.jpg";
-import { ColorModeContext, tokens } from "../theme";
+import deped from "../images/school1.jpg";
+import homeCover from "../images/school3.jpg";
+import { tokens } from "../theme";
 import { Link } from "react-router-dom";
 import { KeyboardArrowRightOutlined } from "@mui/icons-material";
 const Home = () => {
@@ -16,17 +17,15 @@ const Home = () => {
   };
   return (
     <Box
+      className="mainpage-container"
       sx={{
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
         alignItems: "center",
         justifyContent: "center",
         background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
          url(${deped})`,
         backgroundSize: "cover",
         margin: "auto",
-        padding: 5,
+        padding: 8,
       }}
     >
       <Paper
@@ -35,8 +34,7 @@ const Home = () => {
           flexDirection: "column" /*added*/,
           width: "100%",
           height: "100%",
-          borderRadius: 5,
-          // background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
+          background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
         }}
       >
         <Topbar />
@@ -64,6 +62,7 @@ const Home = () => {
                   flexDirection: "column",
                   justifyContent: "center",
                   textAlign: { xs: "center", sm: "left" },
+                  color: colors.whiteOnly[100],
                 }}
               >
                 <Typography fontWeight="bold" variant="h1">
@@ -115,17 +114,22 @@ const Home = () => {
             //   objectPosition: "center",
             //   objectFit: "cover",
             sx={{
+              display: "flex",
               width: "100%",
               height: "100%",
               borderRadius: 2,
               backgroundPosition: "center center",
               backgroundRepeat: "no-repeat",
               objectFit: "cover",
+              border: `solid 1px ${colors.primary[500] + 50}`,
+              boxShadow: `${colors.primary[500] + 40} 1.95px 1.95px 2.6px;`,
+
               // backgroundImage:
               //   " url('https://images.unsplash.com/photo-1569878698889-7bffa1896872?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60')",
-              backgroundImage:
-                " url('https://bulsu.edu.ph/resources/gallery/43/01.jpg')",
+              backgroundImage: `url(${homeCover})`,
               // backgroundImage:
+              //   " url('https://bulsu.edu.ph/resources/gallery/43/01.jpg')",
+              // // backgroundImage:
               //   " url('https://www.sti.edu/cms/images/events/2019/sanjosedelmonte/front_306x191.jpg')",
             }}
           />

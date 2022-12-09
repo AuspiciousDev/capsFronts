@@ -18,9 +18,11 @@ import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 import axios from "axios";
+import useAuth from "../../../../hooks/useAuth";
 const SchoolYearForm = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { auth } = useAuth();
 
   const { schoolyears, sydispatch } = useSchoolYearsContext();
   const [schoolYearID, setSchoolYearID] = useState("");
@@ -59,6 +61,7 @@ const SchoolYearForm = () => {
       schoolYearID,
       title,
       description,
+      createdBy: auth.username,
     };
 
     if (!error) {

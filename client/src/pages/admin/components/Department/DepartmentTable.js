@@ -9,13 +9,6 @@ import {
   InputBase,
   Paper,
   Typography,
-  TableContainer,
-  TablePagination,
-  Table,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBody,
   Divider,
   NativeSelect,
   FormControl,
@@ -184,6 +177,7 @@ const DepartmentTable = () => {
 
     await console.log(newStatus);
     try {
+      setLoadingDialog({ isOpen: true });
       setIsLoading(true);
       const response = await axiosPrivate.patch(
         "/api/departments/status",
@@ -200,115 +194,15 @@ const DepartmentTable = () => {
           depDispatch({ type: "SET_DEPS", payload: json });
           setSuccessDialog({
             isOpen: true,
-            message: "Department has been added!",
+            message: `Deparment ${(val?.departmentID).toUpperCase()} status set to ${
+              newStatus === true ? "ACTIVE" : "INACTIVE"
+            }`,
           });
         }
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
-      if (!error?.response) {
-        console.log("no server response");
-      } else if (error.response.status === 204) {
-        console.log(error.response.data.message);
-      } else {
-        console.log(error);
-      }
-    }
-  };
-  function depData(depName, departmentID) {
-    return { depName, departmentID };
-  }
-  const handleSubmit = async (e) => {
-    setLoadingDialog({ isOpen: true });
-    e.preventDefault();
-    const data = {
-      departmentID,
-      depName,
-      description,
-    };
-    setIsLoading(true);
-    if (!error) {
-      try {
-        const response = await axiosPrivate.post(
-          "/api/departments/register",
-          JSON.stringify(data),
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
-        );
-
-        if (response.status === 201) {
-          const json = await response.data;
-          console.log("response;", json);
-          depDispatch({ type: "CREATE_DEP", payload: json });
-          setOpen(false);
-          setSuccessDialog({
-            isOpen: true,
-            message: `Department ${json.depName} Added!`,
-          });
-          setIsLoading(false);
-          setLoadingDialog({ isOpen: false });
-        }
-      } catch (error) {
-        setLoadingDialog({ isOpen: false });
-        setIsLoading(false);
-        if (!error?.response) {
-          setErrorDialog({
-            isOpen: true,
-            message: `No server response`,
-          });
-        } else if (error.response.status === 400) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-          console.log(error.response.data.message);
-        } else if (error.response.status === 404) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-          console.log(error.response.data.message);
-        } else if (error.response.status === 403) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-          navigate("/login", { state: { from: location }, replace: true });
-        } else {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error}`,
-          });
-          console.log(error);
-        }
-      }
-    } else {
-      console.log(errorMessage);
-    }
-  };
-  const handleDelete = async ({ val }) => {
-    setConfirmDialog({
-      ...confirmDialog,
-      isOpen: false,
-    });
-    try {
-      setIsLoading(true);
-      const response = await axiosPrivate.delete("api/departments/delete", {
-        headers: { "Content-Type": "application/json" },
-        data: val,
-        withCredentials: true,
-      });
-      const json = await response.data;
-      if (response.status === 201) {
-        console.log(json);
-        depDispatch({ type: "DELETE_DEP", payload: json });
-        setSuccessDialog({ isOpen: true });
-      }
-
-      setIsLoading(false);
-    } catch (error) {
-      setIsLoading(false);
+      setLoadingDialog({ isOpen: false });
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
@@ -332,6 +226,171 @@ const DepartmentTable = () => {
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error}`,
+        });
+        console.log(error);
+      }
+    }
+  };
+  function depData(depName, departmentID) {
+    return { depName, departmentID };
+  }
+  const handleSubmit = async (e) => {
+    setLoadingDialog({ isOpen: true });
+    e.preventDefault();
+    const data = {
+      departmentID,
+      depName,
+      description,
+    };
+    setIsLoading(true);
+    if (!error) {
+      try {
+        setLoadingDialog({ isOpen: true });
+        const response = await axiosPrivate.post(
+          "/api/departments/register",
+          JSON.stringify(data),
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+
+        if (response.status === 201) {
+          const json = await response.data;
+          console.log("response;", json);
+          depDispatch({ type: "CREATE_DEP", payload: json });
+          setOpen(false);
+          setSuccessDialog({
+            isOpen: true,
+            message: `Department ${json.depName} Added!`,
+          });
+          setIsLoading(false);
+          setLoadingDialog({ isOpen: false });
+        }
+        setLoadingDialog({ isOpen: false });
+      } catch (error) {
+        setLoadingDialog({ isOpen: false });
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
+          console.log(error);
+        }
+      }
+    } else {
+      console.log(errorMessage);
+    }
+  };
+  const handleDelete = async ({ val }) => {
+    setConfirmDialog({
+      ...confirmDialog,
+      isOpen: false,
+    });
+    try {
+      setLoadingDialog({ isOpen: true });
+      setIsLoading(true);
+      const response = await axiosPrivate.delete("api/departments/delete", {
+        headers: { "Content-Type": "application/json" },
+        data: val,
+        withCredentials: true,
+      });
+      const json = await response.data;
+      if (response.status === 201) {
+        console.log(json);
+        depDispatch({ type: "DELETE_DEP", payload: json });
+        setSuccessDialog({ isOpen: true });
+      }
+      setLoadingDialog({ isOpen: false });
+      setIsLoading(false);
+    } catch (error) {
+      setLoadingDialog({ isOpen: false });
+      if (!error?.response) {
+        setErrorDialog({
+          isOpen: true,
+          message: `No server response`,
+        });
+      } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else {
         setErrorDialog({
           isOpen: true,
@@ -378,11 +437,9 @@ const DepartmentTable = () => {
                   onConfirm: () => {
                     setConfirmDialog({
                       isOpen: true,
-                      title: `Are you sure to change status of  ${params?.row?.departmentID.toUpperCase()}`,
+                      title: `Are you sure to set status of ${params?.row?.departmentID.toUpperCase()}`,
                       message: `${
-                        params?.value === true
-                          ? "INACTIVE to ACTIVE"
-                          : " ACTIVE to INACTIVE"
+                        params?.value === true ? "To ACTIVE" : "To INACTIVE"
                       }`,
                       onConfirm: () => {
                         toggleStatus({ val: params?.row });

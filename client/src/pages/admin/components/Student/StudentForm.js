@@ -25,8 +25,7 @@ import { tokens } from "../../../../theme";
 import { useNavigate, useLocation } from "react-router-dom";
 const StudentForm = () => {
   const CHARACTER_LIMIT = 10;
-  const STUDID_LIMIT = 10;
-  const LRN_LIMIT = 12;
+  const STUDID_LIMIT = 12;
   const isLetters = (str) => /^[A-Za-z]*$/.test(str);
   const axiosPrivate = useAxiosPrivate();
   const theme = useTheme();
@@ -44,16 +43,12 @@ const StudentForm = () => {
   const [suffix, setSuffix] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("12/31/1991");
   const [gender, setGender] = useState("");
-  const [email, setEmail] = useState("");
-  const [LRN, setLRN] = useState("");
 
   const [studIDError, setStudIDError] = useState(false);
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
   const [dateOfBirthError, setDateOfBirthError] = useState(false);
   const [genderError, setGenderError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [LRNError, setLRNError] = useState(false);
   const [formError, setFormError] = useState(false);
 
   const [successDialog, setSuccessDialog] = useState({
@@ -71,33 +66,27 @@ const StudentForm = () => {
 
     const student = {
       studID,
-      LRN,
       firstName,
       middleName,
       lastName,
       suffix,
       dateOfBirth,
       gender,
-      email,
     };
 
     console.log(student);
     !studID ? setStudIDError(true) : setStudIDError(false);
-    !LRN ? setLRNError(true) : setLRNError(false);
     !firstName ? setFirstNameError(true) : setFirstNameError(false);
     !lastName ? setLastNameError(true) : setLastNameError(false);
     !dateOfBirth ? setDateOfBirthError(true) : setDateOfBirthError(false);
     !gender ? setGenderError(true) : setGenderError(false);
-    !email ? setEmailError(true) : setEmailError(false);
 
     if (
       !studIDError &&
-      !LRNError &&
       !firstNameError &&
       !lastNameError &&
       !dateOfBirthError &&
-      !genderError &&
-      !emailError
+      !genderError
     ) {
       try {
         const response = await axiosPrivate.post(
@@ -143,8 +132,6 @@ const StudentForm = () => {
     setSuffix("");
     setDateOfBirth("12/31/1991");
     setGender("");
-    setEmail("");
-    setLRN("");
   };
   const clearForm = () => {
     setIsFormOpen(false);
@@ -213,8 +200,8 @@ const StudentForm = () => {
                     required
                     autoComplete="off"
                     variant="outlined"
-                    label="Student ID"
-                    placeholder="10 character Student ID"
+                    label="Student ID/LRN"
+                    placeholder="12 character Student ID/LRN"
                     error={studIDError}
                     value={studID}
                     onChange={(e) => {
@@ -235,43 +222,6 @@ const StudentForm = () => {
                     }}
                     inputProps={{ maxLength: STUDID_LIMIT }}
                     // helperText={`*Input 10 characters only ${studID.length} / ${CHARACTER_LIMIT}`}
-                  />
-                  <TextField
-                    required
-                    autoComplete="off"
-                    variant="outlined"
-                    label="LRN"
-                    placeholder="12 Digit Student LRN"
-                    value={LRN}
-                    onChange={(e) => {
-                      setLRN(e.target.value);
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ color: colors.black[400] }}
-                          >
-                            {LRN.length}/{LRN_LIMIT}
-                          </Typography>
-                        </InputAdornment>
-                      ),
-                    }}
-                    inputProps={{ maxLength: LRN_LIMIT }}
-                    // helperText={`*Input 12 characters only ${studID.length} / ${LRN_LIMIT}`}
-                  />
-                  <TextField
-                    required
-                    type="email"
-                    autoComplete="off"
-                    variant="outlined"
-                    label="Email"
-                    value={email}
-                    error={emailError}
-                    onChange={(e) => {
-                      setEmail(e.target.value.toLowerCase());
-                    }}
                   />
                 </Box>
               </Box>

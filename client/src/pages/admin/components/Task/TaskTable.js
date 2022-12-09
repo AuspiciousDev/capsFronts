@@ -57,6 +57,7 @@ import { tokens } from "../../../../theme";
 import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
 import { format } from "date-fns-tz";
 import { useNavigate, useLocation } from "react-router-dom";
+import { fi } from "date-fns/locale";
 
 function CustomToolbar() {
   return (
@@ -89,26 +90,10 @@ const TaskTable = () => {
   const { levels, levelDispatch } = useLevelsContext();
   const { departments, depDispatch } = useDepartmentsContext();
   const { tasks, taskDispatch } = useTasksContext();
-
-  const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
-  const [subjectID, setSubjectID] = useState("");
-  const [levelID, setLevelID] = useState("");
-  const [subjectName, setSubjectName] = useState("");
-  const [description, setDescription] = useState("");
-
-  const [level, setLevel] = useState("");
-  const [departmentID, setDepartmentID] = useState("");
-
-  const [subjectIDError, setSubjectIDError] = useState(false);
-  const [levelIDError, setLevelIDError] = useState(false);
-  const [departmentIDError, setDepartmentIDError] = useState(false);
-  const [subjectNameError, setSubjectNameError] = useState(false);
-  const [descriptionError, setDescriptionError] = useState(false);
+  const [currYear, setCurrYear] = useState([]);
 
   const [error, setError] = useState(false);
+  const [loading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState();
 
   const [confirmDialog, setConfirmDialog] = useState({
@@ -139,44 +124,6 @@ const TaskTable = () => {
 
   const [page, setPage] = React.useState(15);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const [open, setOpen] = useState(false);
-  const closeModal = () => {
-    setOpen(false);
-    clearInputForms();
-    setError(false);
-  };
-  const clearInputForms = () => {
-    setSubjectID("");
-    setLevelID("");
-    setSubjectName("");
-    setDescription("");
-  };
-
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
 
   useEffect(() => {
     const getData = async () => {
@@ -216,49 +163,63 @@ const TaskTable = () => {
           setIsLoading(false);
           taskDispatch({ type: "SET_TASKS", payload: json });
         }
+        const getYear = await axiosPrivate.get(
+          "/api/schoolyears/status/active"
+        );
+        if (getYear.status === 200) {
+          const json = await getYear.data;
+          setCurrYear(json);
+        }
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            message: `No server response!`,
+            message: `No server response`,
           });
-          console.log("no server response!");
-          setIsLoading(false);
         } else if (error.response.status === 400) {
-          console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-          setIsLoading(false);
-        } else if (error.response.status === 401) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-          setIsLoading(false);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-          setIsLoading(false);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
-          setErrorDialog({ isOpen: true, message: `${error}` });
-          console.log(error);
-          setIsLoading(false);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
         }
       }
     };
     getData();
   }, [subDispatch, levelDispatch, depDispatch]);
-  const handleAdd = () => {
-    setIsFormOpen(true);
-  };
+
   const handleDelete = async ({ val }) => {
     setConfirmDialog({
       ...confirmDialog,
@@ -485,6 +446,11 @@ const TaskTable = () => {
         );
       },
     },
+    {
+      field: "empID",
+      headerName: "Created by",
+      width: 130,
+    },
   ];
   const handleCellClick = (event, params) => {
     event.stopPropagation();
@@ -590,9 +556,18 @@ const TaskTable = () => {
           mt: 2,
         }}
       >
+        {console.log(currYear)}
         <Box sx={{ height: "100%", width: "100%" }}>
           <DataGrid
-            rows={tasks ? tasks && tasks : 0}
+            rows={
+              tasks
+                ? currYear &&
+                  tasks &&
+                  tasks.filter((fill) => {
+                    return fill?.schoolYearID === currYear?.schoolYearID;
+                  })
+                : 0
+            }
             getRowId={(row) => row._id}
             columns={columns}
             pageSize={page}

@@ -3,6 +3,7 @@ import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+import { alpha, styled } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
@@ -11,7 +12,12 @@ import ErrorDialogue from "../../../../global/ErrorDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
-import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridToolbar,
+  GridToolbarContainer,
+  gridClasses,
+} from "@mui/x-data-grid";
 
 import Loading from "../../../../global/Loading";
 import {

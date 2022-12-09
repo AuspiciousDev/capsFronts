@@ -34,6 +34,7 @@ import {
   Delete,
   CheckCircle,
   Cancel,
+  CheckCircleOutline,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import Loading from "../../../../global/Loading";
@@ -73,7 +74,6 @@ function CustomToolbar() {
 
 const StudentTable = () => {
   const STUDID_LIMIT = 10;
-  const LRN_LIMIT = 12;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -83,6 +83,7 @@ const StudentTable = () => {
   const axiosPrivate = useAxiosPrivate();
 
   const { students, studDispatch } = useStudentsContext();
+  const [getUsers, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [isloading, setIsLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -142,6 +143,7 @@ const StudentTable = () => {
 
   useEffect(() => {
     const getUsersDetails = async () => {
+      let usernames = [];
       try {
         setLoadingDialog({ isOpen: true });
         setIsLoading(true);
@@ -155,6 +157,18 @@ const StudentTable = () => {
           setIsLoading(false);
           studDispatch({ type: "SET_STUDENTS", payload: json });
         }
+        const userAPI = await axiosPrivate.get("/api/users");
+        if (userAPI.status === 200) {
+          const json = await userAPI.data;
+          console.log("GET_Users : ", json);
+
+          json &&
+            json.map((val) => {
+              return usernames.push(val.username);
+            });
+        }
+        setUsers([...usernames]);
+
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
@@ -381,7 +395,7 @@ const StudentTable = () => {
     {
       field: "studID",
       headerName: "Student ID",
-      width: 150,
+      width: 200,
       renderCell: (params) => {
         return (
           <Box display="flex" gap={2} width="60%">
@@ -533,6 +547,37 @@ const StudentTable = () => {
           // >
           //   Delete
           // </Button>
+        );
+      },
+    },
+    {
+      field: "userAccount",
+      headerName: "User Account",
+      headerAlign: "center",
+      align: "center",
+      width: 130,
+
+      valueGetter: (params) => {
+        return getUsers &&
+          getUsers.filter((fill) => {
+            // return console.log(fill === params.row.empID);
+            return fill === params.row.studID;
+          }).length > 0
+          ? true
+          : false;
+      },
+      renderCell: (params) => {
+        return params &&
+          getUsers &&
+          getUsers.filter((fill) => {
+            // return console.log(fill === params.row.empID);
+            return fill === params.row.studID;
+          }).length > 0 ? (
+          <Typography color="primary">
+            <CheckCircleOutline />
+          </Typography>
+        ) : (
+          ""
         );
       },
     },

@@ -8,40 +8,21 @@ import {
   InputBase,
   Paper,
   Typography,
-  TableContainer,
-  Table,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBody,
-  TablePagination,
   Divider,
-  Select,
   NativeSelect,
-  MenuItem,
   FormControl,
   TextField,
   ButtonBase,
   InputLabel,
-  Dialog,
-  DialogTitle,
-  List,
-  ListItem,
-  Avatar,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { Search, Delete, CheckCircle, Bookmark } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { styled } from "@mui/material/styles";
 import Loading from "../../../../global/Loading";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
-import { DeleteOutline } from "@mui/icons-material";
-import PropTypes from "prop-types";
+
 import useAuth from "../../../../hooks/useAuth";
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
@@ -79,7 +60,6 @@ const SchoolYearTable = () => {
   const { auth } = useAuth();
   const axiosPrivate = useAxiosPrivate();
 
-  const [getAllData, setAllData] = useState([]);
   const { years, yearDispatch } = useSchoolYearsContext();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -137,6 +117,18 @@ const SchoolYearTable = () => {
 
     { field: "schoolYear", headerName: "School Year", width: 130 },
     {
+      field: "createdBy",
+      headerName: "Created By",
+      width: 130,
+    },
+    {
+      field: "updatedAt",
+      headerName: "Date Modify",
+      width: 240,
+      valueFormatter: (params) =>
+        format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy") || "-",
+    },
+    {
       field: "createdAt",
       headerName: "Date Created",
       width: 240,
@@ -144,6 +136,7 @@ const SchoolYearTable = () => {
       valueFormatter: (params) =>
         format(new Date(params?.value), "hh:mm a - MMMM dd, yyyy"),
     },
+
     {
       field: "status",
       headerName: "Status",
@@ -265,47 +258,61 @@ const SchoolYearTable = () => {
 
   useEffect(() => {
     const getData = async () => {
-      let resData;
       try {
         setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         const response = await axiosPrivate.get("/api/schoolyears");
         if (response.status === 200) {
-          resData = await response.data;
-          console.log("School Year GET: ", resData);
+          const json = await response.data;
+          console.log("School Year GET: ", json);
           setIsLoading(false);
-          yearDispatch({ type: "SET_YEARS", payload: resData });
-          setAllData([...resData]);
+          yearDispatch({ type: "SET_YEARS", payload: json });
         }
 
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            title: `No server response.`,
+            message: `No server response`,
           });
-          console.log("no server response");
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 403) {
-          console.log(error.response.data.message);
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-          navigate("/", { state: { from: location }, replace: true });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 500) {
-          console.log(error.response.data.message);
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          console.log(error.response.data.message);
         } else {
           setErrorDialog({
             isOpen: true,
-            title: `${error}`,
+            message: `${error}`,
           });
-          console.log(error);
         }
       }
     };
@@ -366,6 +373,7 @@ const SchoolYearTable = () => {
         }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
@@ -377,17 +385,11 @@ const SchoolYearTable = () => {
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-          setIsLoading(false);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-          console.log(error.response.data.message);
-        } else if (error.response.status === 409) {
-          setSchoolYearIDError(true);
-          setError(true);
-          setErrorMessage(error.response.data.message);
           console.log(error.response.data.message);
         } else if (error.response.status === 403) {
           setErrorDialog({
@@ -395,12 +397,23 @@ const SchoolYearTable = () => {
             message: `${error.response.data.message}`,
           });
           navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
           setErrorDialog({
             isOpen: true,
             message: `${error}`,
           });
-          console.log(error);
         }
       }
     } else {
@@ -446,7 +459,7 @@ const SchoolYearTable = () => {
       setIsLoading(false);
     } catch (error) {
       setLoadingDialog({ isOpen: false });
-      setIsLoading(false);
+      console.log(error);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
@@ -470,17 +483,27 @@ const SchoolYearTable = () => {
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 500) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else {
         setErrorDialog({
           isOpen: true,
           message: `${error}`,
         });
-        console.log(error);
       }
     }
   };
   const toggleStatus = async ({ val }) => {
-    let resData;
     setConfirmDialog({
       ...confirmDialog,
       isOpen: false,
@@ -494,6 +517,7 @@ const SchoolYearTable = () => {
     if (val.status === true) newStatus = false;
 
     try {
+      setLoadingDialog({ isOpen: true });
       setIsLoading(true);
       const response = await axiosPrivate.patch(
         "/api/schoolyears/status",
@@ -502,40 +526,59 @@ const SchoolYearTable = () => {
       if (response.status === 200) {
         const response2 = await axiosPrivate.get("/api/schoolyears");
         if (response2?.status === 200) {
+          console.log("success");
           const json = await response2.data;
           console.log("School Year PATCH: ", json);
           setIsLoading(false);
           yearDispatch({ type: "SET_YEARS", payload: json });
           setSuccessDialog({ isOpen: true });
-          setAllData([...resData]);
+          console.log("success");
         }
       }
+      setLoadingDialog({ isOpen: false });
     } catch (error) {
       setLoadingDialog({ isOpen: false });
+      console.log(error);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
-          title: `No server response.`,
+          message: `No server response`,
         });
+      } else if (error.response.status === 400) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
+      } else if (error.response.status === 404) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 403) {
-        console.log(error.response.data.message);
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
-        navigate("/", { state: { from: location }, replace: true });
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 500) {
-        console.log(error.response.data.message);
         setErrorDialog({
           isOpen: true,
           message: `${error.response.data.message}`,
         });
+        console.log(error.response.data.message);
       } else {
         setErrorDialog({
           isOpen: true,
-          title: `${error}`,
+          message: `${error}`,
         });
-        console.log(error);
       }
     }
   };
@@ -852,10 +895,7 @@ const SchoolYearTable = () => {
               initialState={{
                 columns: {
                   columnVisibilityModel: {
-                    firstName: true,
-                    lastName: true,
-                    middleName: true,
-                    email: true,
+                    updatedAt: false,
                   },
                 },
               }}

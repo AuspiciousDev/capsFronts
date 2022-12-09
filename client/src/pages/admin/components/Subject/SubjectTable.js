@@ -266,29 +266,20 @@ const SubjectTable = () => {
         setLoadingDialog({ isOpen: true });
         setIsLoading(true);
         console.log("Subject GET:");
-        const response = await axiosPrivate.get("/api/subjects", {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
+        const response = await axiosPrivate.get("/api/subjects");
 
         if (response.status === 200) {
           const json = await response.data;
           subDispatch({ type: "SET_SUBJECTS", payload: json });
           console.log("Subject GET:", json);
         }
-        const getLevels = await axiosPrivate.get("/api/levels", {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
+        const getLevels = await axiosPrivate.get("/api/levels");
         if (getLevels?.status === 200) {
           const json = await getLevels.data;
           setIsLoading(false);
           levelDispatch({ type: "SET_LEVELS", payload: json });
         }
-        const getDepartment = await axiosPrivate.get("/api/departments", {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
+        const getDepartment = await axiosPrivate.get("/api/departments");
         if (getDepartment?.status === 200) {
           const json = await getDepartment.data;
           setIsLoading(false);
@@ -296,43 +287,47 @@ const SubjectTable = () => {
         }
         setLoadingDialog({ isOpen: false });
       } catch (error) {
-        setIsLoading(false);
         setLoadingDialog({ isOpen: false });
+        console.log(error);
         if (!error?.response) {
-          console.log("No server response");
           setErrorDialog({
             isOpen: true,
-            title: `No server response`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
-          console.log(error.response.data.message);
           setErrorDialog({
             isOpen: true,
-            title: `${error.response.data.message}`,
+            message: `${error.response.data.message}`,
           });
-        } else if (error.response.status === 401) {
           console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            title: `${error.response.data.message}`,
-          });
-        } else if (error.response.status === 403) {
-          console.log(error.response.data.message);
-          setErrorDialog({
-            isOpen: true,
-            title: `${error.response.data.message}`,
-          });
         } else if (error.response.status === 404) {
-          console.log(error.response.data.message);
           setErrorDialog({
             isOpen: true,
-            title: `${error.response.data.message}`,
+            message: `${error.response.data.message}`,
           });
-        } else {
-          console.log(error);
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
           setErrorDialog({
             isOpen: true,
-            title: `${error}`,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
           });
         }
       }
@@ -362,7 +357,7 @@ const SubjectTable = () => {
       setLoadingDialog({ isOpen: false });
     } catch (error) {
       setLoadingDialog({ isOpen: false });
-      setIsLoading(false);
+      console.log(error);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
@@ -386,6 +381,12 @@ const SubjectTable = () => {
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 500) {
         setErrorDialog({
           isOpen: true,
@@ -397,7 +398,6 @@ const SubjectTable = () => {
           isOpen: true,
           message: `${error}`,
         });
-        console.log(error);
       }
     }
   };
@@ -431,7 +431,7 @@ const SubjectTable = () => {
       setLoadingDialog({ isOpen: false });
     } catch (error) {
       setLoadingDialog({ isOpen: false });
-      setIsLoading(false);
+      console.log(error);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
@@ -455,6 +455,12 @@ const SubjectTable = () => {
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 500) {
         setErrorDialog({
           isOpen: true,
@@ -466,7 +472,6 @@ const SubjectTable = () => {
           isOpen: true,
           message: `${error}`,
         });
-        console.log(error);
       }
     }
   };
@@ -1130,7 +1135,18 @@ const SubjectTable = () => {
       >
         <Box sx={{ height: "100%", width: "100%" }}>
           <DataGrid
-            rows={subjects ? subjects && subjects : 0}
+            rows={
+              subjects && levels
+                ? subjects &&
+                  levels &&
+                  subjects.filter((fill) => {
+                    const res = levels.filter((lvl) => {
+                      return lvl.status === true && fill.levelID === lvl.levelID;
+                    });
+                    return fill?.levelID === res[0]?.levelID;
+                  })
+                : 0
+            }
             getRowId={(row) => row._id}
             columns={columns}
             pageSize={page}

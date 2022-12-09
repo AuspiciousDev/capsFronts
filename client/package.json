@@ -1,7 +1,7 @@
 {
-  "proxy": "http://localhost:3600",
   "name": "client",
   "version": "0.1.0",
+  "homepage": "https://aus-portal.online",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.5",
@@ -39,6 +39,7 @@
     "react-scripts": "5.0.1",
     "react-to-print": "^2.14.10",
     "reactjs-popup": "^2.0.5",
+    "serve": "^14.1.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

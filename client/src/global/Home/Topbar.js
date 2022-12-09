@@ -8,6 +8,7 @@ import {
   Divider,
 } from "@mui/material";
 import deped from "../../images/Logo-DepEd-1.png";
+import logo from "../../images/LOGO.png";
 import { borderColor, color } from "@mui/system";
 import { ColorModeContext, tokens } from "../../theme";
 import { styled, alpha } from "@mui/material/styles";
@@ -24,8 +25,10 @@ const Topbar = () => {
           flexDirection: { xs: "column", sm: "row" },
           backgroundColor: colors.Sidebar[100],
           p: { xs: "7.5px 10px", sm: "30px 45px" },
-          boxShadow: "rgba(0, 0, 0, 0.15) 1px 1px 2.6px",
+          // boxShadow: "rgba(0, 0, 0, 0.15) 1px 1px 2.6px",
           borderRadius: "20px 20px 0 0 ",
+          boxShadow: `${colors.primary[500] + 40} 1.95px 1.95px 2.6px;`,
+          borderBottom: `solid 1px ${colors.primary[500] + 50}`,
         }}
         justifyContent="space-between"
         alignItems="center"
@@ -41,11 +44,11 @@ const Topbar = () => {
           >
             <img
               alt="web-logo"
-              src={deped}
-              style={{ width: "100px", objectFit: "contain" }}
+              src={logo}
+              style={{ width: "60px", objectFit: "contain" }}
             />
           </Link>
-          <Typography variant="h3">Student Portal</Typography>
+          <Typography variant="h2">Student Portal</Typography>
         </Box>
 
         <Box

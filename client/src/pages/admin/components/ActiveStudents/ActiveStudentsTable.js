@@ -76,7 +76,7 @@ function CustomToolbar() {
   );
 }
 const ActiveStudentsTable = () => {
-  const CHARACTER_LIMIT = 10;
+  const CHARACTER_LIMIT = 12;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -194,7 +194,7 @@ const ActiveStudentsTable = () => {
           setIsLoading(false);
           depDispatch({ type: "SET_DEPS", payload: json });
         }
-        const apiActive = await axiosPrivate.get("/api/enrolled", {});
+        const apiActive = await axiosPrivate.get("/api/enrolled");
         if (apiActive?.status === 200) {
           const json = await apiActive.data;
           console.log(json);
@@ -211,7 +211,7 @@ const ActiveStudentsTable = () => {
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        setIsLoading(false);
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
@@ -235,6 +235,12 @@ const ActiveStudentsTable = () => {
             message: `${error.response.data.message}`,
           });
           navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 500) {
           setErrorDialog({
             isOpen: true,
@@ -246,7 +252,6 @@ const ActiveStudentsTable = () => {
             isOpen: true,
             message: `${error}`,
           });
-          console.log(error);
         }
       }
     };
@@ -303,7 +308,7 @@ const ActiveStudentsTable = () => {
       setLoadingDialog({ isOpen: false });
     } catch (error) {
       setLoadingDialog({ isOpen: false });
-      setIsLoading(false);
+      console.log(error);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
@@ -327,6 +332,12 @@ const ActiveStudentsTable = () => {
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 500) {
         setErrorDialog({
           isOpen: true,
@@ -338,7 +349,6 @@ const ActiveStudentsTable = () => {
           isOpen: true,
           message: `${error}`,
         });
-        console.log(error);
       }
     }
   };
@@ -388,7 +398,7 @@ const ActiveStudentsTable = () => {
     {
       field: "studID",
       headerName: "Student ID",
-      width: 150,
+      width: 180,
       renderCell: (params) => {
         return (
           <Box display="flex" gap={2} width="60%">
@@ -790,7 +800,7 @@ const ActiveStudentsTable = () => {
         setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        setIsLoading(false);
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
@@ -814,6 +824,12 @@ const ActiveStudentsTable = () => {
             message: `${error.response.data.message}`,
           });
           navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 500) {
           setErrorDialog({
             isOpen: true,
@@ -825,7 +841,6 @@ const ActiveStudentsTable = () => {
             isOpen: true,
             message: `${error}`,
           });
-          console.log(error);
         }
       }
     } else {
@@ -858,7 +873,7 @@ const ActiveStudentsTable = () => {
       setIsLoading(false);
     } catch (error) {
       setLoadingDialog({ isOpen: false });
-      setIsLoading(false);
+      console.log(error);
       if (!error?.response) {
         setErrorDialog({
           isOpen: true,
@@ -882,6 +897,12 @@ const ActiveStudentsTable = () => {
           message: `${error.response.data.message}`,
         });
         navigate("/login", { state: { from: location }, replace: true });
+      } else if (error.response.status === 409) {
+        setErrorDialog({
+          isOpen: true,
+          message: `${error.response.data.message}`,
+        });
+        console.log(error.response.data.message);
       } else if (error.response.status === 500) {
         setErrorDialog({
           isOpen: true,
@@ -893,7 +914,6 @@ const ActiveStudentsTable = () => {
           isOpen: true,
           message: `${error}`,
         });
-        console.log(error);
       }
     }
   };
@@ -1283,7 +1303,22 @@ const ActiveStudentsTable = () => {
       >
         <Box sx={{ height: "100%", width: "100%" }}>
           <DataGrid
-            rows={actives ? actives && actives : 0}
+            rows={
+              actives && years
+                ? actives &&
+                  years &&
+                  actives.filter((fill) => {
+                    const res = years
+                      .filter((year) => {
+                        return year?.status === true;
+                      })
+                      .map((val) => {
+                        return val?.schoolYearID;
+                      });
+                    return fill?.schoolYearID === res[0];
+                  })
+                : 0
+            }
             getRowId={(row) => row._id}
             columns={columns}
             pageSize={page}
@@ -1311,87 +1346,6 @@ const ActiveStudentsTable = () => {
           />
         </Box>
       </Paper>
-      <Box display="none" width="100%" sx={{ mt: 2 }}>
-        <Paper elevation={2}>
-          <TableContainer
-            sx={{
-              maxHeight: "700px",
-            }}
-          >
-            <Table aria-label="simple table" style={{ tableLayout: "fixed" }}>
-              <TableHead>
-                <TableTitles />
-              </TableHead>
-              <TableBody>
-                {search
-                  ? years &&
-                    actives &&
-                    actives
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        const currYear = years
-                          .filter((e) => {
-                            return e.status === true;
-                          })
-                          .map((val) => {
-                            return val.schoolYearID;
-                          });
-                        return (
-                          val.schoolYearID === currYear[0] &&
-                          val.studID.includes(search)
-                        );
-                      })
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })
-                  : years &&
-                    actives &&
-                    actives
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .filter((val) => {
-                        const currYear = years
-                          .filter((e) => {
-                            return e.status === true;
-                          })
-                          .map((val) => {
-                            return val.schoolYearID;
-                          });
-                        return val.schoolYearID === currYear[0];
-                      })
-                      .map((val) => {
-                        return tableDetails({ val });
-                      })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Divider />
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={years && years.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
-        <Box
-          display="flex"
-          width="100%"
-          sx={{ flexDirection: "column" }}
-          justifyContent="center"
-          alignItems="center"
-          paddingBottom="20px"
-        >
-          {isloading ? <Loading /> : <></>}
-        </Box>
-      </Box>
     </>
   );
 };

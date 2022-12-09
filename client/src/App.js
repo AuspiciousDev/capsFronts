@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -209,7 +209,11 @@ function App() {
                   <Route path="changePassword" element={<ChangePassword />} />
                 </Route>
               </Route>
-              <Route element={<RequireAuth allowedRoles={[ROLES.Teacher]} />}>
+              <Route
+                element={
+                  <RequireAuth allowedRoles={[ROLES.Admin, ROLES.Teacher]} />
+                }
+              >
                 <Route path="/teacher" element={<TeacherOutlet />}>
                   <Route index element={<TeacherDashboard />} />
                   <Route path="grade" element={<TeachersGrades />} />

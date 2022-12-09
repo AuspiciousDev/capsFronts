@@ -71,8 +71,6 @@ function CustomToolbar() {
   );
 }
 const StudentTable = () => {
-  const STUDID_LIMIT = 10;
-  const LRN_LIMIT = 12;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 

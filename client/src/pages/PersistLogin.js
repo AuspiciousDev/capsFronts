@@ -23,10 +23,10 @@ const PersistLogin = () => {
     !auth.accessToken ? verifyRefreshToken() : setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    console.log(`isLoading: ${isLoading}`);
-    console.log(`Access Token: ${JSON.stringify(auth?.accessToken)}`);
-  }, [isLoading]);
+  // useEffect(() => {
+  //   console.log(`isLoading: ${isLoading}`);
+  //   console.log(`Access Token: ${JSON.stringify(auth?.accessToken)}`);
+  // }, [isLoading]);
   return (
     <>
       {!persist ? (
@@ -39,8 +39,8 @@ const PersistLogin = () => {
           minHeight="100vh"
           flexDirection="column"
         >
-          {/* <Loading />
-          <Typography variant="h3">Loading...</Typography> */}
+          {/* <Loading /> */}
+          {/* <Typography variant="h3">Loading...</Typography> */}
         </Box>
       ) : (
         <Outlet />

@@ -108,9 +108,9 @@ const StudentRecords = () => {
         const apiGradesbyLevel = await axiosPrivate.get(
           `/api/grades/search/${id}/${year}`
         );
-        if (apiGradesbyLevel?.status === 200) {
+        if (apiGradesbyLevel.status === 200) {
           const json = await apiGradesbyLevel.data;
-          console.log(json);
+          console.log("Grades: ", json);
           setGrades(json);
           setIsLoading(false);
           setLoadingDialog({ isOpen: false });
@@ -244,7 +244,7 @@ const StudentRecords = () => {
                   return val?.grade, (grade2 = val?.grade);
                 })
             : "-"}
-        </TableCell>{" "}
+        </TableCell>
         <TableCell align="left">
           {getGrades &&
           getGrades.filter((fill) => {

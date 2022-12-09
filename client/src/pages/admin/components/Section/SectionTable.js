@@ -1026,7 +1026,18 @@ const SectionTable = () => {
       >
         <Box sx={{ height: "100%", width: "100%" }}>
           <DataGrid
-            rows={sections ? sections && sections : 0}
+            rows={
+              sections && levels
+                ? sections &&
+                  levels &&
+                  sections.filter((fill) => {
+                    const res = levels.filter((lvl) => {
+                      return lvl.status === true && fill.levelID === lvl.levelID;
+                    });
+                    return fill?.levelID === res[0]?.levelID;
+                  })
+                : 0
+            }
             getRowId={(row) => row._id}
             columns={columns}
             pageSize={page}

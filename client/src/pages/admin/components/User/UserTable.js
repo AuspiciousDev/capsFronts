@@ -35,15 +35,7 @@ import {
   Avatar,
 } from "@mui/material";
 import {
-  ArrowBackIosNewOutlined,
-  ArrowForwardIosOutlined,
   Search,
-} from "@mui/icons-material";
-import {
-  DriveFileRenameOutline,
-  DeleteOutline,
-  AccountCircle,
-  Person2,
   Delete,
   CheckCircle,
   AdminPanelSettings,
@@ -51,16 +43,10 @@ import {
   School,
   Cancel,
 } from "@mui/icons-material";
-import Person2OutlinedIcon from "@mui/icons-material/Person2Outlined";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 import { styled } from "@mui/material/styles";
 import Loading from "../../../../global/Loading";
-import UserForm from "./UserForm";
-import UserEditForm from "./UserEditForm";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 import AddIcon from "@mui/icons-material/Add";
@@ -73,7 +59,6 @@ import ValidateDialogue from "../../../../global/ValidateDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
 import CancelIcon from "@mui/icons-material/Cancel";
-import axios from "axios";
 
 import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
 import { format } from "date-fns-tz";
@@ -219,15 +204,6 @@ const UserTable = () => {
     setError(false);
     setUserNameError(false);
   };
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
 
   useEffect(() => {
     const getUsersDetails = async () => {
@@ -249,16 +225,6 @@ const UserTable = () => {
           setStudUser(json);
         }
 
-        const apiUser = await axiosPrivate.get("/api/users", {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
-        if (apiUser?.status === 200) {
-          const json = await apiUser.data;
-          console.log("Users GET : ", json);
-          setIsLoading(false);
-          userDispatch({ type: "SET_USERS", payload: json });
-        }
         const apiEmp = await axiosPrivate.get("/api/employees", {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
@@ -309,19 +275,6 @@ const UserTable = () => {
           console.log(error);
         }
       }
-
-      // if (response.statusText === "OK") {
-      //   await setEmployees(response.data);
-      //
-      //   if (!response.data || response.data.length === 0) {
-      //     setWithData(false);
-      //     return;
-      //   } else {
-      //     setWithData(true);
-      //   }
-      // } else {
-      //   return;
-      // }
     };
     getUsersDetails();
   }, [userDispatch, empDispatch]);
@@ -577,10 +530,11 @@ const UserTable = () => {
             alignItems="center"
             sx={{ width: "100%" }}
           >
+            {console.log("{", params?.row.gender)}
             <Avatar
               alt="profile-user"
               sx={{ width: "40px", height: "40px" }}
-              src={params?.value}
+              src={params?.row?.profile?.imgURL}
               style={{
                 objectFit: "contain",
               }}
@@ -611,6 +565,15 @@ const UserTable = () => {
       field: "email",
       headerName: "Email",
       width: 150,
+      renderCell: (params) => {
+        return (
+          <Typography
+            sx={{ textTransform: "lowercase", fontSize: "0.8125rem" }}
+          >
+            {params?.value}
+          </Typography>
+        );
+      },
     },
     {
       field: "roles",
@@ -822,7 +785,7 @@ const UserTable = () => {
             <Avatar
               alt="profile-user"
               sx={{ width: "40px", height: "40px" }}
-              src={params?.value}
+              src={params?.row.profile?.imgURL}
               style={{
                 objectFit: "contain",
               }}
@@ -846,9 +809,31 @@ const UserTable = () => {
         `${params.row.firstName || ""} ${params.row.middleName || ""} ${
           params.row.lastName || ""
         }`,
+      renderCell: (params) => {
+        return (
+          <Typography
+            sx={{ fontSize: "0.8125rem", textTransform: "capitalize" }}
+          >
+            {params.value}
+          </Typography>
+        );
+      },
     },
     { field: "gender", headerName: "Gender", width: 100 },
-    { field: "email", headerName: "Email", width: 150 },
+    {
+      field: "email",
+      headerName: "Email",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <Typography
+            sx={{ textTransform: "lowercase", fontSize: "0.8125rem" }}
+          >
+            {params?.value}
+          </Typography>
+        );
+      },
+    },
     {
       field: "roles",
       headerName: "Type",
@@ -1023,181 +1008,6 @@ const UserTable = () => {
     },
   ];
 
-  const TableTitles = () => {
-    return (
-      <TableRow>
-        {/* <TableCell align="left"></TableCell> */}
-        <TableCell>USERNAME</TableCell>
-        <TableCell>NAME</TableCell>
-        <TableCell align="left">EMAIL</TableCell>
-        <TableCell align="left">TYPE</TableCell>
-        <TableCell align="left">STATUS</TableCell>
-        <TableCell align="left">ACTION</TableCell>
-      </TableRow>
-    );
-  };
-  const tableDetails = ({ val }) => {
-    return (
-      <StyledTableRow
-        key={val?._id}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* <TableCell align="left">-</TableCell> */}
-        <TableCell align="left">{val?.username || "-"}</TableCell>
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val?.middleName
-            ? val?.firstName +
-              " " +
-              val?.middleName.charAt(0) +
-              ". " +
-              val?.lastName
-            : val?.firstName + " " + val?.lastName}
-        </TableCell>
-        <TableCell align="left">{val?.email}</TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {val?.roles?.map((item, i) => {
-            return (
-              <ul style={{ display: "flex", padding: "0", listStyle: "none" }}>
-                {item === 2001 ? (
-                  <li>
-                    <Paper
-                      sx={{
-                        padding: "2px 10px",
-                        backgroundColor: colors.secondary[500],
-                        color: colors.blackOnly[100],
-                        borderRadius: "20px",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <AdminPanelSettings />
-                      <Typography ml="5px"> Admin</Typography>
-                    </Paper>
-                  </li>
-                ) : item === 2002 ? (
-                  <li>
-                    <Paper
-                      sx={{
-                        display: "flex",
-                        padding: "2px 10px",
-                        backgroundColor: colors.primary[900],
-                        color: colors.whiteOnly[100],
-                        borderRadius: "20px",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Badge />
-                      <Typography ml="5px"> Teacher</Typography>
-                    </Paper>
-                  </li>
-                ) : item === 2003 ? (
-                  <li>
-                    <Paper
-                      sx={{
-                        display: "flex",
-                        backgroundColor: colors.whiteOnly[100],
-                        color: colors.blackOnly[100],
-                        padding: "2px 10px",
-                        borderRadius: "20px",
-                        alignItems: "center",
-                      }}
-                    >
-                      <School />
-                      <Typography ml="5px"> Student</Typography>
-                    </Paper>
-                  </li>
-                ) : (
-                  <></>
-                )}
-              </ul>
-            );
-          })}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          <ButtonBase
-            onClick={() => {
-              setConfirmDialog({
-                isOpen: true,
-                title: `Are you sure to change status of  ${val.username}`,
-                message: `${
-                  val.status === true
-                    ? "INACTIVE to ACTIVE"
-                    : " ACTIVE to INACTIVE"
-                }`,
-                onConfirm: () => {
-                  toggleStatus({ val });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            ) : (
-              <Paper
-                sx={{
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                <Delete />
-                INACTIVE
-              </Paper>
-            )}
-          </ButtonBase>
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setConfirmDialog({
-                isOpen: true,
-                title: `Are you sure to delete year ${val.username}`,
-                message: `This action is irreversible!`,
-                onConfirm: () => {
-                  handleDelete({ val });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
   return (
     <>
       <ConfirmDialogue
@@ -1551,99 +1361,39 @@ const UserTable = () => {
             }}
           >
             <Box sx={{ height: "100%", width: "100%" }}>
-              <DataGrid
-                rows={studUser && studUser}
-                getRowId={(row) => row._id}
-                columns={columns}
-                pageSize={page}
-                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
-                rowsPerPageOptions={[15, 50]}
-                pagination
-                sx={{
-                  "& .MuiDataGrid-cell": {
-                    textTransform: "capitalize",
-                  },
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bold",
-                  },
-                }}
-                initialState={{
-                  columns: {
-                    columnVisibilityModel: {
-                      createdAt: false,
-                      email: false,
-                      gender: false,
+              {studUser && studUser && (
+                <DataGrid
+                  rows={studUser && studUser}
+                  getRowId={(row) => row._id}
+                  columns={columns}
+                  pageSize={page}
+                  onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                  rowsPerPageOptions={[15, 50]}
+                  pagination
+                  sx={{
+                    "& .MuiDataGrid-cell": {
+                      textTransform: "capitalize",
                     },
-                  },
-                }}
-                components={{
-                  Toolbar: CustomToolbar,
-                }}
-              />
+                    "& .MuiDataGrid-columnHeaderTitle": {
+                      fontWeight: "bold",
+                    },
+                  }}
+                  initialState={{
+                    columns: {
+                      columnVisibilityModel: {
+                        createdAt: false,
+                        email: false,
+                        gender: false,
+                      },
+                    },
+                  }}
+                  components={{
+                    Toolbar: CustomToolbar,
+                  }}
+                />
+              )}
             </Box>
           </Paper>
-          <Box display="none" width="100%">
-            <TableContainer>
-              <Table aria-label="simple table">
-                <TableHead>
-                  <TableTitles />
-                </TableHead>
-                <TableBody>
-                  {search
-                    ? search &&
-                      studUser &&
-                      studUser
-                        .filter((fill) => {
-                          return (
-                            fill.userType === "student" &&
-                            (fill.username.includes(search) ||
-                              fill.firstName.includes(search) ||
-                              fill.lastName.includes(search))
-                          );
-                        })
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })
-                    : studUser
-                        .filter((fill) => {
-                          return fill.userType === "student";
-                        })
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Divider />
-            <TablePagination
-              rowsPerPageOptions={[5, 10]}
-              component="div"
-              count={studUser && studUser.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-            <Box
-              display="flex"
-              width="100%"
-              sx={{ flexDirection: "column" }}
-              justifyContent="center"
-              alignItems="center"
-            >
-              {isloading ? <Loading /> : <></>}
-            </Box>
-
-            <Box display="flex" width="100%" marginTop="20px"></Box>
-          </Box>
         </TabPanel>
         <TabPanel sx={{ width: "100%" }} value={value} index={1}>
           <Paper
@@ -1655,99 +1405,39 @@ const UserTable = () => {
             }}
           >
             <Box sx={{ height: "100%", width: "100%" }}>
-              <DataGrid
-                rows={empUser && empUser}
-                getRowId={(row) => row._id}
-                columns={empColumns}
-                pageSize={page}
-                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
-                rowsPerPageOptions={[15, 50]}
-                pagination
-                sx={{
-                  "& .MuiDataGrid-cell": {
-                    textTransform: "capitalize",
-                  },
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bold",
-                  },
-                }}
-                initialState={{
-                  columns: {
-                    columnVisibilityModel: {
-                      createdAt: false,
-                      email: false,
-                      gender: false,
+              {empUser && (
+                <DataGrid
+                  rows={empUser && empUser}
+                  getRowId={(row) => row._id}
+                  columns={empColumns}
+                  pageSize={page}
+                  onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+                  rowsPerPageOptions={[15, 50]}
+                  pagination
+                  sx={{
+                    "& .MuiDataGrid-cell": {
+                      textTransform: "capitalize",
                     },
-                  },
-                }}
-                components={{
-                  Toolbar: CustomToolbar,
-                }}
-              />
+                    "& .MuiDataGrid-columnHeaderTitle": {
+                      fontWeight: "bold",
+                    },
+                  }}
+                  initialState={{
+                    columns: {
+                      columnVisibilityModel: {
+                        createdAt: false,
+                        email: false,
+                        gender: false,
+                      },
+                    },
+                  }}
+                  components={{
+                    Toolbar: CustomToolbar,
+                  }}
+                />
+              )}
             </Box>
           </Paper>
-          <Box display="none" width="100%">
-            <TableContainer>
-              <Table aria-label="simple table">
-                <TableHead>
-                  <TableTitles />
-                </TableHead>
-                <TableBody>
-                  {search
-                    ? empUser &&
-                      empUser
-                        .filter((fill) => {
-                          return (
-                            fill.userType === "employee" &&
-                            (fill.username.includes(search) ||
-                              fill.firstName.includes(search) ||
-                              fill.lastName.includes(search))
-                          );
-                        })
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })
-                    : empUser &&
-                      empUser
-                        .filter((fill) => {
-                          return fill.userType === "employee";
-                        })
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((val) => {
-                          return tableDetails({ val });
-                        })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Divider />
-            <TablePagination
-              rowsPerPageOptions={[5, 10]}
-              component="div"
-              count={empUser && empUser.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-            <Box
-              display="flex"
-              width="100%"
-              sx={{ flexDirection: "column" }}
-              justifyContent="center"
-              alignItems="center"
-            >
-              {isloading ? <Loading /> : <></>}
-            </Box>
-
-            <Box display="flex" width="100%" marginTop="20px"></Box>
-          </Box>
         </TabPanel>
       </Box>
     </>

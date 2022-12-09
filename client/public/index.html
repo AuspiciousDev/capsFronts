@@ -2,19 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/logoStudentPortal2.ico" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta property="og:title" content="Student Portal" />
     <meta
       property="og:image"
-      content="https://firebasestorage.googleapis.com/v0/b/studentportal-20a8a.appspot.com/o/images%2Fpublic%2FsampleThumnail.png?alt=media&token=f33ed935-4506-43cf-8fbc-468723b757d6"
+      content="%PUBLIC_URL%/logo512.png"
     />
+    <!-- content="https://firebasestorage.googleapis.com/v0/b/studentportal-20a8a.appspot.com/o/images%2Fpublic%2FsampleThumnail.png?alt=media&token=f33ed935-4506-43cf-8fbc-468723b757d6" -->
+
     <meta
       property="og:description"
       content="A proposed capstone for intended to be used by Junior Highschool students and teachers to have a portal to see their grades online without physical papers or interaction"
     />
-    <meta property="og:url" content="https://aus-portal.online/" />
+    <meta property="og:url" content="https://aus-portal.online" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="627" />
     <!-- TYPE BELOW IS PROBABLY: 'website' or 'article' or look on https://ogp.me/#types -->
@@ -23,7 +25,7 @@
       name="description"
       content="Web site created using create-react-app"
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logoStudentPortal.png" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo512.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -38,6 +40,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+    <base href="%PUBLIC_URL%/" />
     <title>Student Portal</title>
     <style>
       * {

@@ -137,9 +137,15 @@ const Dashboard = () => {
       flexDirection: "column",
       borderRadius: 5,
       padding: "10px",
+      borderBottom: `solid 1px ${colors.primary[500] + 50}`,
+      borderRight: `solid 1px ${colors.primary[500] + 50}`,
+      boxShadow: `${colors.primary[500] + 40} 1.95px 1.95px 2.6px;`,
     },
   }));
-
+  // box-shadow:
+  //  0px 3px 1px -2px rgb(0 0 0 / 20%),
+  //  0px 2px 2px 0px rgb(0 0 0 / 14%),
+  // 0px 1px 5px 0px rgb(0 0 0 / 12%);
   const [value, setValue] = React.useState(0);
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -147,9 +153,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const getOverviewDetails = async () => {
-      const controller = new AbortController();
       setIsLoading(true);
-
       try {
         setLoadingDialog({ isOpen: true });
         const apiStud = await axiosPrivate.get("/api/students");
@@ -222,32 +226,47 @@ const Dashboard = () => {
         setIsLoading(false);
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        setErrorDialog({
-          isOpen: true,
-          message: `${error}`,
-        });
+        console.log(error);
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
-            message: `no server response`,
+            message: `No server response`,
           });
         } else if (error.response.status === 400) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-        } else if (error.response.status === 409) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          console.log(error.response.data.message);
         } else if (error.response.status === 404) {
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 403) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          navigate("/login", { state: { from: location }, replace: true });
+        } else if (error.response.status === 409) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+          console.log(error.response.data.message);
         } else {
-          console.log(error);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
         }
       }
     };
@@ -550,8 +569,8 @@ const Dashboard = () => {
           <Typography>Showing 10 entries</Typography> */}
 
             <Box
-              height="520px"
               sx={{
+                height: "100%",
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", sm: "6fr 2fr" },
               }}
@@ -575,6 +594,9 @@ const Dashboard = () => {
                     <TableBody>
                       {actives &&
                         actives
+                          .filter((fill) => {
+                            return fill?.status === true;
+                          })
                           .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage

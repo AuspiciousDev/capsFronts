@@ -25,7 +25,7 @@ import SuccessDialogue from "../global/SuccessDialogue";
 import LoadingDialogue from "../global/LoadingDialogue";
 
 import Topbar from "../global/Home/Topbar";
-
+import backgroundImage from "../images/school1.jpg";
 const Register = () => {
   var strongRegex = new RegExp(
     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})"
@@ -122,29 +122,40 @@ const Register = () => {
         }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
-        if (!error.response) {
-          console.log("no server response");
+        if (!error?.response) {
+          setErrorDialog({
+            isOpen: true,
+            message: `No server response`,
+          });
         } else if (error.response.status === 400) {
-          setError(true);
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-          setUserNameError(true);
-          setEmailError(true);
-          setPasswordError(true);
-          setConfPasswordError(true);
+          console.log(error.response.data.message);
+        } else if (error.response.status === 404) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else if (error.response.status === 409) {
-          setError(true);
           setErrorDialog({
             isOpen: true,
             message: `${error.response.data.message}`,
           });
-          setUserNameError(true);
-          setEmailError(true);
+          console.log(error.response.data.message);
+        } else if (error.response.status === 500) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
           console.log(error.response.data.message);
         } else {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error}`,
+          });
           console.log(error);
         }
       }
@@ -152,7 +163,12 @@ const Register = () => {
   };
 
   return (
-    <div>
+    <Box
+      sx={{
+        background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
+      url(${backgroundImage})`,
+      }}
+    >
       <SuccessDialogue
         successDialog={successDialog}
         setSuccessDialog={setSuccessDialog}
@@ -177,6 +193,7 @@ const Register = () => {
               height: "100%",
               borderRadius: "20px",
               overflow: "hidden",
+              background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
             }}
           >
             <Topbar />
@@ -307,7 +324,7 @@ const Register = () => {
           </Paper>
         </Box>
       </Box>
-    </div>
+    </Box>
   );
 };
 

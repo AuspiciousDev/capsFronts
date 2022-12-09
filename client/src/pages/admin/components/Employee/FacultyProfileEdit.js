@@ -842,7 +842,7 @@ const FacultyProfileEdit = (props) => {
                         label="Mobile Number"
                         error={mobileError}
                         value={mobile}
-                        placeholder="9 Digit Mobile Number"
+                        placeholder="11 Digit Mobile Number"
                         onChange={(e) => {
                           setMobile(e.target.value);
                         }}
