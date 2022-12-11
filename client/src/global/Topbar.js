@@ -13,6 +13,7 @@ import {
   Grid,
   Paper,
   Divider,
+  Avatar,
 } from "@mui/material";
 import { useContext, useState, useEffect, ref } from "react";
 import { ColorModeContext, tokens } from "../theme";
@@ -41,6 +42,8 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import useLogout from "../hooks/useLogout";
 import useAuth from "../hooks/useAuth";
 import { useScrollDirection } from "../hooks/useScrollDirection";
+import logo from "../images/LOGO.png";
+
 const StyledMenu = styled((props) => (
   <Menu
     elevation={0}
@@ -142,10 +145,12 @@ const Topbar = () => {
         justifyContent="space-between"
         alignItems="center"
       >
-        <Typography variant="h3" textTransform="uppercase">
-          Student Portal
-        </Typography>
-
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar src={logo} />
+          <Typography variant="h3" textTransform="uppercase">
+            Student Portal
+          </Typography>
+        </Box>
         <Box
           justifySelf="flex-end"
           display="grid"

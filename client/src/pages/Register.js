@@ -14,6 +14,7 @@ import {
   InputAdornment,
   IconButton,
   Paper,
+  Typography,
 } from "@mui/material";
 import "../App.css";
 import background from "../images/bluevector.jpg";
@@ -21,7 +22,7 @@ import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import axios from "../api/axios";
 import ErrorDialogue from "../global/ErrorDialogue";
-import SuccessDialogue from "../global/SuccessDialogue";
+import SuccessConfirmDialogue from "../global/SuccessConfirmDialogue";
 import LoadingDialogue from "../global/LoadingDialogue";
 
 import Topbar from "../global/Home/Topbar";
@@ -34,14 +35,13 @@ const Register = () => {
   const colors = tokens(theme.palette.mode);
 
   const navigate = useNavigate();
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confPassword, setConfPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
 
-  const [error, setError] = useState(false);
+  const [formError, setFormError] = useState(false);
+  const [formErrorMessage, setFormErrorMessage] = useState("");
 
   const [usernameError, setUserNameError] = useState(false);
   const [emailError, setEmailError] = useState(false);
@@ -53,11 +53,12 @@ const Register = () => {
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
-  // const handleKeyUp = (e) => {
-  //   const value = e.target;
-  //   const
-  // };
   const [successDialog, setSuccessDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
+  const [successConfirmDialog, setSuccessConfirmDialog] = useState({
     isOpen: false,
     title: "",
     subTitle: "",
@@ -77,16 +78,20 @@ const Register = () => {
     setLoadingDialog({ isOpen: true });
     if (password !== confPassword) {
       return (
-        setError(true),
         setPasswordError(true),
         setConfPasswordError(true),
-        setErrorMessage("Password doesn't match!"),
-        console.log(errorMessage),
-        setLoadingDialog({ isOpen: false }),
-        setErrorDialog({
-          isOpen: true,
-          message: `Password doesn't match!`,
-        })
+        setFormError(true),
+        setFormErrorMessage("Password doesn't match!"),
+        setLoadingDialog({ isOpen: false })
+      );
+    }
+    if (password.length < 8) {
+      return (
+        setPasswordError(true),
+        setConfPasswordError(true),
+        setFormError(true),
+        setFormErrorMessage("Password must be at least 8 characters!"),
+        setLoadingDialog({ isOpen: false })
       );
     }
     const data = {
@@ -99,11 +104,7 @@ const Register = () => {
       try {
         const response = await axios.post(
           "/auth/register",
-          JSON.stringify(data),
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
+          JSON.stringify(data)
         );
 
         if (response.status === 200) {
@@ -114,10 +115,13 @@ const Register = () => {
           setPassword("");
           setConfPassword("");
           setLoadingDialog({ isOpen: false });
-          setSuccessDialog({
+          setSuccessConfirmDialog({
             isOpen: true,
-            // message: `Registration of ${json.userType} - ${json.username} Success!`,
+            title: `Registration Success!`,
             message: `${json.message}`,
+            onConfirm: () => {
+              navigate("/");
+            },
           });
         }
       } catch (error) {
@@ -128,10 +132,12 @@ const Register = () => {
             message: `No server response`,
           });
         } else if (error.response.status === 400) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          setFormError(true);
+          setUserNameError(true);
+          setEmailError(true);
+          setPasswordError(true);
+          setConfPasswordError(true);
+          setFormErrorMessage(error.response.data.message);
           console.log(error.response.data.message);
         } else if (error.response.status === 404) {
           setErrorDialog({
@@ -165,13 +171,17 @@ const Register = () => {
   return (
     <Box
       sx={{
+        width: "100vw",
+        height: "100vh",
         background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
       url(${backgroundImage})`,
+        backgroundSize: "cover",
+        padding: { xs: 1, sm: 8 },
       }}
     >
-      <SuccessDialogue
-        successDialog={successDialog}
-        setSuccessDialog={setSuccessDialog}
+      <SuccessConfirmDialogue
+        successConfirmDialog={successConfirmDialog}
+        setSuccessConfirmDialog={setSuccessDialog}
       />
       <ErrorDialogue
         errorDialog={errorDialog}
@@ -183,147 +193,184 @@ const Register = () => {
       />
 
       {/* <img className="login-background" src={background} alt="" /> */}
-      <Box className="mainpage-container">
-        {/* <pre>{JSON.stringify(formValues, undefined, 2)}</pre> */}
 
-        <Box className="mainpage-content" sx={{ padding: "50px" }}>
-          <Paper
+      {/* <pre>{JSON.stringify(formValues, undefined, 2)}</pre> */}
+
+      <Paper
+        sx={{
+          // display: "flex",
+          // justifyContent:"center",
+          // alignItems:'center',
+          display: "flex" /*added*/,
+          flexDirection: "column" /*added*/,
+          width: "100%",
+          height: "100%",
+          background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
+          borderRadius: 5,
+        }}
+      >
+        <Topbar />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <Box
             sx={{
-              width: "100%",
-              height: "100%",
-              borderRadius: "20px",
-              overflow: "hidden",
-              background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
+              display: "flex",
+              flexDirection: "column",
+              padding: 5,
+              backgroundColor: colors.black[900],
+              borderRadius: 5,
+              width: { xs: "100vmin", sm: "50vmin" },
             }}
           >
-            <Topbar />
-            <Box
-              className="container-child"
-              sx={{ backgroundColor: colors.black[900] }}
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 2,
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
             >
-              <p>Register Account</p>
+              Register Account
+            </Typography>
 
-              <form onSubmit={handleSubmit}>
-                <Box display="flex" flexDirection="column" gap={2}>
-                  <TextField
-                    required
-                    autoComplete="off"
-                    label="Username"
-                    variant="outlined"
-                    value={username}
-                    error={usernameError}
-                    onChange={(e) => {
-                      setUserNameError(false);
-                      setPasswordError(false);
-                      setUsername(e.target.value);
-                    }}
-                  />
-                  <TextField
-                    required
-                    autoComplete="off"
-                    type="email"
-                    id="outlined-basic"
-                    label=" Email"
-                    variant="outlined"
-                    value={email}
-                    error={emailError}
-                    onChange={(e) => {
-                      setEmailError(false);
-                      setEmail(e.target.value);
-                    }}
-                  />
+            <form style={{ width: "100%" }} onSubmit={handleSubmit}>
+              <Box display="flex" flexDirection="column" gap={2}>
+                <TextField
+                  required
+                  autoComplete="off"
+                  label="Username"
+                  variant="outlined"
+                  value={username}
+                  error={usernameError}
+                  onChange={(e) => {
+                    setFormError(false);
+                    setUserNameError(false);
+                    setEmailError(false);
+                    setPasswordError(false);
+                    setConfPasswordError(false);
+                    setUsername(e.target.value);
+                  }}
+                />
+                <TextField
+                  required
+                  autoComplete="off"
+                  type="email"
+                  id="outlined-basic"
+                  label=" Email"
+                  variant="outlined"
+                  value={email}
+                  error={emailError}
+                  onChange={(e) => {
+                    setFormError(false);
+                    setUserNameError(false);
+                    setEmailError(false);
+                    setPasswordError(false);
+                    setConfPasswordError(false);
+                    setEmail(e.target.value);
+                  }}
+                />
 
-                  <TextField
-                    required
-                    type={showPassword ? "text" : "password"}
-                    label="Password"
-                    name="password"
-                    variant="outlined"
-                    autoComplete="off"
-                    value={password}
-                    error={passwordError}
-                    onChange={(e) => {
-                      setError(false);
-                      setPasswordError(false);
-                      setConfPasswordError(false);
-                      setPassword(e.target.value);
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={handleClickShowPassword}
-                            onMouseDown={handleMouseDownPassword}
-                          >
-                            {showPassword ? (
-                              <VisibilityOutlined />
-                            ) : (
-                              <VisibilityOffOutlined />
-                            )}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                  <TextField
-                    required
-                    type={showPassword ? "text" : "password"}
-                    name="confPassword"
-                    label="Confirm Password"
-                    variant="outlined"
-                    autoComplete="off"
-                    value={confPassword}
-                    error={confPasswordError}
-                    helperText={error ? errorMessage : ""}
-                    onChange={(e) => {
-                      setError(false);
-                      setPasswordError(false);
-                      setConfPasswordError(false);
-                      setConfPassword(e.target.value);
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={handleClickShowPassword}
-                            onMouseDown={handleMouseDownPassword}
-                          >
-                            {showPassword ? (
-                              <VisibilityOutlined />
-                            ) : (
-                              <VisibilityOffOutlined />
-                            )}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                <TextField
+                  required
+                  type={showPassword ? "text" : "password"}
+                  label="Password"
+                  name="password"
+                  variant="outlined"
+                  autoComplete="off"
+                  value={password}
+                  error={passwordError}
+                  onChange={(e) => {
+                    setFormError(false);
+                    setPasswordError(false);
+                    setConfPasswordError(false);
+                    setPassword(e.target.value);
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                        >
+                          {showPassword ? (
+                            <VisibilityOutlined />
+                          ) : (
+                            <VisibilityOffOutlined />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <TextField
+                  required
+                  type={showPassword ? "text" : "password"}
+                  name="confPassword"
+                  label="Confirm Password"
+                  variant="outlined"
+                  autoComplete="off"
+                  value={confPassword}
+                  error={confPasswordError}
+                  helperText={
+                    formError && (
+                      <Typography color="error">{formErrorMessage}</Typography>
+                    )
+                  }
+                  onChange={(e) => {
+                    setFormError(false);
+                    setPasswordError(false);
+                    setConfPasswordError(false);
+                    setConfPassword(e.target.value);
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                        >
+                          {showPassword ? (
+                            <VisibilityOutlined />
+                          ) : (
+                            <VisibilityOffOutlined />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
 
-                  <input
-                    disabled={
-                      usernameError ||
-                      emailError ||
-                      passwordError ||
-                      confPasswordError
-                    }
-                    className="login-btn"
-                    type="submit"
-                  />
-                </Box>
-              </form>
-              <div className="container-footer">
-                <p>Don't have account yet?</p>
-                <Link to="/login">
-                  <span>Login</span>
-                </Link>
-                {/* <Link to="/register">Register here</Link> */}
-              </div>
-            </Box>
-          </Paper>
+                <input
+                  disabled={
+                    usernameError ||
+                    emailError ||
+                    passwordError ||
+                    confPasswordError
+                  }
+                  className="login-btn"
+                  type="submit"
+                />
+              </Box>
+            </form>
+            <div className="container-footer">
+              <p>Don't have account yet?</p>
+              <Link to="/login">
+                <span>Login</span>
+              </Link>
+              {/* <Link to="/register">Register here</Link> */}
+            </div>
+          </Box>
         </Box>
-      </Box>
+      </Paper>
     </Box>
   );
 };

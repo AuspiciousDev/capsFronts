@@ -4,40 +4,29 @@ import { SidebarData } from "../data/SidebarData";
 
 import ExitToAppOutlined from "@mui/icons-material/ExitToAppOutlined";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-
-import deped from "../images/Logo-DepEd-1.png";
-import profilePic from "../images/profile2.png";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-
 import { useState, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
 import { ProSidebar, Menu, MenuItem, SidebarHeader } from "react-pro-sidebar";
 
 import { Avatar, Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { tokens } from "../theme";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import GradeOutlinedIcon from "@mui/icons-material/GradeOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
-import ListAltOutlinedIcon from "@mui/icons-material/ListAltOutlined";
 import Person2OutlinedIcon from "@mui/icons-material/Person2Outlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
-import SettingsApplicationsOutlinedIcon from "@mui/icons-material/SettingsApplicationsOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import StairsOutlinedIcon from "@mui/icons-material/StairsOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import CorporateFareOutlinedIcon from "@mui/icons-material/CorporateFareOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CoPresentIconOutlinedIcon from "@mui/icons-material/CoPresentOutlined";
-import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import {
   TopicOutlined,
   TaskOutlined,
-  PermContactCalendarOutlined,
-  Logout,
   RestoreOutlined,
+  GridViewOutlined,
 } from "@mui/icons-material";
 import "react-pro-sidebar/dist/css/styles.css";
 import { useEmployeesContext } from "../hooks/useEmployeesContext";
@@ -98,13 +87,9 @@ const Sidebar = () => {
   const { employees, empDispatch } = useEmployeesContext();
   const { years, yearDispatch } = useSchoolYearsContext();
 
-  const [userName, setUserName] = useState();
-  const [userType, setUserType] = useState();
   const [userProfile, setUserProfile] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [getPath, setPath] = useState("");
 
   useEffect(() => {
     const getOverviewDetails = async () => {
@@ -175,7 +160,7 @@ const Sidebar = () => {
           <SidebarHeader>
             <MenuItem
               onClick={() => setIsCollapsed(!isCollapsed)}
-              icon={isCollapsed ? <MenuOutlinedIcon /> : undefined}
+              icon={isCollapsed ? <GridViewOutlined /> : undefined}
               style={{
                 color: colors.primary[900],
               }}
@@ -187,7 +172,7 @@ const Sidebar = () => {
                   alignItems="center"
                 >
                   <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
-                    <MenuOutlinedIcon
+                    <GridViewOutlined
                       style={{
                         color: colors.primary[900],
                       }}
@@ -208,17 +193,7 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="50px"
                   height="50px"
-                  src={
-                    // userProfile.imgURL
-                    employees &&
-                    employees
-                      .filter((fill) => {
-                        return fill.empID === auth.username;
-                      })
-                      .map((val) => {
-                        return val.imgURL;
-                      })
-                  }
+                  src={userProfile.imgURL}
                   style={{
                     objectFit: "contain",
                     borderRadius: "50%",
@@ -255,17 +230,7 @@ const Sidebar = () => {
                   >
                     {userProfile &&
                       userProfile.firstName + " " + userProfile.lastName}
-                    {/* {(employees &&
-                      employees
-                        .filter((data) => {
-                          return data.empID === auth.username;
-                        })
-                        .map((val) => {
-                          return val.firstName + " " + val.lastName;
-                        })) ||
-                      auth.username} */}
                   </Typography>{" "}
-                  {/* </Link> */}
                   <Typography color={colors.primary[900]} variant="subtitle2">
                     {auth.roles == 2001 ? "Admin" : ""}
                     {auth.roles == 2002 ? "Teacher" : ""}

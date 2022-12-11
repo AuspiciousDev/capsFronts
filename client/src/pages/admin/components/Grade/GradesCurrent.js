@@ -121,10 +121,7 @@ const GradesCurrent = () => {
     );
   };
   const tableDetails = (val) => {
-    let grade1 = 0;
-    let grade2 = 0;
-    let grade3 = 0;
-    let grade4 = 0;
+    let grade1, grade2, grade3, grade4;
     return (
       <StyledTableRow key={val._id} data-rowid={val.studID}>
         <TableCell
@@ -259,29 +256,46 @@ const GradesCurrent = () => {
           )}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {grade1 && grade2 && grade3 && grade4 ? (
-            (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-              <Typography variant="h6" fontWeight="bold">
+          {
+            // grade1 && grade2 && grade3 && grade4 ? (
+            //   (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+            //     <Typography variant="h6" fontWeight="bold">
+            //       passed
+            //     </Typography>
+            //   ) : (
+            //     <Typography
+            //       variant="h6"
+            //       color={colors.error[100]}
+            //       fontWeight="bold"
+            //     >
+            //       failed
+            //     </Typography>
+            //   )
+            // ) : (
+            //   <Typography
+            //     variant="h6"
+            //     color={colors.error[100]}
+            //     fontWeight="bold"
+            //   >
+            //     INC
+            //   </Typography>
+            // )
+            !grade1 || !grade2 || !grade3 || !grade4 ? (
+              "-"
+            ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+              <Typography fontWeight="bold" variant="h6">
                 passed
               </Typography>
             ) : (
               <Typography
                 variant="h6"
-                color={colors.error[100]}
                 fontWeight="bold"
+                color={colors.error[100]}
               >
                 failed
               </Typography>
             )
-          ) : (
-            <Typography
-              variant="h6"
-              color={colors.error[100]}
-              fontWeight="bold"
-            >
-              INC
-            </Typography>
-          )}
+          }
         </TableCell>
       </StyledTableRow>
     );

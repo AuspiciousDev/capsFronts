@@ -14,6 +14,8 @@ import {
   InputAdornment,
   IconButton,
   Paper,
+  Typography,
+  Divider,
 } from "@mui/material";
 import Topbar from "../global/Home/Topbar";
 import axios from "../api/axios";
@@ -23,6 +25,7 @@ import {
   VisibilityOutlined,
   VisibilityOffOutlined,
 } from "@mui/icons-material";
+import backgroundImage from "../images/school1.jpg";
 const ResetPassword = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -33,7 +36,7 @@ const ResetPassword = () => {
   const [error, setError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [confPasswordError, setConfPasswordError] = useState(false);
-
+  const [passwordChanged, setPasswordChanged] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
@@ -96,6 +99,7 @@ const ResetPassword = () => {
           setPassword("");
           setConfPassword("");
           setLoadingDialog({ isOpen: false });
+          setPasswordChanged(true);
           setSuccessDialog({
             isOpen: true,
             // message: `Registration of ${json.userType} - ${json.username} Success!`,
@@ -131,7 +135,16 @@ const ResetPassword = () => {
     }
   };
   return (
-    <div>
+    <Box
+      sx={{
+        width: "100vw",
+        height: "100vh",
+        background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
+    url(${backgroundImage})`,
+        backgroundSize: "cover",
+        padding: { xs: 1, sm: 8 },
+      }}
+    >
       <SuccessDialogue
         successDialog={successDialog}
         setSuccessDialog={setSuccessDialog}
@@ -145,27 +158,49 @@ const ResetPassword = () => {
         setLoadingDialog={setLoadingDialog}
       />
 
-      {/* <img className="login-background" src={background} alt="" /> */}
-      <Box className="mainpage-container">
-        {/* <pre>{JSON.stringify(formValues, undefined, 2)}</pre> */}
-
-        <Box className="mainpage-content" sx={{ padding: "50px" }}>
-          <Paper
+      <Paper
+        sx={{
+          display: "flex" /*added*/,
+          flexDirection: "column" /*added*/,
+          width: "100%",
+          height: "100%",
+          background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
+          borderRadius: 5,
+        }}
+      >
+        <Topbar />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <Box
             sx={{
-              width: "100%",
-              height: "100%",
-              borderRadius: "20px",
-              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              padding: 5,
+              backgroundColor: colors.black[900],
+              borderRadius: 5,
+              width: { xs: "100vmin", sm: "50vmin" },
             }}
           >
-            <Topbar />
-            <Box
-              className="container-child"
-              sx={{ backgroundColor: colors.black[900] }}
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 2,
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
             >
-              <p>Register Account</p>
+              Reset your password
+            </Typography>
 
-              <form onSubmit={handleSubmit}>
+            {!passwordChanged ? (
+              <form style={{ width: "100%" }} onSubmit={handleSubmit}>
                 <Box display="flex" flexDirection="column" gap={2}>
                   <TextField
                     required
@@ -242,18 +277,25 @@ const ResetPassword = () => {
                   />
                 </Box>
               </form>
-              <div className="container-footer">
-                <p>Don't have account yet?</p>
-                <Link to="/login">
-                  <span>Login</span>
-                </Link>
-                {/* <Link to="/register">Register here</Link> */}
-              </div>
-            </Box>
-          </Paper>
+            ) : (
+              <Box>
+                <Typography variant="h4">
+                  Your password has been reset, You may now use your new
+                  password to sign in.
+                </Typography>
+                <br />
+                <Divider />
+                <Box className="container-footer" sx={{ mt: 1 }}>
+                  <Link to="/login">
+                    <span>Sign in </span>
+                  </Link>
+                </Box>
+              </Box>
+            )}
+          </Box>
         </Box>
-      </Box>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 

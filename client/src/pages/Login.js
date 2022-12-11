@@ -41,7 +41,8 @@ const Login = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
+  const [formError, setFormError] = useState(false);
+  const [formErrorMessage, setFormErrorMessage] = useState("");
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
@@ -59,30 +60,26 @@ const Login = () => {
     title: "",
     message: "",
   });
-  const [errMsg, setErrMsg] = useState("");
-  const errRef = useRef();
-  useEffect(() => {
-    setErrMsg("");
-  }, [username, password]);
-  useEffect(() => {
-    const inputs = document.querySelectorAll(".input");
-    function addcl() {
-      let parent = this.parentNode.parentNode;
-      parent.classList.add("focus");
-    }
 
-    function remcl() {
-      let parent = this.parentNode.parentNode;
-      if (this.value === "") {
-        parent.classList.remove("focus");
-      }
-    }
+  // useEffect(() => {
+  //   const inputs = document.querySelectorAll(".input");
+  //   function addcl() {
+  //     let parent = this.parentNode.parentNode;
+  //     parent.classList.add("focus");
+  //   }
 
-    inputs.forEach((input) => {
-      input.addEventListener("focus", addcl);
-      input.addEventListener("blur", remcl);
-    });
-  });
+  //   function remcl() {
+  //     let parent = this.parentNode.parentNode;
+  //     if (this.value === "") {
+  //       parent.classList.remove("focus");
+  //     }
+  //   }
+
+  //   inputs.forEach((input) => {
+  //     input.addEventListener("focus", addcl);
+  //     input.addEventListener("blur", remcl);
+  //   });
+  // });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,10 +151,8 @@ const Login = () => {
         } else if (error.response.status === 401) {
           setUsernameError(true);
           setPasswordError(true);
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
+          setFormError(true);
+          setFormErrorMessage(error.response.data.message);
         } else {
           setErrorDialog({
             isOpen: true,
@@ -185,8 +180,7 @@ const Login = () => {
         background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
        url(${deped})`,
         backgroundSize: "cover",
-        margin: "auto",
-        padding: 5,
+        padding: { xs: 1, sm: 8 },
       }}
     >
       <ErrorDialogue
@@ -228,17 +222,30 @@ const Login = () => {
               padding: 5,
               backgroundColor: colors.black[900],
               borderRadius: 5,
+              width: { xs: "100vmin", sm: "50vmin" },
             }}
           >
-            <Typography variant="h2" sx={{ mb: 2 }}>
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 5,
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               Login to your Account
             </Typography>
 
-            <form onSubmit={handleSubmit}>
-              <Box display="flex" flexDirection="column" gap={2}>
+            <form style={{ width: "100%" }} onSubmit={handleSubmit}>
+              <Box
+                display="flex"
+                sx={{ width: "100%" }}
+                flexDirection="column"
+                gap={2}
+              >
                 <TextField
+                  sx={{ width: "100%" }}
                   required
-                  fullWidth
                   type="text"
                   label="Username"
                   variant="outlined"
@@ -248,6 +255,7 @@ const Login = () => {
                   onChange={(e) => {
                     setUsernameError(false);
                     setPasswordError(false);
+                    setFormError(false);
                     setUsername(e.target.value);
                   }}
                   InputProps={{
@@ -260,7 +268,6 @@ const Login = () => {
                 />
                 <TextField
                   required
-                  fullWidth
                   type={showPassword ? "text" : "password"}
                   label="Password"
                   name="password"
@@ -273,6 +280,7 @@ const Login = () => {
                     setUsernameError(false);
                     setPasswordError(false);
                     setPassword(e.target.value);
+                    setFormError(false);
                   }}
                   InputProps={{
                     startAdornment: (
@@ -297,7 +305,9 @@ const Login = () => {
                     ),
                   }}
                 />
-
+                <Typography color="error">
+                  {formError && formErrorMessage}
+                </Typography>
                 <div className="remember-me">
                   <input
                     type="checkbox"

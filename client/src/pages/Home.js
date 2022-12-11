@@ -3,7 +3,11 @@ import "./Home.css";
 import { Box, colors, Paper, Typography, useTheme } from "@mui/material";
 import Topbar from "../global/Home/Topbar";
 import deped from "../images/school1.jpg";
-import homeCover from "../images/school3.jpg";
+import homeCover from "../images/school4.jpg";
+import school1 from "../images/school1.jpg";
+import school2 from "../images/school2.jpg";
+import school3 from "../images/school3.jpg";
+import school4 from "../images/school4.jpg";
 import { tokens } from "../theme";
 import { Link } from "react-router-dom";
 import { KeyboardArrowRightOutlined } from "@mui/icons-material";
@@ -15,6 +19,7 @@ const Home = () => {
       backgroundImage: `url(${deped})`,
     },
   };
+
   return (
     <Box
       className="mainpage-container"
@@ -25,7 +30,7 @@ const Home = () => {
          url(${deped})`,
         backgroundSize: "cover",
         margin: "auto",
-        padding: 8,
+        padding: { xs: 1, sm: 8 },
       }}
     >
       <Paper
@@ -34,6 +39,7 @@ const Home = () => {
           flexDirection: "column" /*added*/,
           width: "100%",
           height: "100%",
+          borderRadius: "10px 10px ",
           background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
         }}
       >
@@ -45,7 +51,6 @@ const Home = () => {
             height: "100%",
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "3fr 7fr" },
-            m: 2,
           }}
         >
           <Box
@@ -65,10 +70,16 @@ const Home = () => {
                   color: colors.whiteOnly[100],
                 }}
               >
-                <Typography fontWeight="bold" variant="h1">
-                  Rutherford Academy
+                <Typography
+                  sx={{
+                    borderLeft: `5px solid ${colors.primary[900]}`,
+                    paddingLeft: 2,
+                  }}
+                  fontWeight="bold"
+                  variant="h1"
+                >
+                  Kings Man Academy
                 </Typography>
-                <Typography variant="h2">Student Portal</Typography>
               </Box>
               <Box display="flex" gap={3}>
                 <Paper
@@ -102,6 +113,7 @@ const Home = () => {
               </Box>
             </Box>
           </Box>
+
           <Box
             // // src={deped}
             // src={"https://bulsu.edu.ph/resources/gallery/43/01.jpg"}
@@ -117,13 +129,11 @@ const Home = () => {
               display: "flex",
               width: "100%",
               height: "100%",
-              borderRadius: 2,
               backgroundPosition: "center center",
               backgroundRepeat: "no-repeat",
               objectFit: "cover",
-              border: `solid 1px ${colors.primary[500] + 50}`,
-              boxShadow: `${colors.primary[500] + 40} 1.95px 1.95px 2.6px;`,
-
+              borderRadius: "0 0 10px 0 ",
+              backgroundSize: "cover",
               // backgroundImage:
               //   " url('https://images.unsplash.com/photo-1569878698889-7bffa1896872?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60')",
               backgroundImage: `url(${homeCover})`,

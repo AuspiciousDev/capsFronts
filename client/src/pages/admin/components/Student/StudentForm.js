@@ -18,7 +18,7 @@ import StudentTable from "./StudentTable";
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
-
+import { FileUploadOutlined } from "@mui/icons-material";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
 
@@ -155,7 +155,6 @@ const StudentForm = () => {
             elevation={2}
             sx={{
               width: "100%",
-              margin: "20px 0 5px 0",
               padding: { xs: "10px", sm: "0 10px" },
             }}
           >
@@ -177,6 +176,33 @@ const StudentForm = () => {
                 <Typography variant="h2" fontWeight="bold">
                   STUDENTS FORM
                 </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "end",
+                  alignItems: "center",
+                }}
+              >
+                <Button
+                  type="button"
+                  startIcon={<FileUploadOutlined />}
+                  onClick={() => {
+                    navigate("/admin/student/importMany");
+                  }}
+                  variant="contained"
+                  sx={{
+                    width: { xs: "100%", sm: "200px" },
+                    height: "50px",
+                    marginLeft: { xs: "0", sm: "20px" },
+                    marginTop: { xs: "20px", sm: "0" },
+                  }}
+                >
+                  <Typography variant="h6" fontWeight="500">
+                    Import
+                  </Typography>
+                </Button>
               </Box>
             </Box>
           </Paper>

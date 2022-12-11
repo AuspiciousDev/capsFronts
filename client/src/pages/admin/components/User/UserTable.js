@@ -564,7 +564,7 @@ const UserTable = () => {
     {
       field: "email",
       headerName: "Email",
-      width: 150,
+      width: 200,
       renderCell: (params) => {
         return (
           <Typography
@@ -823,7 +823,7 @@ const UserTable = () => {
     {
       field: "email",
       headerName: "Email",
-      width: 150,
+      width: 200,
       renderCell: (params) => {
         return (
           <Typography

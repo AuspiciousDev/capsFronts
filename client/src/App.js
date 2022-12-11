@@ -84,6 +84,9 @@ import Home from "./pages/Home";
 import LoadAssign from "./pages/admin/components/Employee/LoadAssign";
 import LoadManage from "./pages/admin/components/Employee/LoadManage";
 import ActivateUser from "./pages/ActivateUser";
+import EmployeeForm from "./pages/admin/components/Employee/EmployeeForm";
+import EmployeeImport from "./pages/admin/components/Employee/EmployeeImport";
+import StudentImport from "./pages/admin/components/Student/StudentImport";
 const ROLES = {
   Admin: 2001,
   Teacher: 2002,
@@ -167,6 +170,10 @@ function App() {
                   />
                   <Route path="user" element={<Users />} />
                   <Route path="student" element={<Students />} />
+                  <Route
+                    path="student/importMany"
+                    element={<StudentImport />}
+                  />
                   <Route path="student/:id" element={<StudentProfile />} />
                   <Route
                     path="student/edit/:id"
@@ -184,6 +191,13 @@ function App() {
                   <Route path="task/add" element={<Taskform />} />
                   <Route path="subject" element={<Subjects />} />
                   <Route path="faculty" element={<Employees />} />
+                  <Route
+                    path="faculty/importMany"
+                    element={<EmployeeImport />}
+                  />
+
+                  <Route path="faculty/create" element={<EmployeeForm />} />
+
                   <Route path="faculty/load/:id" element={<LoadAssign />} />
                   <Route path="faculty/load/add/:id" element={<LoadManage />} />
                   <Route path="faculty/:id" element={<FacultyProfile />} />

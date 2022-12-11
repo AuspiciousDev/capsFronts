@@ -55,7 +55,7 @@ import SuccessDialogue from "../../global/SuccessDialogue";
 import ErrorDialogue from "../../global/ErrorDialogue";
 import ValidateDialogue from "../../global/ValidateDialogue";
 import LoadingDialogue from "../../global/LoadingDialogue";
-
+import { getAllStudents } from "../../api/studentAPI";
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -156,6 +156,7 @@ const Dashboard = () => {
       setIsLoading(true);
       try {
         setLoadingDialog({ isOpen: true });
+        getAllStudents().then((response) => console.log("try Lang:", response));
         const apiStud = await axiosPrivate.get("/api/students");
         const apiEmp = await axiosPrivate.get("/api/employees");
         const apiSub = await axiosPrivate.get("/api/subjects");

@@ -79,7 +79,6 @@ const EmployeeTable = () => {
   const axiosPrivate = useAxiosPrivate();
 
   const { employees, empDispatch } = useEmployeesContext();
-  const { users, userDispatch } = useUsersContext();
   const [getUsers, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [isloading, setIsLoading] = useState(false);
@@ -113,31 +112,6 @@ const EmployeeTable = () => {
   });
 
   const [page, setPage] = React.useState(15);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last borderjavascript object array to 1d array
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
 
   useEffect(() => {
     const getUsersDetails = async () => {
@@ -146,12 +120,10 @@ const EmployeeTable = () => {
         setIsLoading(true);
         setLoadingDialog({ isOpen: true });
         const response = await axiosPrivate.get("/api/employees");
-        if (response.status === 200) {
-          const json = await response.data;
-          console.log("Employees GET : ", json);
-          setIsLoading(false);
-          empDispatch({ type: "SET_EMPLOYEES", payload: json });
-        }
+        const json = await response.data;
+        console.log("Employees GET : ", json);
+        setIsLoading(false);
+        empDispatch({ type: "SET_EMPLOYEES", payload: json });
 
         const userAPI = await axiosPrivate.get("/api/users");
         if (userAPI.status === 200) {
@@ -185,12 +157,6 @@ const EmployeeTable = () => {
             message: `${error.response.data.message}`,
           });
           console.log(error.response.data.message);
-        } else if (error.response.status === 403) {
-          setErrorDialog({
-            isOpen: true,
-            message: `${error.response.data.message}`,
-          });
-          navigate("/login", { state: { from: location }, replace: true });
         } else if (error.response.status === 409) {
           setErrorDialog({
             isOpen: true,
@@ -213,7 +179,7 @@ const EmployeeTable = () => {
       }
     };
     getUsersDetails();
-  }, [empDispatch]);
+  }, [empDispatch, axiosPrivate]);
 
   const toggleStatus = async ({ val }) => {
     setConfirmDialog({
@@ -662,134 +628,134 @@ const EmployeeTable = () => {
         validateDialog={validateDialog}
         setValidateDialog={setValidateDialog}
       />
-      {isFormOpen ? (
-        <EmployeeForm />
-      ) : (
-        <>
-          <Paper
-            elevation={2}
-            sx={{
-              width: "100%",
-              padding: { xs: "10px", sm: "0 10px" },
-            }}
-          >
-            <Box
-              sx={{
-                width: "100%",
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: { sm: "end" },
-                  justifyContent: { xs: "center", sm: "start" },
-                  m: { xs: "20px 0" },
-                }}
-              >
-                <Typography variant="h2" fontWeight="bold">
-                  EMPLOYEES
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "end",
-                  alignItems: "center",
-                }}
-              >
-                <Paper
-                  elevation={3}
-                  sx={{
-                    display: "none",
-                    width: { xs: "100%", sm: "320px" },
-                    height: "50px",
-                    minWidth: "250px",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    p: { xs: "0 20px", sm: "0 20px" },
-                    mr: { xs: "0", sm: " 10px" },
-                  }}
-                >
-                  <InputBase
-                    sx={{ ml: 1, flex: 1 }}
-                    placeholder="Search Employee"
-                    onChange={(e) => {
-                      setSearch(e.target.value.toLowerCase());
-                    }}
-                  />
-                  <Divider sx={{ height: 30, m: 1 }} orientation="vertical" />
-                  <IconButton
-                    type="button"
-                    sx={{ p: "10px" }}
-                    aria-label="search"
-                  >
-                    <Search />
-                  </IconButton>
-                </Paper>
-                <Button
-                  type="button"
-                  startIcon={<AddIcon />}
-                  onClick={handleAdd}
-                  variant="contained"
-                  sx={{
-                    width: { xs: "100%", sm: "200px" },
-                    height: "50px",
-                    marginLeft: { xs: "0", sm: "20px" },
-                    marginTop: { xs: "20px", sm: "0" },
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="500">
-                    Add
-                  </Typography>
-                </Button>
-              </Box>
-            </Box>
-          </Paper>
 
-          <Paper
+      <Paper
+        elevation={2}
+        sx={{
+          width: "100%",
+          padding: { xs: "10px", sm: "0 10px" },
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          }}
+        >
+          <Box
             sx={{
               display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              height: "100%",
-              mt: 2,
+              alignItems: { sm: "end" },
+              justifyContent: { xs: "center", sm: "start" },
+              m: { xs: "20px 0" },
             }}
           >
-            <Box sx={{ height: "100%", width: "100%" }}>
-              <DataGrid
-                rows={employees ? employees && employees : 0}
-                getRowId={(row) => row._id}
-                columns={columns}
-                pageSize={page}
-                onPageSizeChange={(newPageSize) => setPage(newPageSize)}
-                rowsPerPageOptions={[15, 50]}
-                pagination
-                sx={{
-                  "& .MuiDataGrid-cell": {
-                    textTransform: "capitalize",
-                  },
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bold",
-                  },
-                }}
-                initialState={{
-                  columns: {
-                    columnVisibilityModel: {
-                      createdAt: false,
-                    },
-                  },
-                }}
-                components={{
-                  Toolbar: CustomToolbar,
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
+              EMPLOYEES
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: "end",
+              alignItems: "center",
+            }}
+          >
+            <Paper
+              elevation={3}
+              sx={{
+                display: "none",
+                width: { xs: "100%", sm: "320px" },
+                height: "50px",
+                minWidth: "250px",
+                alignItems: "center",
+                justifyContent: "center",
+                p: { xs: "0 20px", sm: "0 20px" },
+                mr: { xs: "0", sm: " 10px" },
+              }}
+            >
+              <InputBase
+                sx={{ ml: 1, flex: 1 }}
+                placeholder="Search Employee"
+                onChange={(e) => {
+                  setSearch(e.target.value.toLowerCase());
                 }}
               />
-            </Box>
-          </Paper>
-        </>
-      )}
+              <Divider sx={{ height: 30, m: 1 }} orientation="vertical" />
+              <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+                <Search />
+              </IconButton>
+            </Paper>
+            <Button
+              type="button"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                navigate("/admin/faculty/create");
+              }}
+              variant="contained"
+              sx={{
+                width: { xs: "100%", sm: "200px" },
+                height: "50px",
+                marginLeft: { xs: "0", sm: "20px" },
+                marginTop: { xs: "20px", sm: "0" },
+              }}
+            >
+              <Typography variant="h6" fontWeight="500">
+                Add
+              </Typography>
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          mt: 2,
+        }}
+      >
+        <Box sx={{ height: "100%", width: "100%" }}>
+          <DataGrid
+            rows={employees ? employees && employees : []}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={page}
+            onPageSizeChange={(newPageSize) => setPage(newPageSize)}
+            rowsPerPageOptions={[15, 50]}
+            pagination
+            sx={{
+              "& .MuiDataGrid-cell": {
+                textTransform: "capitalize",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+              },
+            }}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  createdAt: false,
+                },
+              },
+            }}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
+          />
+        </Box>
+      </Paper>
     </>
   );
 };

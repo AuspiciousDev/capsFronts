@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 
 import {
@@ -17,7 +16,6 @@ import {
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DesktopDatePicker } from "@mui/x-date-pickers";
-import EmployeeTable from "./EmployeeTable";
 
 import { useSectionsContext } from "../../../../hooks/useSectionContext";
 import { useLevelsContext } from "../../../../hooks/useLevelsContext";
@@ -29,17 +27,17 @@ import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-
+import { FileUploadOutlined } from "@mui/icons-material";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
+import { useNavigate } from "react-router-dom";
 const EmployeeForm = () => {
   const CHARACTER_LIMIT = 10;
   const isLetters = (str) => /^[A-Za-z]*$/.test(str);
   const isNumber = (str) => /^-?\d+\.?\d*$/.test(str);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
+  const navigate = useNavigate();
   const axiosPrivate = useAxiosPrivate();
 
   const { sections, secDispatch } = useSectionsContext();
@@ -204,7 +202,14 @@ const EmployeeForm = () => {
     }
   };
   const clearForm = () => {
-    setIsFormOpen(false);
+    setEmpID("");
+    setFirstName("");
+    setMiddleName("");
+    setLastName("");
+    setLastName("");
+    setSuffix("");
+    setDateOfBirth("12/31/1991");
+    setGender("");
   };
   return (
     <>
@@ -225,91 +230,121 @@ const EmployeeForm = () => {
         setLoadingDialog={setLoadingDialog}
       />
 
-      {!isFormOpen ? (
-        <EmployeeTable />
-      ) : (
-        <Box
-          className="formContainer"
-          display="block"
-          width="100%"
-          height="840px"
-          flexDirection="column"
-          justifyContent="center"
+      <Box
+        className="contents-container"
+        display="block"
+        width="100%"
+        height="840px"
+        flexDirection="column"
+        justifyContent="center"
+      >
+        <Paper
+          elevation={2}
+          sx={{
+            width: "100%",
+            padding: { xs: "10px", sm: "0 10px" },
+          }}
         >
-          <Paper
-            elevation={2}
+          <Box
             sx={{
               width: "100%",
-              margin: "20px 0 5px 0",
-              padding: { xs: "10px", sm: "0 10px" },
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
             }}
           >
             <Box
               sx={{
-                width: "100%",
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                display: "flex",
+                alignItems: { sm: "end" },
+                justifyContent: { xs: "center", sm: "start" },
+                m: { xs: "20px 0" },
               }}
             >
-              <Box
+              <Typography
+                variant="h2"
+                fontWeight="bold"
                 sx={{
-                  display: "flex",
-                  alignItems: { sm: "end" },
-                  justifyContent: { xs: "center", sm: "start" },
-                  m: { xs: "20px 0" },
+                  borderLeft: `5px solid ${colors.primary[900]}`,
+                  paddingLeft: 2,
                 }}
               >
-                <Typography variant="h2" fontWeight="bold">
-                  EMPLOYEE FORM
-                </Typography>
-              </Box>
+                EMPLOYEE FORM
+              </Typography>
             </Box>
-          </Paper>
-          <Paper elevation={2} sx={{ p: "20px", mt: "10px" }}>
-            <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-              {/* <Typography variant="h5">Registration</Typography> */}
-              <Box marginBottom="40px">
-                <Typography variant="h4" sx={{ margin: "25px 0 10px 0" }}>
-                  Employment Information
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                justifyContent: "end",
+                alignItems: "center",
+              }}
+            >
+              <Button
+                type="button"
+                startIcon={<FileUploadOutlined />}
+                onClick={() => {
+                  navigate("/admin/faculty/importMany");
+                }}
+                variant="contained"
+                sx={{
+                  width: { xs: "100%", sm: "200px" },
+                  height: "50px",
+                  marginLeft: { xs: "0", sm: "20px" },
+                  marginTop: { xs: "20px", sm: "0" },
+                }}
+              >
+                <Typography variant="h6" fontWeight="500">
+                  Import
                 </Typography>
-                <Box
-                  sx={{
-                    display: "grid",
-                    width: "100%",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-                    gap: "20px",
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+        <Paper elevation={2} sx={{ p: "20px", mt: "10px" }}>
+          <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+            {/* <Typography variant="h5">Registration</Typography> */}
+            <Box marginBottom="40px">
+              <Typography variant="h4" sx={{ margin: "25px 0 10px 0" }}>
+                Employment Information
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  width: "100%",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+                  gap: "20px",
+                }}
+              >
+                <TextField
+                  required
+                  autoComplete="off"
+                  variant="outlined"
+                  label="Employee ID"
+                  error={empIDError}
+                  value={empID}
+                  onChange={(e) => {
+                    setEmpIDError(false);
+                    setEmpID(e.target.value);
                   }}
-                >
-                  <TextField
-                    required
-                    autoComplete="off"
-                    variant="outlined"
-                    label="Employee ID"
-                    error={empIDError}
-                    value={empID}
-                    onChange={(e) => {
-                      setEmpIDError(false);
-                      setEmpID(e.target.value);
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ color: colors.black[400] }}
-                          >
-                            {empID.length}/{CHARACTER_LIMIT}
-                          </Typography>
-                        </InputAdornment>
-                      ),
-                    }}
-                    inputProps={{
-                      maxLength: CHARACTER_LIMIT,
-                    }}
-                    // helperText={`*Input 10 characters only ${empID.length} / ${CHARACTER_LIMIT}`}
-                  />
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ color: colors.black[400] }}
+                        >
+                          {empID.length}/{CHARACTER_LIMIT}
+                        </Typography>
+                      </InputAdornment>
+                    ),
+                  }}
+                  inputProps={{
+                    maxLength: CHARACTER_LIMIT,
+                  }}
+                  // helperText={`*Input 10 characters only ${empID.length} / ${CHARACTER_LIMIT}`}
+                />
 
-                  {/* <FormControl fullWidth>
+                {/* <FormControl fullWidth>
                   <InputLabel id="demo-simple-select-required-label">
                     Employee Type
                   </InputLabel>
@@ -327,23 +362,23 @@ const EmployeeForm = () => {
                     <MenuItem value={"teacher"}>Teacher</MenuItem>
                   </Select>
                 </FormControl> */}
-                  <TextField
-                    required
-                    select
-                    name="types"
-                    id="types"
-                    variant="outlined"
-                    label="Employee Type"
-                    SelectProps={{
-                      multiple: true,
-                      value: empType.types,
-                      onChange: handleFieldChange,
-                    }}
-                  >
-                    <MenuItem value={2001}>System Administrator</MenuItem>
-                    <MenuItem value={2002}>Teacher</MenuItem>
-                  </TextField>
-                  {/* <TextField
+                <TextField
+                  required
+                  select
+                  name="types"
+                  id="types"
+                  variant="outlined"
+                  label="Employee Type"
+                  SelectProps={{
+                    multiple: true,
+                    value: empType.types,
+                    onChange: handleFieldChange,
+                  }}
+                >
+                  <MenuItem value={2001}>System Administrator</MenuItem>
+                  <MenuItem value={2002}>Teacher</MenuItem>
+                </TextField>
+                {/* <TextField
                     disabled
                     required
                     autoComplete="off"
@@ -357,160 +392,159 @@ const EmployeeForm = () => {
                       setEmailError(false);
                     }}
                   /> */}
-                </Box>
               </Box>
-              <Typography variant="h4" sx={{ margin: "25px 0 10px 0" }}>
-                Personal Information
+            </Box>
+            <Typography variant="h4" sx={{ margin: "25px 0 10px 0" }}>
+              Personal Information
+            </Typography>
+            <Box marginBottom="40px">
+              <Typography sx={{ margin: "10px 0" }} variant="h5">
+                Name
               </Typography>
-              <Box marginBottom="40px">
-                <Typography sx={{ margin: "10px 0" }} variant="h5">
-                  Name
-                </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  width: "100%",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+                  gap: "20px",
+                }}
+              >
+                <TextField
+                  required
+                  type="text"
+                  autoComplete="off"
+                  variant="outlined"
+                  label="First Name"
+                  placeholder="Given Name"
+                  error={firstNameError}
+                  value={firstName}
+                  onChange={(e) => {
+                    // if (isLetters(e.target.value)) {
+                    setFirstNameError(false);
+                    setFirstName(e.target.value);
+                    // }
+                  }}
+                  inputProps={{ style: { textTransform: "capitalize" } }}
+                />
+                <TextField
+                  autoComplete="off"
+                  variant="outlined"
+                  label="Middle Name"
+                  placeholder="Optional"
+                  value={middleName}
+                  onChange={(e) => {
+                    if (isLetters(e.target.value)) {
+                      setMiddleName(e.target.value);
+                    }
+                  }}
+                  inputProps={{ style: { textTransform: "capitalize" } }}
+                />
+                <TextField
+                  required
+                  autoComplete="off"
+                  variant="outlined"
+                  label="Last Name"
+                  placeholder="Last Name"
+                  error={lastNameError}
+                  value={lastName}
+                  onChange={(e) => {
+                    if (isLetters(e.target.value)) {
+                      setLastNameError(false);
+                      setLastName(e.target.value);
+                    }
+                  }}
+                  inputProps={{ style: { textTransform: "capitalize" } }}
+                />
+                <TextField
+                  autoComplete="off"
+                  variant="outlined"
+                  label="Suffix"
+                  placeholder="Sr./Jr./III"
+                  value={suffix}
+                  onChange={(e) => {
+                    if (isLetters(e.target.value)) {
+                      setSuffix(e.target.value);
+                    }
+                  }}
+                  inputProps={{ style: { textTransform: "capitalize" } }}
+                />
+              </Box>
+
+              <Box sx={{ mb: "40px" }}>
                 <Box
                   sx={{
                     display: "grid",
                     width: "100%",
                     gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
                     gap: "20px",
+                    marginTop: "20px",
                   }}
                 >
-                  <TextField
-                    required
-                    type="text"
-                    autoComplete="off"
-                    variant="outlined"
-                    label="First Name"
-                    placeholder="Given Name"
-                    error={firstNameError}
-                    value={firstName}
-                    onChange={(e) => {
-                      // if (isLetters(e.target.value)) {
-                      setFirstNameError(false);
-                      setFirstName(e.target.value);
-                      // }
-                    }}
-                    inputProps={{ style: { textTransform: "capitalize" } }}
-                  />
-                  <TextField
-                    autoComplete="off"
-                    variant="outlined"
-                    label="Middle Name"
-                    placeholder="Optional"
-                    value={middleName}
-                    onChange={(e) => {
-                      if (isLetters(e.target.value)) {
-                        setMiddleName(e.target.value);
-                      }
-                    }}
-                    inputProps={{ style: { textTransform: "capitalize" } }}
-                  />
-                  <TextField
-                    required
-                    autoComplete="off"
-                    variant="outlined"
-                    label="Last Name"
-                    placeholder="Last Name"
-                    error={lastNameError}
-                    value={lastName}
-                    onChange={(e) => {
-                      if (isLetters(e.target.value)) {
-                        setLastNameError(false);
-                        setLastName(e.target.value);
-                      }
-                    }}
-                    inputProps={{ style: { textTransform: "capitalize" } }}
-                  />
-                  <TextField
-                    autoComplete="off"
-                    variant="outlined"
-                    label="Suffix"
-                    placeholder="Sr./Jr./III"
-                    value={suffix}
-                    onChange={(e) => {
-                      if (isLetters(e.target.value)) {
-                        setSuffix(e.target.value);
-                      }
-                    }}
-                    inputProps={{ style: { textTransform: "capitalize" } }}
-                  />
-                </Box>
+                  <LocalizationProvider required dateAdapter={AdapterDayjs}>
+                    <DesktopDatePicker
+                      required
+                      label="Date of Birth"
+                      inputFormat="MM/DD/YYYY"
+                      error={dateOfBirthError}
+                      value={dateOfBirth}
+                      onChange={handleDate}
+                      renderInput={(params) => (
+                        <TextField required autoComplete="off" {...params} />
+                      )}
+                    />
+                  </LocalizationProvider>
 
-                <Box sx={{ mb: "40px" }}>
-                  <Box
-                    sx={{
-                      display: "grid",
-                      width: "100%",
-                      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-                      gap: "20px",
-                      marginTop: "20px",
-                    }}
-                  >
-                    <LocalizationProvider required dateAdapter={AdapterDayjs}>
-                      <DesktopDatePicker
-                        required
-                        label="Date of Birth"
-                        inputFormat="MM/DD/YYYY"
-                        error={dateOfBirthError}
-                        value={dateOfBirth}
-                        onChange={handleDate}
-                        renderInput={(params) => (
-                          <TextField required autoComplete="off" {...params} />
-                        )}
-                      />
-                    </LocalizationProvider>
-
-                    <FormControl required fullWidth>
-                      <InputLabel id="demo-simple-select-label">
-                        Gender
-                      </InputLabel>
-                      <Select
-                        required
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
-                        value={gender}
-                        error={genderError}
-                        label="Gender"
-                        onChange={(e) => {
-                          setGenderError(false);
-                          setGender(e.target.value);
-                        }}
-                      >
-                        <MenuItem value={"male"}>Male</MenuItem>
-                        <MenuItem value={"female"}>Female</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
+                  <FormControl required fullWidth>
+                    <InputLabel id="demo-simple-select-label">
+                      Gender
+                    </InputLabel>
+                    <Select
+                      required
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={gender}
+                      error={genderError}
+                      label="Gender"
+                      onChange={(e) => {
+                        setGenderError(false);
+                        setGender(e.target.value);
+                      }}
+                    >
+                      <MenuItem value={"male"}>Male</MenuItem>
+                      <MenuItem value={"female"}>Female</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Box>
               </Box>
+            </Box>
 
-              <Box display="flex" justifyContent="end" height="70px">
-                <Button
-                  type="submit"
-                  color="secondary"
-                  variant="contained"
-                  sx={{ width: "250px", height: "50px" }}
-                >
-                  <Typography variant="h6" fontWeight="500">
-                    SUBMIT
-                  </Typography>
-                </Button>
-                <Button
-                  type="button"
-                  variant="contained"
-                  sx={{ width: "250px", height: "50px", ml: "20px" }}
-                  onClick={() => {
-                    clearForm();
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="500">
-                    CANCEL
-                  </Typography>
-                </Button>
-              </Box>
-            </form>
-          </Paper>
-        </Box>
-      )}
+            <Box display="flex" justifyContent="end" height="70px">
+              <Button
+                type="submit"
+                color="secondary"
+                variant="contained"
+                sx={{ width: "250px", height: "50px" }}
+              >
+                <Typography variant="h6" fontWeight="500">
+                  SUBMIT
+                </Typography>
+              </Button>
+              <Button
+                type="button"
+                variant="contained"
+                sx={{ width: "250px", height: "50px", ml: "20px" }}
+                onClick={() => {
+                  clearForm();
+                }}
+              >
+                <Typography variant="h6" fontWeight="500">
+                  CANCEL
+                </Typography>
+              </Button>
+            </Box>
+          </form>
+        </Paper>
+      </Box>
     </>
   );
 };

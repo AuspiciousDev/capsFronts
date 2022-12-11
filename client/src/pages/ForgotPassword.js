@@ -10,6 +10,8 @@ import {
   InputAdornment,
   Typography,
   IconButton,
+  Paper,
+  Divider,
 } from "@mui/material";
 import {
   LockOutlined,
@@ -27,7 +29,8 @@ import axios from "../api/axios";
 import ErrorDialogue from "../global/ErrorDialogue";
 import SuccessDialogue from "../global/SuccessDialogue";
 import LoadingDialogue from "../global/LoadingDialogue";
-
+import backgroundImage from "../images/school1.jpg";
+import Topbar from "../global/Home/Topbar";
 const LOGIN_URL = "/auth";
 const ForgotPassword = () => {
   const theme = useTheme();
@@ -37,14 +40,13 @@ const ForgotPassword = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || "/";
 
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(false);
-  const handleClickShowPassword = () => setShowPassword(!showPassword);
-  const handleMouseDownPassword = () => setShowPassword(!showPassword);
-
+  const [formError, setFormError] = useState(false);
+  const [formErrorMessage, setFormErrorMessage] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const [successDialog, setSuccessDialog] = useState({
     isOpen: false,
     title: "",
@@ -86,61 +88,74 @@ const ForgotPassword = () => {
     });
   });
 
-  const togglePersist = () => {
-    setPersist((prev) => !prev);
-  };
   useEffect(() => {
     localStorage.setItem("persist", persist);
   }, [persist]);
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      setLoadingDialog({ isOpen: true });
+    if (!emailError) {
+      try {
+        setLoadingDialog({ isOpen: true });
 
-      const forgotPass = await axios.post(
-        "auth/forgot-password",
-        JSON.stringify({ email }),
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
+        const forgotPass = await axios.post(
+          "auth/forgot-password",
+          JSON.stringify({ email }),
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+        if (forgotPass.status === 200) {
+          setLoadingDialog({ isOpen: false });
+          const json = await forgotPass.data;
+          console.log("response;", json);
+          setSuccessDialog({
+            isOpen: true,
+            message: `${json.message}`,
+          });
+          setEmailSent(true);
         }
-      );
-      if (forgotPass.status === 200) {
+      } catch (error) {
         setLoadingDialog({ isOpen: false });
-        const json = await forgotPass.data;
-        console.log("response;", json);
-        setSuccessDialog({
-          isOpen: true,
-          // message: `Registration of ${json.userType} - ${json.username} Success!`,
-          message: `${json.message}`,
-        });
+        if (!error?.response) {
+          console.log("no server response");
+        } else if (error.response.status === 400) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else if (error.response.status === 401) {
+          setFormError(true);
+          setEmailError(true);
+          setFormErrorMessage(error.response.data.message);
+        } else if (error.response.status === 500) {
+          console.log(error.response.data.message);
+          setErrorDialog({
+            isOpen: true,
+            message: `${error.response.data.message}`,
+          });
+        } else {
+          console.log(error);
+        }
       }
-    } catch (error) {
-      setLoadingDialog({ isOpen: false });
-      if (!error?.response) {
-        console.log("no server response");
-      } else if (error.response.status === 400) {
-        // console.log("Missing Username/Password");
-        console.log(error.response.data.message);
-        // setErrMsg(error.response.data.message);
-      } else if (error.response.status === 401) {
-        // console.log("Unauthorized");
-        console.log(error.response.data.message);
-        // setErrMsg(error.response.data.message);
-      } else if (error.response.status === 500) {
-        // console.log("Unauthorized");
-        console.log(error.response.data.message);
-        setErrorDialog({
-          isOpen: true,
-          message: `${error.response.data.message}`,
-        });
-      } else {
-        console.log(error);
-      }
+    } else {
+      setErrorDialog({
+        isOpen: true,
+        message: `Please check your email.`,
+      });
     }
   };
   return (
-    <div className="mainpage-container">
+    <Box
+      sx={{
+        width: "100vw",
+        height: "100vh",
+        background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5)),
+    url(${backgroundImage})`,
+        backgroundSize: "cover",
+        padding: { xs: 1, sm: 8 },
+      }}
+    >
       {" "}
       <SuccessDialogue
         successDialog={successDialog}
@@ -154,48 +169,107 @@ const ForgotPassword = () => {
         loadingDialog={loadingDialog}
         setLoadingDialog={setLoadingDialog}
       />
-      <Container className="container-parent">
+      <Paper
+        sx={{
+          // display: "flex",
+          // justifyContent:"center",
+          // alignItems:'center',
+          display: "flex" /*added*/,
+          flexDirection: "column" /*added*/,
+          width: "100%",
+          height: "100%",
+          background: `linear-gradient(rgba(51, 50, 50, 0.5), rgba(51, 50, 50, 0.5))`,
+          borderRadius: 5,
+        }}
+      >
+        <Topbar />
         <Box
-          className="container-child"
-          sx={{ backgroundColor: colors.black[900] }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+          }}
         >
-          <Typography>Forgot Password</Typography>
-
-          <form onSubmit={handleSubmit}>
-            <Box display="flex" flexDirection="column" gap={2}>
-              <TextField
-                required
-                fullWidth
-                type="email"
-                label="Email"
-                name="password"
-                variant="outlined"
-                className="register-input"
-                autoComplete="off"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailOutlined />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-            <input className="login-btn" type="submit" />
-            <div className="container-footer">
-              <Typography>Don't have account yet?</Typography>
-              <Link to="/login">
-                <span>Login</span>
-              </Link>
-            </div>
-          </form>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              padding: 5,
+              backgroundColor: colors.black[900],
+              borderRadius: 5,
+              width: { xs: "100vmin", sm: "50vmin" },
+            }}
+          >
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 2,
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
+              Forgot Password
+            </Typography>
+            {!emailSent ? (
+              <form style={{ width: "100%" }} onSubmit={handleSubmit}>
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <TextField
+                    required
+                    fullWidth
+                    type="email"
+                    label="Email"
+                    name="password"
+                    variant="outlined"
+                    className="register-input"
+                    autoComplete="off"
+                    value={email}
+                    error={emailError}
+                    onChange={(e) => {
+                      setEmailError(false);
+                      setFormError(false);
+                      setEmail(e.target.value);
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmailOutlined />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
+                <Typography color="error">
+                  {formError && formErrorMessage}
+                </Typography>
+                <input className="login-btn" type="submit" />
+                <div className="container-footer">
+                  <Typography variant="h5">Don't have account yet?</Typography>
+                  <Link to="/login">
+                    <span>Login</span>
+                  </Link>
+                </div>
+              </form>
+            ) : (
+              <Box>
+                <Typography>
+                  A mail has been sent to the email that you have provided,
+                  Please check your inbox or spam mail to reset your password.
+                </Typography>
+                <br />
+                <Divider />
+                <Box className="container-footer" sx={{ mt: 1 }}>
+                  <Link to="/">
+                    <span>Back to Home page</span>
+                  </Link>
+                </Box>
+              </Box>
+            )}
+          </Box>
         </Box>
-      </Container>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 
