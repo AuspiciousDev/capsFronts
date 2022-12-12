@@ -1,7 +1,7 @@
 import React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useNavigate, useLocation, Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import {
   Box,
@@ -10,22 +10,15 @@ import {
   Divider,
   Typography,
   IconButton,
-  ButtonBase,
   TableContainer,
   Table,
   TableRow,
   TableHead,
   TableCell,
   TableBody,
-  TablePagination,
   Button,
 } from "@mui/material";
-import {
-  Search,
-  DownloadForOfflineOutlined,
-  TopicOutlined,
-  Add,
-} from "@mui/icons-material";
+import { Search, Add } from "@mui/icons-material";
 import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
 const GradesCurrent = () => {
@@ -39,17 +32,7 @@ const GradesCurrent = () => {
   const [getSubjects, setSubjects] = useState([]);
   const [isloading, setIsLoading] = useState(false);
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
   console.log(level, year, id);
   useEffect(() => {
     const getData = async () => {
@@ -154,7 +137,7 @@ const GradesCurrent = () => {
             return (
               fill.studID === id &&
               fill.subjectID === val.subjectID &&
-              fill.quarter === 2
+              fill.quarter === 1
             );
           }).length > 0
             ? getGrades &&
@@ -163,11 +146,11 @@ const GradesCurrent = () => {
                   return (
                     fill.studID === id &&
                     fill.subjectID === val.subjectID &&
-                    fill.quarter === 2
+                    fill.quarter === 1
                   );
                 })
                 .map((val) => {
-                  return val?.grade, (grade2 = val?.grade);
+                  return val?.grade, (grade1 = val?.grade);
                 })
             : "-"}
         </TableCell>{" "}
@@ -190,7 +173,7 @@ const GradesCurrent = () => {
                   );
                 })
                 .map((val) => {
-                  return val?.grade, (grade1 = val?.grade);
+                  return val?.grade, (grade2 = val?.grade);
                 })
             : "-"}
         </TableCell>{" "}

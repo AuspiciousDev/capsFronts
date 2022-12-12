@@ -6,8 +6,6 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Box,
   Paper,
-  InputBase,
-  Divider,
   Typography,
   IconButton,
   ButtonBase,
@@ -17,10 +15,8 @@ import {
   TableHead,
   TableCell,
   TableBody,
-  TablePagination,
   Avatar,
 } from "@mui/material";
-import { Search } from "@mui/icons-material";
 import TopicOutlinedIcon from "@mui/icons-material/TopicOutlined";
 
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
@@ -32,8 +28,6 @@ import { useDepartmentsContext } from "../../../../hooks/useDepartmentContext";
 import { useActiveStudentsContext } from "../../../../hooks/useActiveStudentContext";
 import CancelIcon from "@mui/icons-material/Cancel";
 
-import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import DownloadForOfflineOutlinedIcon from "@mui/icons-material/DownloadForOfflineOutlined";
 import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
@@ -478,135 +472,6 @@ const GradesTable = () => {
     },
   ];
 
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow>
-        <TableCell align="left">Student ID</TableCell>
-        <TableCell align="left">Name</TableCell>
-        <TableCell align="left">Sex</TableCell>
-        <TableCell align="left">Records</TableCell>
-      </StyledTableHeadRow>
-    );
-  };
-  const tableDetails = ({ val }) => {
-    return (
-      <StyledTableRow key={val._id} data-rowid={val.studID}>
-        {/* Student ID */}
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setOpen((o) => !o);
-              setID(val.studID);
-            }}
-          >
-            <Typography sx={{ fontWeight: "bold" }}>{val.studID}</Typography>
-          </ButtonBase>
-        </TableCell>
-
-        {/* Student Name */}
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {students &&
-            students
-              .filter((stud) => {
-                return stud.studID === val.studID;
-              })
-              .map((stud) => {
-                return stud?.middleName
-                  ? stud.firstName + " " + stud.middleName + " " + stud.lastName
-                  : stud.firstName + " " + stud.lastName;
-              })}
-        </TableCell>
-        {/* Student Level */}
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {students &&
-            students
-              .filter((stud) => {
-                return stud.studID === val.studID;
-              })
-              .map((stud) => {
-                return stud.gender;
-              })}
-        </TableCell>
-        {/* Student Department */}
-
-        <TableCell align="left">
-          <Box display="flex" gap={2} width="60%">
-            {/* <Box
-              sx={{
-                display: "flex",
-                width: "30%",
-                p: "5px",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "row",
-              }}
-            > */}
-            {/* <ButtonBase
-              sx={{ cursor: "pointer" }}
-              onClick={() => {
-                setIsFormOpen((o) => !o);
-                setData(val);
-                setID(val.studID);
-              }} 
-            >*/}
-            <Link
-              to={`/admin/grade/${val.levelID}/${val.schoolYearID}/${val.studID}`}
-              style={{ textDecoration: "none" }}
-            >
-              <Paper
-                sx={{
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  backgroundColor: colors.whiteOnly[100],
-                  color: colors.blackOnly[100],
-                  alignItems: "center",
-                }}
-              >
-                <TopicOutlinedIcon />
-                <Typography ml="10px">Grades</Typography>
-              </Paper>
-              {/* </ButtonBase> */}
-              {/* </Box> */}
-            </Link>
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-
-                alignItems: "center",
-              }}
-            >
-              <Link
-                to={`/admin/record/task/${val.studID}/${val.schoolYearID}`}
-                style={{
-                  alignItems: "center",
-                  color: colors.black[100],
-                  textDecoration: "none",
-                }}
-              >
-                <Box
-                  display="flex"
-                  sx={{ alignItems: "center", color: colors.blackOnly[100] }}
-                >
-                  <DownloadForOfflineOutlinedIcon />
-                  <Typography ml="5px">Tasks</Typography>
-                </Box>
-              </Link>
-            </Paper>
-          </Box>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
   const GradeTableTitles = () => {
     return (
       <StyledTableHeadRow>
@@ -640,10 +505,7 @@ const GradesTable = () => {
   const GradeTableDetails = ({ val }) => {
     // console.log("dadaData:", val);
     // console.log("dadaID:", getID);\
-    let grade1 = 0;
-    let grade2 = 0;
-    let grade3 = 0;
-    let grade4 = 0;
+    let grade1, grade2, grade3, grade4;
     return (
       <StyledTableRow
         key={val._id}
@@ -686,81 +548,124 @@ const GradesTable = () => {
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 1
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade1 = val?.grade);
-            })
-            ? grade1
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 1
+            );
+          }).length > 0
+            ? getGrades &&
+              getGrades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 1
+                  );
+                })
+
+                .map((val) => {
+                  return val?.grade, (grade1 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 2
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade2 = val?.grade);
-            })
-            ? grade2
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 2
+            );
+          }).length > 0
+            ? getGrades &&
+              getGrades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 2
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade2 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 3
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade3 = val?.grade);
-            })
-            ? grade3
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 3
+            );
+          }).length > 0
+            ? getGrades &&
+              getGrades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 3
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade3 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 4
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade4 = val?.grade);
-            })
-            ? grade4
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 4
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 4
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade4 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
-          {(grade1 + grade2 + grade3 + grade4) / 4}
+          {grade1 && grade2 && grade3 && grade4 ? (
+            (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+              <Typography variant="h6" fontWeight="bold">
+                {(grade1 + grade2 + grade3 + grade4) / 4}
+              </Typography>
+            ) : (
+              <Typography variant="h6" fontWeight="bold" color="red">
+                {(grade1 + grade2 + grade3 + grade4) / 4}
+              </Typography>
+            )
+          ) : (
+            "-"
+          )}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {(grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-            <Typography variant="h6" fontWeight="bold">
+          {!grade1 || !grade2 || !grade3 || !grade4 ? (
+            "-"
+          ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+            <Typography fontWeight="bold" variant="h6">
               passed
             </Typography>
           ) : (
             <Typography
               variant="h6"
-              color={colors.error[100]}
               fontWeight="bold"
+              color={colors.error[100]}
             >
               failed
             </Typography>
@@ -1000,7 +905,14 @@ const GradesTable = () => {
                   m: { xs: "20px 0" },
                 }}
               >
-                <Typography variant="h2" fontWeight="bold">
+                <Typography
+                  variant="h2"
+                  fontWeight="bold"
+                  sx={{
+                    borderLeft: `5px solid ${colors.primary[900]}`,
+                    paddingLeft: 2,
+                  }}
+                >
                   GRADES
                 </Typography>
               </Box>

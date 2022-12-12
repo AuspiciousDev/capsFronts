@@ -370,7 +370,7 @@ const EmployeeForm = () => {
                   variant="outlined"
                   label="Employee Type"
                   SelectProps={{
-                    multiple: true,
+                    // multiple: true,
                     value: empType.types,
                     onChange: handleFieldChange,
                   }}

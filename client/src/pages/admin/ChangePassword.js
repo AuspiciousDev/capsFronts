@@ -66,6 +66,11 @@ const ChangePassword = () => {
   const handleClickShowOldPassword = () => setShowOldPassword(!showOldPassword);
   const handleMouseDownOldPassword = () => setShowOldPassword(!showOldPassword);
 
+  const clearFields = () => {
+    setOldPassword("");
+    setPassword("");
+    setConfPassword("");
+  };
   const changePassword = async (e) => {
     e.preventDefault();
     setLoadingDialog({ isOpen: true });
@@ -234,7 +239,14 @@ const ChangePassword = () => {
                 m: { xs: "20px 0" },
               }}
             >
-              <Typography variant="h2" fontWeight="bold">
+              <Typography
+                variant="h2"
+                fontWeight="bold"
+                sx={{
+                  borderLeft: `5px solid ${colors.primary[900]}`,
+                  paddingLeft: 2,
+                }}
+              >
                 CHANGE PASSWORD
               </Typography>
             </Box>
@@ -370,7 +382,7 @@ const ChangePassword = () => {
                 >
                   Confirm
                 </Button>
-                <Button fullWidth variant="contained" onClick={""}>
+                <Button fullWidth variant="contained" onClick={clearFields}>
                   Cancel
                 </Button>
               </Box>

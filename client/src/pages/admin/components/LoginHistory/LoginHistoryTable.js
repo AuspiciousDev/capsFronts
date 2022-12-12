@@ -416,7 +416,11 @@ const LoginHistoryTable = () => {
             <Typography
               variant="h2"
               fontWeight="bold"
-              sx={{ textTransform: "uppercase" }}
+              sx={{
+                textTransform: "uppercase",
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
             >
               login history
             </Typography>

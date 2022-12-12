@@ -794,7 +794,14 @@ const SchoolYearTable = () => {
                 m: { xs: "20px 0" },
               }}
             >
-              <Typography variant="h2" fontWeight="bold">
+              <Typography
+                variant="h2"
+                fontWeight="bold"
+                sx={{
+                  borderLeft: `5px solid ${colors.primary[900]}`,
+                  paddingLeft: 2,
+                }}
+              >
                 SCHOOL YEAR
               </Typography>
             </Box>

@@ -957,7 +957,14 @@ const SectionTable = () => {
               m: { xs: "20px 0" },
             }}
           >
-            <Typography variant="h2" fontWeight="bold">
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               SECTIONS
             </Typography>
           </Box>
@@ -1032,7 +1039,9 @@ const SectionTable = () => {
                   levels &&
                   sections.filter((fill) => {
                     const res = levels.filter((lvl) => {
-                      return lvl.status === true && fill.levelID === lvl.levelID;
+                      return (
+                        lvl.status === true && fill.levelID === lvl.levelID
+                      );
                     });
                     return fill?.levelID === res[0]?.levelID;
                   })

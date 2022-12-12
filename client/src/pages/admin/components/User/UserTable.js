@@ -371,6 +371,8 @@ const UserTable = () => {
     }
   };
   const toggleStatus = async ({ val }) => {
+    console.log("🚀 ~ file: UserTable.js:374 ~ toggleStatus ~ val", val);
+
     setLoadingDialog({ isOpen: true });
     setConfirmDialog({
       ...confirmDialog,
@@ -407,7 +409,7 @@ const UserTable = () => {
         }
         setSuccessDialog({
           isOpen: true,
-          message: `User ${response.data.username} status has been changed!`,
+          message: `User ${val?.username} status has been changed!`,
         });
       }
       setLoadingDialog({ isOpen: false });
@@ -661,7 +663,7 @@ const UserTable = () => {
                   onConfirm: () => {
                     setConfirmDialog({
                       isOpen: true,
-                      title: `Are you sure to change status of  ${params?.row?.studID}`,
+                      title: `Are you sure to change status of  ${params?.row?.username}`,
                       message: `${
                         params?.value === true
                           ? "INACTIVE to ACTIVE"
@@ -755,10 +757,10 @@ const UserTable = () => {
       onConfirm: () => {
         setConfirmDialog({
           isOpen: true,
-          title: `Are you sure to delete student ${params?.row?.studID}`,
+          title: `Are you sure to delete user ${params?.row?.username}`,
           message: `This action is irreversible!`,
           onConfirm: () => {
-            handleDelete({ val: params.row });
+            handleDelete({ val: params?.row });
           },
         });
       },
@@ -920,7 +922,7 @@ const UserTable = () => {
                   onConfirm: () => {
                     setConfirmDialog({
                       isOpen: true,
-                      title: `Are you sure to change status of  ${params?.row?.studID}`,
+                      title: `Are you sure to change status of  ${params?.row?.username}`,
                       message: `${
                         params?.value === true
                           ? "INACTIVE to ACTIVE"
@@ -1239,7 +1241,14 @@ const UserTable = () => {
               m: { xs: "20px 0" },
             }}
           >
-            <Typography variant="h2" fontWeight="bold">
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               USERS
             </Typography>
           </Box>

@@ -387,7 +387,7 @@ const Dashboard = () => {
     </Link>
   );
   const totalSections = (
-    <Link to="subject" style={{ textDecoration: "none" }}>
+    <Link to="sections" style={{ textDecoration: "none" }}>
       <StyledPaper elevation={2}>
         <Diversity3Outlined
           sx={{
@@ -449,8 +449,18 @@ const Dashboard = () => {
     return (
       <StyledTableRow key={val._id} data-rowid={val.departmentID}>
         <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {val?.studID || "-"}
+          <Link
+            to={`/admin/student/${val?.studID}`}
+            style={{
+              alignItems: "center",
+              color: colors.black[100],
+              textDecoration: "none",
+            }}
+          >
+            {val?.studID || "-"}
+          </Link>
         </TableCell>
+
         <TableCell
           component="th"
           scope="row"
@@ -545,7 +555,14 @@ const Dashboard = () => {
                   m: { xs: "20px 0" },
                 }}
               >
-                <Typography variant="h2" fontWeight="bold">
+                <Typography
+                  variant="h2"
+                  fontWeight="bold"
+                  sx={{
+                    borderLeft: `5px solid ${colors.primary[900]}`,
+                    paddingLeft: 2,
+                  }}
+                >
                   DASHBOARD
                 </Typography>
               </Box>
@@ -577,7 +594,14 @@ const Dashboard = () => {
               }}
             >
               <Paper elevation={2} sx={{ position: "relative", p: 2 }}>
-                <Typography variant="h4" mb={1}>
+                <Typography
+                  variant="h4"
+                  mb={1}
+                  sx={{
+                    borderLeft: `5px solid ${colors.secondary[500]}`,
+                    paddingLeft: 2,
+                  }}
+                >
                   Recent Students
                 </Typography>
                 <Divider />
@@ -636,7 +660,14 @@ const Dashboard = () => {
                 }}
               >
                 <Box display="flex" flexDirection="column">
-                  <Typography variant="h4" mb={1}>
+                  <Typography
+                    variant="h4"
+                    mb={1}
+                    sx={{
+                      borderLeft: `5px solid ${colors.secondary[500]}`,
+                      paddingLeft: 2,
+                    }}
+                  >
                     Recent Logins
                   </Typography>
 
@@ -696,7 +727,7 @@ const Dashboard = () => {
                               }}
                             >
                               <Link
-                                to={`/admin/faculty/${val?.username}`}
+                                to={`/admin/student/${val?.username}`}
                                 style={{
                                   alignItems: "center",
                                   color: colors.black[100],

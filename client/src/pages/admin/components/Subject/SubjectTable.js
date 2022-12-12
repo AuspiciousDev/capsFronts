@@ -614,188 +614,6 @@ const SubjectTable = () => {
     // alert(`Delete : ${params.value}`);
   };
 
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Subject ID
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Subject Name
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Subject Level
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          STATUS
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          Action
-        </TableCell>
-      </StyledTableHeadRow>
-    );
-  };
-
-  const tableDetails = (val) => {
-    return (
-      <StyledTableRow
-        key={val._id}
-        sx={
-          {
-            // "&:last-child td, &:last-child th": { border: 2 },
-            // "& td, & th": { border: 2 },
-          }
-        }
-      >
-        {/* Subject ID */}
-        <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {val.subjectID}
-        </TableCell>
-        {/* Subject Name */}
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {val.subjectName}
-        </TableCell>
-        {/* Subject Level */}
-        <TableCell align="left">
-          {levels &&
-            levels
-              .filter((dep) => {
-                return dep.levelID === val.levelID;
-              })
-              .map((val) => {
-                return val.levelNum;
-              })}
-        </TableCell>
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to change status of  ${val.subjectID.toUpperCase()}`,
-                    message: `${
-                      val.status === true
-                        ? "INACTIVE to ACTIVE"
-                        : " ACTIVE to INACTIVE"
-                    }`,
-                    onConfirm: () => {
-                      toggleStatus({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            ) : (
-              <Paper
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                <Cancel />
-                <Typography ml="5px">INACTIVE</Typography>
-              </Paper>
-            )}
-          </ButtonBase>
-        </TableCell>
-        <TableCell align="left">
-          <Box display="flex" gap={2}>
-            {/* <ButtonBase
-              onClick={() => {
-                setValidateDialog({
-                  isOpen: true,
-                  onConfirm: () => {
-                    console.log(val.levelID);
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: `Are you sure to delete section ${val.sectionID.toUpperCase()}`,
-                      message: `This action is irreversible!`,
-                      onConfirm: () => {
-                        handleDelete({ val });
-                      },
-                    });
-                  },
-                });
-              }}
-            >
-              <Paper
-                sx={{
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  backgroundColor: colors.secondary[500],
-                  color: colors.blackOnly[100],
-                  alignItems: "center",
-                }}
-              >
-                <DriveFileRenameOutline />
-                <Typography ml="5px">Edit</Typography>
-              </Paper>
-            </ButtonBase> */}
-            <ButtonBase
-              onClick={() => {
-                console.log(val.levelID);
-                setValidateDialog({
-                  isOpen: true,
-                  onConfirm: () => {
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: `Are you sure to delete subject ${val.subjectID.toUpperCase()}`,
-                      message: `This action is irreversible!`,
-                      onConfirm: () => {
-                        handleDelete({ val });
-                      },
-                    });
-                  },
-                });
-              }}
-            >
-              <Paper
-                sx={{
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  backgroundColor: colors.whiteOnly[100],
-                  color: colors.blackOnly[100],
-                  alignItems: "center",
-                }}
-              >
-                {/* <SubjectEditForm data={val} /> */}
-                <Delete />
-                <Typography ml="5px">Remove</Typography>
-              </Paper>
-            </ButtonBase>
-          </Box>
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
-
   return (
     <>
       <ConfirmDialogue
@@ -1068,7 +886,14 @@ const SubjectTable = () => {
               m: { xs: "20px 0" },
             }}
           >
-            <Typography variant="h2" fontWeight="bold">
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               SUBJECTS
             </Typography>
           </Box>
@@ -1141,7 +966,9 @@ const SubjectTable = () => {
                   levels &&
                   subjects.filter((fill) => {
                     const res = levels.filter((lvl) => {
-                      return lvl.status === true && fill.levelID === lvl.levelID;
+                      return (
+                        lvl.status === true && fill.levelID === lvl.levelID
+                      );
                     });
                     return fill?.levelID === res[0]?.levelID;
                   })

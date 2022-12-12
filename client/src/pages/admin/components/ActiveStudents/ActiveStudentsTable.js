@@ -1,7 +1,7 @@
 import React from "react";
 import Popup from "reactjs-popup";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
@@ -13,25 +13,15 @@ import {
   Paper,
   ButtonBase,
   Typography,
-  TableContainer,
-  Table,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBody,
   Divider,
   NativeSelect,
   FormControl,
   TextField,
   InputLabel,
-  Tooltip,
-  TablePagination,
   Avatar,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { styled } from "@mui/material/styles";
 import Loading from "../../../../global/Loading";
-import AddIcon from "@mui/icons-material/Add";
 
 import { useStudentsContext } from "../../../../hooks/useStudentsContext";
 
@@ -48,7 +38,6 @@ import LoadingDialogue from "../../../../global/LoadingDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
 
 import {
-  DeleteOutline,
   Search,
   CheckCircle,
   Cancel,
@@ -139,16 +128,6 @@ const ActiveStudentsTable = () => {
     message: "",
   });
   const [page, setPage] = React.useState(15);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
 
   const [open, setOpen] = useState(false);
   const closeModal = () => {
@@ -352,21 +331,6 @@ const ActiveStudentsTable = () => {
       }
     }
   };
-  const StyledTableHeadRow = styled(TableRow)(({ theme }) => ({
-    " & th": {
-      fontWeight: "bold",
-    },
-    // hide last border
-  }));
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      // backgroundColor: colors.tableRow[100],
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
 
   const columns = [
     {
@@ -572,205 +536,6 @@ const ActiveStudentsTable = () => {
     // alert(`Delete : ${params.value}`);
   };
 
-  const TableTitles = () => {
-    return (
-      <StyledTableHeadRow>
-        <TableCell>STUDENT ID</TableCell>
-        <TableCell>STUDENT NAME</TableCell>
-        <TableCell align="left">LEVEL</TableCell>
-        <TableCell align="left">SECTION</TableCell>
-        <TableCell align="left">DEPARTMENT</TableCell>
-        <TableCell align="left">STATUS</TableCell>
-        <TableCell align="left">ACTION</TableCell>
-      </StyledTableHeadRow>
-    );
-  };
-  const tableDetails = ({ val }) => {
-    return (
-      <StyledTableRow key={val._id} data-rowid={val.departmentID}>
-        <TableCell align="left">
-          <Box display="flex" gap={2} width="60%">
-            <Link
-              to={`/admin/student/${val?.studID}`}
-              style={{
-                alignItems: "center",
-                textDecoration: "none",
-              }}
-            >
-              <Paper
-                sx={{
-                  padding: "2px 20px",
-                  borderRadius: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  backgroundColor: colors.whiteOnly[100],
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  fontWeight="bold"
-                  sx={{ color: colors.blackOnly[100] }}
-                >
-                  {" "}
-                  {val?.studID}
-                </Typography>
-              </Paper>
-            </Link>
-          </Box>
-        </TableCell>
-        <TableCell
-          component="th"
-          scope="row"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {students &&
-            students
-              .filter((stud) => {
-                return stud.studID === val.studID;
-              })
-              .map((stud) => {
-                return stud?.middleName
-                  ? stud.firstName +
-                      " " +
-                      stud.middleName.charAt(0) +
-                      ". " +
-                      stud.lastName
-                  : stud.firstName + " " + stud.lastName;
-              })}
-        </TableCell>
-        <TableCell align="left">
-          {levels &&
-            levels
-              .filter((lev) => {
-                return lev.levelID === val.levelID.toLowerCase();
-              })
-              .map((val) => {
-                return val.levelNum;
-              })}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {sections &&
-            sections
-              .filter((lev) => {
-                return lev.sectionID === val.sectionID.toLowerCase();
-              })
-              .map((sec) => {
-                return sec.sectionName;
-              })}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {departments &&
-            departments
-              .filter((lev) => {
-                return lev.departmentID === val.departmentID.toLowerCase();
-              })
-              .map((dep) => {
-                return dep.depName;
-              })}
-        </TableCell>
-        <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to change status of  ${val.studID}`,
-                    message: `${
-                      val.status === true
-                        ? "INACTIVE to ACTIVE"
-                        : " ACTIVE to INACTIVE"
-                    }`,
-                    onConfirm: () => {
-                      toggleStatus({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            {val?.status === true ? (
-              <Paper
-                sx={{
-                  display: "flex",
-                  padding: "2px 10px",
-                  backgroundColor: colors.primary[900],
-                  color: colors.whiteOnly[100],
-                  borderRadius: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <CheckCircle />
-                <Typography ml="5px">ACTIVE</Typography>
-              </Paper>
-            ) : (
-              <Paper
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "2px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                <Cancel />
-                <Typography ml="5px">INACTIVE</Typography>
-              </Paper>
-            )}
-          </ButtonBase>
-        </TableCell>
-
-        <TableCell align="left">
-          <ButtonBase
-            onClick={() => {
-              setValidateDialog({
-                isOpen: true,
-                onConfirm: () => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: `Are you sure to delete ${val.studID.toUpperCase()}`,
-                    message: `This action is irreversible!`,
-                    onConfirm: () => {
-                      handleDelete({ val });
-                    },
-                  });
-                },
-              });
-            }}
-          >
-            <Paper
-              sx={{
-                padding: "2px 10px",
-                borderRadius: "20px",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: colors.whiteOnly[100],
-                color: colors.blackOnly[100],
-                alignItems: "center",
-              }}
-            >
-              <Delete />
-              <Typography ml="5px">Remove</Typography>
-            </Paper>
-          </ButtonBase>
-          {/* <Box
-            sx={{
-              display: "grid",
-              width: "50%",
-              gridTemplateColumns: " 1fr 1fr 1fr",
-            }}
-          >
-            {/* <IconButton sx={{ cursor: "pointer" }}>
-              <Person2OutlinedIcon />
-            </IconButton> */}
-
-          {/* <UserEditForm user={user} /> */}
-          {/* <DeleteRecord delVal={val} /> */}
-          {/* </Box> */}
-        </TableCell>
-      </StyledTableRow>
-    );
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {
@@ -1223,7 +988,14 @@ const ActiveStudentsTable = () => {
               m: { xs: "20px 0" },
             }}
           >
-            <Typography variant="h2" fontWeight="bold">
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               STUDENTS OF YEAR{[" "]}
               {years &&
                 years
