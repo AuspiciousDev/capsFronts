@@ -107,7 +107,7 @@ const EmployeeImport = () => {
           isOpen: true,
           title: "Invalid CSV Headers",
           message: `Must include
-          'studID', 'firstName', 'middleName', 'lastName', 'dateOfBirth', 'gender\r'
+          'empID','empType[2001/2002]', 'firstName', 'middleName', 'lastName', 'dateOfBirth', 'gender\r'
          `,
         }),
         console.log("error"),

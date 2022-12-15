@@ -192,10 +192,7 @@ const StudentRecords = () => {
     );
   };
   const tableDetails = (val) => {
-    let grade1 = 0;
-    let grade2 = 0;
-    let grade3 = 0;
-    let grade4 = 0;
+    let grade1, grade2, grade3, grade4;
     return (
       <StyledTableRow key={val._id} data-rowid={val.studID}>
         <TableCell
@@ -330,27 +327,19 @@ const StudentRecords = () => {
           )}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {grade1 && grade2 && grade3 && grade4 ? (
-            (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-              <Typography variant="h6" fontWeight="bold">
-                passed
-              </Typography>
-            ) : (
-              <Typography
-                variant="h6"
-                color={colors.error[100]}
-                fontWeight="bold"
-              >
-                failed
-              </Typography>
-            )
+          {!grade1 || !grade2 || !grade3 || !grade4 ? (
+            "-"
+          ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+            <Typography fontWeight="bold" variant="h6">
+              passed
+            </Typography>
           ) : (
             <Typography
               variant="h6"
-              color={colors.error[100]}
               fontWeight="bold"
+              color={colors.error[100]}
             >
-              INC
+              failed
             </Typography>
           )}
         </TableCell>
@@ -402,7 +391,14 @@ const StudentRecords = () => {
               m: { xs: "20px 0" },
             }}
           >
-            <Typography variant="h2" fontWeight="bold">
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               GRADES
             </Typography>
           </Box>

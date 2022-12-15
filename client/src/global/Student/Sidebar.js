@@ -8,7 +8,7 @@ import profilePic from "../../images/profile2.png";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { useNavigate } from "react-router-dom";
 import { Logout } from "@mui/icons-material";
-
+import { Link, useLocation, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import {
@@ -22,7 +22,6 @@ import {
 } from "react-pro-sidebar";
 
 import { Avatar, Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link, Navigate } from "react-router-dom";
 import { tokens } from "../../theme";
 
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
@@ -50,6 +49,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const location = useLocation();
+  var subLocation = location.pathname;
   return (
     // <MenuItem
     // active={selected === title}
@@ -66,9 +67,9 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
     // </MenuItem>
     <MenuItem
       active={
-        window.location.pathname === "/"
-          ? window.location.pathname === to
-          : window.location.pathname.substring(1) === to
+        subLocation === "/student"
+          ? subLocation.slice(0, 1) === to
+          : subLocation.substring(9) === to
       }
       style={{
         color: colors.black[100],

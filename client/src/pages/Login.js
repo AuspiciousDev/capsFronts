@@ -34,7 +34,6 @@ const Login = () => {
   const colors = tokens(theme.palette.mode);
 
   const { auth, setAuth, persist, setPersist } = useAuth();
-  console.log("Login", auth);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -43,6 +42,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState(false);
   const [formErrorMessage, setFormErrorMessage] = useState("");
+  const [timeOutError, setTimeOutError] = useState(false);
+  const [loginCountLeft, setLoginCountLeft] = useState(3);
+  const [timeOut, setTimeOut] = useState(0);
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
@@ -61,30 +63,25 @@ const Login = () => {
     message: "",
   });
 
-  // useEffect(() => {
-  //   const inputs = document.querySelectorAll(".input");
-  //   function addcl() {
-  //     let parent = this.parentNode.parentNode;
-  //     parent.classList.add("focus");
-  //   }
-
-  //   function remcl() {
-  //     let parent = this.parentNode.parentNode;
-  //     if (this.value === "") {
-  //       parent.classList.remove("focus");
-  //     }
-  //   }
-
-  //   inputs.forEach((input) => {
-  //     input.addEventListener("focus", addcl);
-  //     input.addEventListener("blur", remcl);
-  //   });
-  // });
+  React.useEffect(() => {
+    let minutes;
+    let seconds;
+    let sendTTL;
+    timeOut > 0 && setTimeout(() => setTimeOut(timeOut - 1), 1000);
+    minutes = Math.floor(timeOut / 60);
+    seconds = timeOut - minutes * 60;
+    sendTTL = minutes
+      ? `Login Timeout : ${minutes} minutes ${seconds} seconds`
+      : `Login Timeout : ${seconds} seconds`;
+    setFormErrorMessage(sendTTL);
+    timeOut > 0 ? setTimeOutError(true) : setTimeOutError(false);
+    timeOut > 0 ? setFormError(true) : setFormError(false);
+  }, [timeOut]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoadingDialog({ isOpen: true });
     if (!usernameError && !passwordError) {
+      setLoadingDialog({ isOpen: true });
       try {
         const response = await axios.post(
           LOGIN_URL,
@@ -107,17 +104,6 @@ const Login = () => {
         // console.log(JSON.stringify(response));
         const accessToken = response.data?.accessToken;
         const roles = response.data?.roles;
-        // if (roles.includes(2003)) {
-        //   return (
-        //     setUsernameError(true),
-        //     setPasswordError(true),
-        //     setLoadingDialog({ isOpen: false }),
-        //     setErrorDialog({
-        //       isOpen: true,
-        //       message: `Unauthorized access!`,
-        //     })
-        //   );
-        // } else {
         setAuth({ username, password, roles, accessToken });
         setUsername("");
         setPassword("");
@@ -136,18 +122,28 @@ const Login = () => {
         // }
       } catch (error) {
         setLoadingDialog({ isOpen: false });
+        setLoginCountLeft((e) => (e -= 1));
         if (!error?.response) {
           setErrorDialog({
             isOpen: true,
             message: `No server response!`,
           });
         } else if (error.response.status === 400) {
-          setUsernameError(true);
-          setPasswordError(true);
           setErrorDialog({
             isOpen: true,
-            message: `${error.response.message}`,
+            message: `You have surpassed 3 login attempts , Please wait for ${error.response.data.message} to login again`,
           });
+          setTimeOut(error.response.data.time);
+          setFormError(true);
+          setTimeOutError(true);
+        } else if (error.response.status === 429) {
+          setErrorDialog({
+            isOpen: true,
+            message: `${error?.response?.data?.message || error?.response}`,
+          });
+          setTimeOut(600);
+          setFormError(true);
+          setTimeOutError(true);
         } else if (error.response.status === 401) {
           setUsernameError(true);
           setPasswordError(true);
@@ -250,7 +246,8 @@ const Login = () => {
                   label="Username"
                   variant="outlined"
                   autoComplete="off"
-                  error={usernameError}
+                  error={usernameError || timeOutError}
+                  disabled={timeOutError}
                   value={username}
                   onChange={(e) => {
                     setUsernameError(false);
@@ -268,11 +265,12 @@ const Login = () => {
                 />
                 <TextField
                   required
+                  disabled={timeOutError}
                   type={showPassword ? "text" : "password"}
                   label="Password"
                   name="password"
                   variant="outlined"
-                  error={passwordError}
+                  error={passwordError || timeOutError}
                   className="register-input"
                   autoComplete="off"
                   value={password}
@@ -319,7 +317,17 @@ const Login = () => {
                   <Link to="/forgot-password">Forgot Password?</Link>
                 </div>
               </Box>
-              <input className="login-btn" type="submit" />
+              <Button
+                variant="contained"
+                fullWidth
+                type="submit"
+                disabled={
+                  usernameError || passwordError || formError || timeOutError
+                }
+                sx={{ borderRadius: 4, height: 45, m: "5px 0" }}
+              >
+                <Typography variant="h5">Login</Typography>
+              </Button>
               <div className="container-footer">
                 <Typography>Don't have account yet?</Typography>
                 <Link to="/register">

@@ -75,10 +75,7 @@ const StudentRecord = () => {
     );
   };
   const TableDetails = ({ val }) => {
-    let grade1 = 0;
-    let grade2 = 0;
-    let grade3 = 0;
-    let grade4 = 0;
+    let grade1, grade2, grade3, grade4;
     return (
       <StyledTableRow1
         key={val._id}
@@ -119,83 +116,120 @@ const StudentRecord = () => {
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === id &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 1
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade1 = val?.grade);
-            })
-            ? grade1
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === id &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 1
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === id &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 1
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade1 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === id &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 2
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade2 = val?.grade);
-            })
-            ? grade2
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === id &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 2
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === id &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 2
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade2 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === id &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 3
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade3 = val?.grade);
-            })
-            ? grade3
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === id &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 3
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === id &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 3
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade3 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === id &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 4
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade4 = val?.grade);
-            })
-            ? grade4
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === id &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 4
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === id &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 4
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade4 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {(grade1 + grade2 + grade3 + grade4) / 4}
+          {grade1 && grade2 && grade3 && grade4 ? (
+            (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+              <Typography variant="h6" fontWeight="bold">
+                {(grade1 + grade2 + grade3 + grade4) / 4}
+              </Typography>
+            ) : (
+              <Typography variant="h6" fontWeight="bold" color="red">
+                {(grade1 + grade2 + grade3 + grade4) / 4}
+              </Typography>
+            )
+          ) : (
+            "-"
+          )}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "capitalize" }}>
-          {(grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-            <Typography
-              textTransform="uppercase"
-              fontWeight="bold"
-              variant="h6"
-            >
+          {!grade1 || !grade2 || !grade3 || !grade4 ? (
+            "-"
+          ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+            <Typography fontWeight="bold" variant="h6">
               passed
             </Typography>
           ) : (
             <Typography
-              textTransform="uppercase"
               variant="h6"
               fontWeight="bold"
               color={colors.error[100]}

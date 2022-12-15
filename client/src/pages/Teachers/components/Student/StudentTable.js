@@ -446,7 +446,6 @@ const StudentTable = () => {
             elevation={2}
             sx={{
               width: "100%",
-              margin: "20px 0 5px 0",
               padding: { xs: "10px", sm: "0 10px" },
             }}
           >
@@ -465,7 +464,14 @@ const StudentTable = () => {
                   m: { xs: "20px 0" },
                 }}
               >
-                <Typography variant="h2" fontWeight="bold">
+                <Typography
+                  variant="h2"
+                  fontWeight="bold"
+                  sx={{
+                    borderLeft: `5px solid ${colors.primary[900]}`,
+                    paddingLeft: 2,
+                  }}
+                >
                   STUDENTS
                 </Typography>
               </Box>

@@ -91,7 +91,7 @@ const ActiveStudentsTable = () => {
   const { levels, levelDispatch } = useLevelsContext();
   const { departments, depDispatch } = useDepartmentsContext();
   const { years, yearDispatch } = useSchoolYearsContext();
-
+  const [currentYear, setCurrentYear] = useState();
   const [search, setSearch] = useState();
 
   // const [departmentID, setDepartmentID] = useState("");
@@ -265,7 +265,18 @@ const ActiveStudentsTable = () => {
     activeDispatch,
     yearDispatch,
   ]);
-
+  useEffect(() => {
+    setCurrentYear(
+      years &&
+        years
+          .filter((fill) => {
+            return fill?.status === true;
+          })
+          .map((val) => {
+            return val?.schoolYearID;
+          })
+    );
+  }, []);
   const columns = [
     {
       field: "imgURL",
@@ -978,7 +989,6 @@ const ActiveStudentsTable = () => {
         elevation={2}
         sx={{
           width: "100%",
-          margin: "20px 0 5px 0",
           padding: { xs: "10px", sm: "0 10px" },
         }}
       >
@@ -997,7 +1007,14 @@ const ActiveStudentsTable = () => {
               m: { xs: "20px 0" },
             }}
           >
-            <Typography variant="h2" fontWeight="bold">
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               STUDENTS OF YEAR{[" "]}
               {years &&
                 years
@@ -1020,33 +1037,6 @@ const ActiveStudentsTable = () => {
               alignItems: "center",
             }}
           >
-            <Paper
-              elevation={3}
-              sx={{
-                display: "flex",
-                width: { xs: "100%", sm: "320px" },
-                height: "50px",
-                minWidth: "250px",
-                alignItems: "center",
-                justifyContent: "center",
-                p: { xs: "0 20px", sm: "0 20px" },
-                mr: { xs: "0", sm: " 10px" },
-              }}
-            >
-              <InputBase
-                sx={{ ml: 1, flex: 1 }}
-                placeholder="Search Student ID"
-                onChange={(e) => {
-                  setSearch(e.target.value.toLowerCase());
-                }}
-                value={search}
-              />
-              <Divider sx={{ height: 30, m: 1 }} orientation="vertical" />
-              <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
-                <Search />
-              </IconButton>
-            </Paper>
-
             <Button
               type="button"
               startIcon={<PersonAddAltOutlinedIcon />}
@@ -1078,12 +1068,14 @@ const ActiveStudentsTable = () => {
         <Box sx={{ height: "100%", width: "100%" }}>
           <DataGrid
             rows={
-              actives
+              actives && userData && currentYear
                 ? userData &&
                   actives &&
                   actives.filter((fill) => {
-                    return userData?.LevelLoads?.some(
-                      (e) => e === fill?.levelID
+                    return (
+                      // console.log(fill.schoolYearID + "  : " + currentYear),
+                      fill.schoolYearID == currentYear &&
+                      userData?.LevelLoads?.some((e) => e === fill?.levelID)
                     );
                   })
                 : 0

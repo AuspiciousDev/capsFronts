@@ -421,6 +421,7 @@ const ActiveStudentsTable = () => {
       field: "status",
       headerName: "Status",
       width: 175,
+      sortable: false,
       renderCell: (params) => {
         return (
           <>

@@ -38,10 +38,10 @@ import DownloadForOfflineOutlinedIcon from "@mui/icons-material/DownloadForOffli
 import { useTheme, styled } from "@mui/material";
 import { tokens } from "../../../../theme";
 import GradesForm from "./TeachGradesForm";
-
+import { useSchoolYearsContext } from "../../../../hooks/useSchoolYearsContext";
 import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
 import { format } from "date-fns-tz";
-
+import useAuth from "../../../../hooks/useAuth";
 import ConfirmDialogue from "../../../../global/ConfirmDialogue";
 import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
@@ -76,7 +76,8 @@ const TeachGradesTable = () => {
   const [getGrades, setGrades] = useState([]);
   const [getData, setData] = useState([]);
   const [search, setSearch] = useState("");
-
+  const [userData, setUserData] = useState([]);
+  const { auth } = useAuth();
   const [getStudLevelID, setStudLevelID] = useState("");
   const [getStudSectionID, setStudSectionID] = useState("");
 
@@ -90,7 +91,8 @@ const TeachGradesTable = () => {
   const { departments, depDispatch } = useDepartmentsContext();
   const { sections, secDispatch } = useSectionsContext();
   const { actives, activeDispatch } = useActiveStudentsContext();
-
+  const { years, yearDispatch } = useSchoolYearsContext();
+  const [currentYear, setCurrentYear] = useState();
   const [isloading, setIsLoading] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -126,7 +128,16 @@ const TeachGradesTable = () => {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoadingDialog({ isOpen: true });
         setIsLoading(true);
+        const apiTeacher = await axiosPrivate.get(
+          `/api/employees/search/${auth.username}`
+        );
+        if (apiTeacher.status === 200) {
+          const json = await apiTeacher.data;
+          console.log("Teacher Data:", json);
+          setUserData(json);
+        }
 
         const apiGrade = await axiosPrivate.get("/api/grades", {
           headers: { "Content-Type": "application/json" },
@@ -204,6 +215,14 @@ const TeachGradesTable = () => {
           setIsLoading(false);
           activeDispatch({ type: "SET_ACTIVES", payload: json });
         }
+        const apiYear = await axiosPrivate.get("/api/schoolyears", {});
+        if (apiYear?.status === 200) {
+          const json = await apiYear.data;
+          //   console.log(json);
+          setIsLoading(false);
+          yearDispatch({ type: "SET_YEARS", payload: json });
+        }
+        setLoadingDialog({ isOpen: false });
       } catch (error) {
         setLoadingDialog({ isOpen: false });
         if (!error?.response) {
@@ -260,6 +279,18 @@ const TeachGradesTable = () => {
     secDispatch,
     activeDispatch,
   ]);
+  useEffect(() => {
+    setCurrentYear(
+      years &&
+        years
+          .filter((fill) => {
+            return fill?.status === true;
+          })
+          .map((val) => {
+            return val?.schoolYearID;
+          })
+    );
+  }, []);
   function createLevel(levelID, levelTitle) {
     return { levelID, levelTitle };
   }
@@ -632,10 +663,7 @@ const TeachGradesTable = () => {
   const GradeTableDetails = ({ val }) => {
     // console.log("dadaData:", val);
     // console.log("dadaID:", getID);\
-    let grade1 = 0;
-    let grade2 = 0;
-    let grade3 = 0;
-    let grade4 = 0;
+    let grade1, grade2, grade3, grade4;
     return (
       <StyledTableRow
         key={val._id}
@@ -678,81 +706,123 @@ const TeachGradesTable = () => {
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 1
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade1 = val?.grade);
-            })
-            ? grade1
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 1
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 1
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade1 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 2
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade2 = val?.grade);
-            })
-            ? grade2
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 2
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 2
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade2 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 3
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade3 = val?.grade);
-            })
-            ? grade3
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 3
+            );
+          }).length > 0
+            ? getGrades &&
+              getGrades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 3
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade3 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
           {grades &&
-          grades
-            .filter((fill) => {
-              return (
-                fill.studID === getID &&
-                fill.subjectID === val.subjectID &&
-                fill.quarter === 4
-              );
-            })
-            .map((val) => {
-              return val?.grade, (grade4 = val?.grade);
-            })
-            ? grade4
-            : "0"}
+          grades.filter((fill) => {
+            return (
+              fill.studID === getID &&
+              fill.subjectID === val.subjectID &&
+              fill.quarter === 4
+            );
+          }).length > 0
+            ? grades &&
+              grades
+                .filter((fill) => {
+                  return (
+                    fill.studID === getID &&
+                    fill.subjectID === val.subjectID &&
+                    fill.quarter === 4
+                  );
+                })
+                .map((val) => {
+                  return val?.grade, (grade4 = val?.grade);
+                })
+            : "-"}
         </TableCell>
         <TableCell align="left">
-          {(grade1 + grade2 + grade3 + grade4) / 4}
+          {grade1 && grade2 && grade3 && grade4 ? (
+            (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+              <Typography variant="h6" fontWeight="bold">
+                {(grade1 + grade2 + grade3 + grade4) / 4}
+              </Typography>
+            ) : (
+              <Typography variant="h6" fontWeight="bold" color="red">
+                {(grade1 + grade2 + grade3 + grade4) / 4}
+              </Typography>
+            )
+          ) : (
+            "-"
+          )}
         </TableCell>
         <TableCell align="left" sx={{ textTransform: "uppercase" }}>
-          {(grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-            <Typography variant="h6" fontWeight="bold">
+          {!grade1 || !grade2 || !grade3 || !grade4 ? (
+            "-"
+          ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
+            <Typography fontWeight="bold" variant="h6">
               passed
             </Typography>
           ) : (
             <Typography
               variant="h6"
-              color={colors.error[100]}
               fontWeight="bold"
+              color={colors.error[100]}
             >
               failed
             </Typography>
@@ -997,7 +1067,14 @@ const TeachGradesTable = () => {
                   m: { xs: "20px 0" },
                 }}
               >
-                <Typography variant="h2" fontWeight="bold">
+                <Typography
+                  variant="h2"
+                  fontWeight="bold"
+                  sx={{
+                    borderLeft: `5px solid ${colors.primary[900]}`,
+                    paddingLeft: 2,
+                  }}
+                >
                   GRADES
                 </Typography>
               </Box>
@@ -1014,7 +1091,20 @@ const TeachGradesTable = () => {
           >
             <Box sx={{ height: "100%", width: "100%" }}>
               <DataGrid
-                rows={actives ? actives && actives : 0}
+                // rows={actives ? actives && actives : 0}
+                rows={
+                  actives && userData && currentYear
+                    ? userData &&
+                      currentYear &&
+                      actives &&
+                      actives.filter((fill) => {
+                        return (
+                          fill.schoolYearID == currentYear &&
+                          userData?.LevelLoads?.some((e) => e === fill?.levelID)
+                        );
+                      })
+                    : 0
+                }
                 getRowId={(row) => row._id}
                 columns={columns}
                 pageSize={page}

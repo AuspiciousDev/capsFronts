@@ -29,7 +29,7 @@ import GradeTaskForms from "./pages/admin/components/Grade/TaskForms";
 import GradeTaskTable from "./pages/admin/components/Grade/TaskTable";
 import Employees from "./pages/admin/Employees";
 import FacultyProfile from "./pages/admin/components/Employee/FacultyProfile";
-import FacultyProfileEdit from "./pages/Teachers/components/Profile/TeachFacultyProfileEdit";
+import FacultyProfileEdit from "./pages/admin/components/Employee/FacultyProfileEdit";
 import Students from "./pages/admin/Students";
 import StudentProfile from "./pages/admin/components/Student/StudentProfile";
 import StudentProfileEdit from "./pages/admin/components/Student/StudentProfileEdit";
@@ -223,11 +223,7 @@ function App() {
                   <Route path="changePassword" element={<ChangePassword />} />
                 </Route>
               </Route>
-              <Route
-                element={
-                  <RequireAuth allowedRoles={[ROLES.Admin, ROLES.Teacher]} />
-                }
-              >
+              <Route element={<RequireAuth allowedRoles={[ROLES.Teacher]} />}>
                 <Route path="/teacher" element={<TeacherOutlet />}>
                   <Route index element={<TeacherDashboard />} />
                   <Route path="grade" element={<TeachersGrades />} />

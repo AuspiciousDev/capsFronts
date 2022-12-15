@@ -15,16 +15,13 @@ import {
   TableBody,
   TablePagination,
   Paper,
-  Card,
   Divider,
   Button,
 } from "@mui/material";
 import {
   AutoStories,
   Diversity3,
-  Badge,
   Groups,
-  AccountCircle,
   StairsOutlined,
 } from "@mui/icons-material";
 import { format } from "date-fns-tz";
@@ -124,6 +121,9 @@ const TeacherDashboard = () => {
       flexDirection: "column",
       borderRadius: 5,
       padding: "10px",
+      borderBottom: `solid 1px ${colors.primary[500] + 50}`,
+      borderRight: `solid 1px ${colors.primary[500] + 50}`,
+      boxShadow: `${colors.primary[500] + 40} 1.95px 1.95px 2.6px;`,
     },
   }));
 
@@ -133,12 +133,11 @@ const TeacherDashboard = () => {
       setIsLoading(true);
       setLoadingDialog({ isOpen: true });
       try {
-        
         const apiStud = await axiosPrivate.get("/api/students");
         const apiEmp = await axiosPrivate.get("/api/employees");
         const apiSub = await axiosPrivate.get("/api/subjects");
         const apiActive = await axiosPrivate.get("/api/enrolled");
-        
+
         const apiTeacher = await axiosPrivate.get(
           `/api/employees/search/${auth.username}`
         );
@@ -488,7 +487,14 @@ const TeacherDashboard = () => {
                 m: { xs: "20px 0" },
               }}
             >
-              <Typography variant="h2" fontWeight="bold">
+              <Typography
+                variant="h2"
+                fontWeight="bold"
+                sx={{
+                  borderLeft: `5px solid ${colors.primary[900]}`,
+                  paddingLeft: 2,
+                }}
+              >
                 DASHBOARD
               </Typography>
             </Box>

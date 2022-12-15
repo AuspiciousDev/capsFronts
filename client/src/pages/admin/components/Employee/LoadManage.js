@@ -310,14 +310,13 @@ const LoadManage = () => {
         `/api/employees/update/loads/${id}`,
         JSON.stringify(loads)
       );
-      if (response.status === 201) {
+      if (response.status === 200) {
         const json = await response.data;
         console.log("response;", json);
-
-        setLoadingDialog({ isOpen: false });
+        console.log("asdas");
         setSuccessDialog({
           isOpen: true,
-          message: "Employee Load/s been added!",
+          message: "Employee Load/s been updated!",
           onConfirm: () => {
             setSuccessDialog({ isOpen: false });
           },

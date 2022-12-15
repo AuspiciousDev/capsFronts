@@ -14,6 +14,7 @@ import {
   InputAdornment,
   Avatar,
   ButtonBase,
+  Divider,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -27,7 +28,7 @@ import SuccessDialogue from "../../../../global/SuccessDialogue";
 import ErrorDialogue from "../../../../global/ErrorDialogue";
 import LoadingDialogue from "../../../../global/LoadingDialogue";
 import ValidateDialogue from "../../../../global/ValidateDialogue";
-
+import SuccessConfirmDialogue from "../../../../global/SuccessConfirmDialogue";
 import useAxiosPrivate from "../../../../hooks/useAxiosPrivate";
 import { format } from "date-fns-tz";
 import { ModeEditOutlineOutlined } from "@mui/icons-material";
@@ -42,6 +43,7 @@ const FacultyProfileEdit = (props) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const MOBILE_LIMIT = 11;
+  const isNumber = (str) => /^[0-9]*$/.test(str);
   const isLetters = (str) => /^[A-Za-z]*$/.test(str);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -74,7 +76,6 @@ const FacultyProfileEdit = (props) => {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("");
 
-  const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [telephone, setTelephone] = useState("");
 
@@ -82,7 +83,6 @@ const FacultyProfileEdit = (props) => {
   const [emergencyRelationship, setEmergencyRelationship] = useState("");
   const [emergencyNumber, setEmergencyNumber] = useState("");
 
-  const [emailError, setEmailError] = useState(false);
   const [mobileError, setMobileError] = useState(false);
   const [telephoneError, setTelephoneError] = useState(false);
 
@@ -126,6 +126,11 @@ const FacultyProfileEdit = (props) => {
     title: "",
     message: "",
   });
+  const [successConfirmDialog, setSuccessConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    subTitle: "",
+  });
 
   const handleDate = (newValue) => {
     setDateOfBirth(newValue);
@@ -147,7 +152,6 @@ const FacultyProfileEdit = (props) => {
     setAddress("");
     setCity("");
     setProvince("");
-    setEmail("");
     setMobile("");
     setTelephone("");
     setEmergencyName("");
@@ -229,7 +233,6 @@ const FacultyProfileEdit = (props) => {
     setGender(val.gender);
     setCivilStatus(val.civilStatus);
     setProvince(val.province);
-    setEmail(val.email);
     setMobile(val.mobile);
     setTelephone(val.telephone);
     setEmergencyName(val.emergencyName);
@@ -255,7 +258,6 @@ const FacultyProfileEdit = (props) => {
       address,
       city,
       province,
-      email,
       mobile,
       telephone,
       emergencyName,
@@ -272,12 +274,14 @@ const FacultyProfileEdit = (props) => {
       if (response.status === 200) {
         const json = await response.data;
         console.log("response;", json);
-        setSuccessDialog({
+        clearFields();
+        setSuccessConfirmDialog({
           isOpen: true,
           message: "Employee has been updated!",
+          onConfirm: () => {
+            navigate(-1);
+          },
         });
-        clearFields();
-        navigate(-1);
       }
     } catch (error) {
       if (!error?.response) {
@@ -298,9 +302,6 @@ const FacultyProfileEdit = (props) => {
         console.log(error.response.data.message);
         if (error.response.data.message.includes("Employee")) {
           setEmpIDError(true);
-        }
-        if (error.response.data.message.includes("Email")) {
-          setEmailError(true);
         }
         setErrorDialog({
           isOpen: true,
@@ -427,6 +428,10 @@ const FacultyProfileEdit = (props) => {
       <LoadingDialogue
         loadingDialog={loadingDialog}
         setLoadingDialog={setLoadingDialog}
+      />{" "}
+      <SuccessConfirmDialogue
+        successConfirmDialog={successConfirmDialog}
+        setSuccessConfirmDialog={setSuccessDialog}
       />
       {isloading ? (
         <></>
@@ -581,7 +586,7 @@ const FacultyProfileEdit = (props) => {
                       variant="outlined"
                       label="Employee Type"
                       SelectProps={{
-                        multiple: true,
+                        multiple: false,
                         value: empType.types,
                         onChange: handleFieldChange,
                       }}
@@ -589,19 +594,6 @@ const FacultyProfileEdit = (props) => {
                       <MenuItem value={2001}>System Administrator</MenuItem>
                       <MenuItem value={2002}>Teacher</MenuItem>
                     </TextField>
-                    <TextField
-                      required
-                      autoComplete="off"
-                      variant="outlined"
-                      label="Email"
-                      type="email"
-                      error={emailError}
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setEmailError(false);
-                      }}
-                    />
                   </Box>
                 </Box>
                 <Typography variant="h4">Personal Information</Typography>
@@ -842,33 +834,36 @@ const FacultyProfileEdit = (props) => {
                         label="Mobile Number"
                         error={mobileError}
                         value={mobile}
-                        placeholder="11 Digit Mobile Number"
+                        placeholder="9 Digit Mobile Number"
+                        inputProps={{ maxLength: 9 }}
                         onChange={(e) => {
-                          setMobile(e.target.value);
+                          if (isNumber(e.target.value) || "") {
+                            setMobile(e.target.value);
+                          }
                         }}
-                        // InputProps={{
-                        //   endAdornment: (
-                        //     <InputAdornment position="end">
-                        //       <Typography
-                        //         variant="subtitle2"
-                        //         sx={{ color: colors.black[400] }}
-                        //       >
-                        //         {mobile.length}/{MOBILE_LIMIT}
-                        //       </Typography>
-                        //     </InputAdornment>
-                        //   ),
-                        // }}
-                        // inputProps={{
-                        //   maxLength: MOBILE_LIMIT,
-                        // }}
+                        InputProps={{
+                          startAdornment: (
+                            <>
+                              <Typography>09</Typography>
+                              <Divider
+                                sx={{ height: 28, m: 0.5 }}
+                                orientation="vertical"
+                              />
+                            </>
+                          ),
+                        }}
                       />
                       <TextField
                         autoComplete="off"
                         variant="outlined"
                         label="Telephone Number"
                         value={telephone}
+                        placeholder="10 Landline Number"
+                        inputProps={{ maxLength: 10 }}
                         onChange={(e) => {
-                          setTelephone(e.target.value);
+                          if (isNumber(e.target.value)) {
+                            setTelephone(e.target.value);
+                          }
                         }}
                       />
                     </Box>
@@ -916,8 +911,22 @@ const FacultyProfileEdit = (props) => {
                         placeholder="9 Digit Mobile Number"
                         error={emergencyNumberError}
                         value={emergencyNumber}
+                        inputProps={{ maxLength: 9 }}
                         onChange={(e) => {
-                          setEmergencyNumber(e.target.value.toLowerCase());
+                          if (isNumber(e.target.value) || "") {
+                            setEmergencyNumber(e.target.value.toLowerCase());
+                          }
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <>
+                              <Typography>09</Typography>
+                              <Divider
+                                sx={{ height: 28, m: 0.5 }}
+                                orientation="vertical"
+                              />
+                            </>
+                          ),
                         }}
                       />
                     </Box>

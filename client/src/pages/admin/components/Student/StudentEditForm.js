@@ -39,7 +39,6 @@ const StudentEditForm = ({ data }) => {
   const [address, setAddress] = useState();
   const [city, setCity] = useState();
   const [province, setProvince] = useState();
-  const [email, setEmail] = useState();
   const [mobile, setMobile] = useState();
   const [telephone, setTelephone] = useState();
   const [father_firstName, setFather_firstName] = useState();
@@ -73,7 +72,6 @@ const StudentEditForm = ({ data }) => {
   const [addressError, setAddressError] = useState(false);
   const [cityError, setCityError] = useState(false);
   const [provinceError, setProvinceError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
   const [mobileError, setMobileError] = useState(false);
   const [telephoneError, setTelephoneError] = useState(false);
   const [father_firstNameError, setFather_firstNameError] = useState(false);
@@ -113,7 +111,6 @@ const StudentEditForm = ({ data }) => {
       setAddress(data.address);
       setCity(data.city);
       setProvince(data.province);
-      setEmail(data.email);
       setMobile(data.mobile);
       setTelephone(data.telephone);
       setFather_firstName(data.father_firstName);
@@ -156,7 +153,6 @@ const StudentEditForm = ({ data }) => {
       address,
       city,
       province,
-      email,
       mobile,
       telephone,
       father_firstName,
@@ -226,11 +222,6 @@ const StudentEditForm = ({ data }) => {
       setProvinceError(true);
     } else {
       setProvinceError(false);
-    }
-    if (!email) {
-      setEmailError(true);
-    } else {
-      setEmailError(false);
     }
     if (!mobile) {
       setMobileError(true);
@@ -330,7 +321,6 @@ const StudentEditForm = ({ data }) => {
       !addressError &&
       !cityError &&
       !provinceError &&
-      !emailError &&
       !mobileError &&
       !father_firstNameError &&
       !father_middleNameError &&
@@ -638,22 +628,13 @@ const StudentEditForm = ({ data }) => {
                   >
                     <TextField
                       required
-                      autoComplete="off"
-                      variant="outlined"
-                      label="Email"
-                      value={email}
-                      error={emailError}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                      }}
-                    />
-                    <TextField
-                      required
+                      name="country_code"
                       autoComplete="off"
                       variant="outlined"
                       label="Mobile Number"
                       error={mobileError}
                       value={mobile}
+                      pattern="[1-9]{1}[0-9]{9}"
                       onChange={(e) => {
                         setMobile(e.target.value);
                       }}

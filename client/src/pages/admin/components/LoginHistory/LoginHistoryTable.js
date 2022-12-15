@@ -37,9 +37,11 @@ function CustomToolbar() {
     <GridToolbarContainer>
       <GridToolbar
         printOptions={{
+          fields: ["imgURL", "username", "fullName", "userType", "createdAt"],
+        }}
+        csvOptions={{
           fields: ["username", "fullName", "userType", "createdAt"],
         }}
-        // csvOptions={{ fields: ["username", "firstName"] }}
       />
       {/* <GridToolbarExport */}
 
@@ -227,6 +229,7 @@ const LoginHistoryTable = () => {
       field: "_id",
       headerName: "Action",
       width: 150,
+      sortable: false,
       renderCell: (params) => {
         return (
           <ButtonBase
@@ -494,7 +497,8 @@ const LoginHistoryTable = () => {
                   firstName: true,
                   lastName: true,
                   middleName: true,
-                  email: true,
+                  fullName: false,
+                  _id: false,
                 },
               },
             }}

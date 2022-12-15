@@ -231,7 +231,14 @@ const StudentForm = () => {
           justifyContent="center"
         >
           <Box>
-            <Typography variant="h2" fontWeight={600}>
+            <Typography
+              variant="h2"
+              fontWeight={600}
+              sx={{
+                borderLeft: `5px solid ${colors.primary[900]}`,
+                paddingLeft: 2,
+              }}
+            >
               STUDENTS
             </Typography>
           </Box>

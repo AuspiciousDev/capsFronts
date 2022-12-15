@@ -181,7 +181,7 @@ const Register = () => {
     >
       <SuccessConfirmDialogue
         successConfirmDialog={successConfirmDialog}
-        setSuccessConfirmDialog={setSuccessDialog}
+        setSuccessConfirmDialog={setSuccessConfirmDialog}
       />
       <ErrorDialogue
         errorDialog={errorDialog}

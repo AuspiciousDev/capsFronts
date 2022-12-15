@@ -49,8 +49,10 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import ErrorDialogue from "./ErrorDialogue";
 import LoadingDialogue from "./LoadingDialogue";
 const Item = ({ title, to, icon, selected, setSelected }) => {
+  const location = useLocation();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  var subLocation = location.pathname;
   // console.log(to);
   // console.log("Sub1:", window.location.pathname);
   // console.log("Sub2:", window.location.pathname.substring(9));
@@ -72,9 +74,9 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 
     <MenuItem
       active={
-        window.location.pathname === "/teacher"
-          ? window.location.pathname.slice(0, 1) === to
-          : window.location.pathname.substring(9) === to
+        subLocation === "/teacher"
+          ? subLocation.slice(0, 1) === to
+          : subLocation.substring(9) === to
       }
       style={{
         color: colors.black[100],
