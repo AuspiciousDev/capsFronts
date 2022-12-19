@@ -821,7 +821,7 @@ const FacultyProfile = (props) => {
                       textTransform="capitalize"
                       fontWeight="bold"
                     >
-                      {val?.mobile}
+                      {val?.mobile && "09" + val?.mobile}
                     </Typography>
                   </Box>
                 </Box>
@@ -866,7 +866,7 @@ const FacultyProfile = (props) => {
                       textTransform="capitalize"
                       fontWeight="bold"
                     >
-                      {val?.emergencyNumber}{" "}
+                      {val?.emergencyNumber && "09" + val?.emergencyNumber}
                     </Typography>
                   </Box>
                 </Box>

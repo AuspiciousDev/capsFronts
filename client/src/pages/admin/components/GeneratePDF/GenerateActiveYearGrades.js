@@ -368,7 +368,7 @@ const GenerateActiveYearGrades = (props) => {
           {!grade1 || !grade2 || !grade3 || !grade4 ? (
             "-"
           ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-            <Typography fontWeight="bold" variant="h6">
+            <Typography fontWeight="bold" variant="h6"  color="green">
               passed
             </Typography>
           ) : (

@@ -39,7 +39,7 @@ const PersistLogin = () => {
           minHeight="100vh"
           flexDirection="column"
         >
-          {/* <Loading /> */}
+          <Loading />
           {/* <Typography variant="h3">Loading...</Typography> */}
         </Box>
       ) : (

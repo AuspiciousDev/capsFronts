@@ -72,7 +72,6 @@ const StudentProfileEdit = (props) => {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("");
 
-  const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [telephone, setTelephone] = useState("");
 
@@ -80,7 +79,6 @@ const StudentProfileEdit = (props) => {
   const [emergencyRelationship, setEmergencyRelationship] = useState("");
   const [emergencyNumber, setEmergencyNumber] = useState("");
 
-  const [emailError, setEmailError] = useState(false);
   const [mobileError, setMobileError] = useState(false);
   const [telephoneError, setTelephoneError] = useState(false);
 
@@ -232,7 +230,6 @@ const StudentProfileEdit = (props) => {
     setAddress("");
     setCity("");
     setProvince("");
-    setEmail("");
     setMobile("");
     setTelephone("");
     setEmergencyName("");
@@ -313,7 +310,6 @@ const StudentProfileEdit = (props) => {
     setGender(val.gender);
     setCivilStatus(val.civilStatus);
     setProvince(val.province);
-    setEmail(val.email);
     setMobile(val.mobile);
     setTelephone(val.telephone);
     setEmergencyName(val.emergencyName);
@@ -338,7 +334,6 @@ const StudentProfileEdit = (props) => {
       address,
       city,
       province,
-      email,
       mobile,
       telephone,
       emergencyName,
@@ -381,9 +376,6 @@ const StudentProfileEdit = (props) => {
         console.log(error.response.data.message);
         if (error.response.data.message.includes("Student")) {
           setEmpIDError(true);
-        }
-        if (error.response.data.message.includes("Email")) {
-          setEmailError(true);
         }
         setErrorDialog({
           isOpen: true,
@@ -568,19 +560,6 @@ const StudentProfileEdit = (props) => {
                     }}
                   >
 
-                    <TextField
-                      required
-                      autoComplete="off"
-                      variant="outlined"
-                      label="Email"
-                      type="email"
-                      error={emailError}
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setEmailError(false);
-                      }}
-                    />
                   </Box>
                 </Box>
                 <Typography variant="h4">Personal Information</Typography>

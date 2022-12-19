@@ -32,7 +32,6 @@ const GradesCurrent = () => {
   const [getSubjects, setSubjects] = useState([]);
   const [isloading, setIsLoading] = useState(false);
 
-
   console.log(level, year, id);
   useEffect(() => {
     const getData = async () => {
@@ -266,7 +265,7 @@ const GradesCurrent = () => {
             !grade1 || !grade2 || !grade3 || !grade4 ? (
               "-"
             ) : (grade1 + grade2 + grade3 + grade4) / 4 >= 75 ? (
-              <Typography fontWeight="bold" variant="h6">
+              <Typography fontWeight="bold" variant="h6" color="green">
                 passed
               </Typography>
             ) : (

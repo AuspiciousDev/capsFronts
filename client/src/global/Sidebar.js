@@ -39,10 +39,11 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 
   // var subLocation = location.pathname.replace("/admin", "");
   var subLocation = location.pathname;
-  // console.log("Sidebar       : ", to);
+  console.log("Sidebar       : ", to);
   // console.log("Page          : ", subLocation);
   // console.log("Pageslice     : ", subLocation.slice(0, 1));
-  // console.log("Pagesub       : ", subLocation.substring(7));
+  console.log("Pagesub       : ", subLocation.substring(7));
+  console.log("Pagesub       : ", subLocation.substring(7).split("/")[0]);
   // console.log("Title         : ", title);
   return (
     // <MenuItem
@@ -58,12 +59,14 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
     //   <Typography>{title}</Typography>
     //   <Link to={to} />
     // </MenuItem>
-
+    // subLocation === "/admin"
+    // ? subLocation.slice(0, 1) === to
+    // : subLocation.substring(7) === to
     <MenuItem
       active={
         subLocation === "/admin"
           ? subLocation.slice(0, 1) === to
-          : subLocation.substring(7) === to
+          : subLocation.substring(7).split("/")[0] === to
       }
       style={{
         color: colors.black[100],

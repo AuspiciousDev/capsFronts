@@ -26,7 +26,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 const StudentForm = () => {
   const CHARACTER_LIMIT = 10;
   const STUDID_LIMIT = 12;
-  const isLetters = (str) => /^[A-Za-z]*$/.test(str);
+  const isLetters = (str) => /^[A-Za-z\s]*$/.test(str);
   const axiosPrivate = useAxiosPrivate();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);

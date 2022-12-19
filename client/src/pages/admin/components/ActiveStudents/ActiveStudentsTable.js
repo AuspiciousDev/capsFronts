@@ -455,7 +455,7 @@ const ActiveStudentsTable = () => {
                     color: colors.whiteOnly[100],
                     borderRadius: "20px",
                     alignItems: "center",
-                  }}
+                  }} 
                 >
                   <CheckCircle />
                   <Typography>ACTIVE</Typography>

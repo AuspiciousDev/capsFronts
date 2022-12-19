@@ -594,7 +594,7 @@ const EmployeeTable = () => {
       onConfirm: () => {
         setConfirmDialog({
           isOpen: true,
-          title: `Are you sure to delete employee ${params?.row?.username}`,
+          title: `Are you sure to delete employee ${params?.row?.empID}`,
           message: `This action is irreversible!`,
           onConfirm: () => {
             handleDelete({ val: params.row });
